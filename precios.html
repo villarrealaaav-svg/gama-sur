@@ -1,0 +1,1796 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<title>GamaSur — Gestor de Precios</title>
+<style>
+/* ═══════════════════════════════════════════════
+   VARIABLES Y RESET
+═══════════════════════════════════════════════ */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface2: #f0f4f8;
+  --border: #e2e8f0;
+  --border2: #cbd5e1;
+  --text: #1e293b;
+  --text2: #64748b;
+  --text3: #94a3b8;
+  --accent: #0ea5e9;
+  --accent-dark: #0284c7;
+  --accent-bg: #e0f2fe;
+  --green: #059669;
+  --green-bg: #d1fae5;
+  --red: #dc2626;
+  --red-bg: #fee2e2;
+  --amber: #d97706;
+  --amber-bg: #fef3c7;
+  --shadow: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.10);
+  --radius: 8px;
+  --radius-sm: 5px;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+[data-theme="dark"] {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #263347;
+  --border: #334155;
+  --border2: #475569;
+  --text: #f1f5f9;
+  --text2: #94a3b8;
+  --text3: #64748b;
+  --accent: #38bdf8;
+  --accent-dark: #0ea5e9;
+  --accent-bg: #0c4a6e;
+  --green: #34d399;
+  --green-bg: #064e3b;
+  --red: #f87171;
+  --red-bg: #450a0a;
+  --amber: #fbbf24;
+  --amber-bg: #451a03;
+  --shadow: 0 1px 3px rgba(0,0,0,.4);
+  --shadow-md: 0 4px 12px rgba(0,0,0,.4);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh;transition:background .2s,color .2s}
+button{font-family:var(--font);cursor:pointer;border:none;outline:none;transition:all .15s}
+input,select,textarea{font-family:var(--font);outline:none;border:none}
+a{color:var(--accent);text-decoration:none}
+/* ═══════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════ */
+.app{display:flex;flex-direction:column;min-height:100vh}
+.container{max-width:1400px;margin:0 auto;padding:0 16px;width:100%}
+/* ═══════════════════════════════════════════════
+   HEADER
+═══════════════════════════════════════════════ */
+#header{background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:100;padding:0}
+.header-inner{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.logo-area{display:flex;align-items:center;gap:10px;min-width:0}
+/* Logo editable */
+.logo-box{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0;cursor:pointer;overflow:hidden;position:relative}
+.logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:var(--radius)}
+.cot-logo-wrap{display:flex;align-items:center;gap:10px}
+.cot-logo-box{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative}
+.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:6px}
+.logo-img,.cot-logo-img{width:100%;height:100%;object-fit:contain}
+.logo-text{min-width:0}
+.sys-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;cursor:pointer}
+.sys-sub{font-size:11px;color:var(--text2);white-space:nowrap}
+.header-meta{display:flex;align-items:center;gap:16px;color:var(--text2);font-size:12px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:4px}
+.meta-item span{cursor:pointer;border-bottom:1px dashed var(--border2)}
+.meta-item span:hover{color:var(--accent)}
+.header-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap}
+/* ═══════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════ */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:var(--radius-sm);font-size:12.5px;font-weight:500;white-space:nowrap}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-dark)}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{filter:brightness(1.1)}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--surface2);color:var(--text)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-icon{padding:7px;border-radius:var(--radius-sm);background:transparent;color:var(--text2);border:1px solid var(--border)}
+.btn-icon:hover{background:var(--surface2);color:var(--text)}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{filter:brightness(1.1)}
+.btn-save{background:linear-gradient(135deg,#059669,#0284c7);color:#fff;font-weight:600}
+.btn-save:hover{filter:brightness(1.08)}
+/* ═══════════════════════════════════════════════
+   STATS BAR
+═══════════════════════════════════════════════ */
+#statsbar{background:var(--surface);border-bottom:1px solid var(--border);padding:8px 0}
+.stats-inner{display:flex;align-items:center;gap:20px;flex-wrap:wrap;padding:0 16px}
+.stat-item{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2)}
+.stat-badge{background:var(--accent-bg);color:var(--accent);border-radius:20px;padding:2px 8px;font-size:11px;font-weight:700}
+.stat-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+/* ═══════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════ */
+#tabs{background:var(--surface);border-bottom:2px solid var(--border)}
+.tabs-inner{display:flex;gap:0;padding:0 16px}
+.tab-btn{padding:12px 20px;font-size:13px;font-weight:500;color:var(--text2);background:transparent;border-bottom:2px solid transparent;margin-bottom:-2px;display:flex;align-items:center;gap:6px;transition:all .15s}
+.tab-btn:hover{color:var(--accent)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-btn.brand-IMPAC.active{color:#92400e;border-bottom-color:#d97706}
+.tab-btn.brand-FANOSA.active{color:#065f46;border-bottom-color:#059669}
+.tab-btn.brand-NOVIDESA.active{color:#5b21b6;border-bottom-color:#7c3aed}
+.tab-btn.brand-KEMIX.active{color:#9d174d;border-bottom-color:#be185d}
+[data-theme="dark"] .tab-btn.brand-IMPAC.active{color:#fbbf24;border-bottom-color:#d97706}
+[data-theme="dark"] .tab-btn.brand-FANOSA.active{color:#34d399;border-bottom-color:#059669}
+[data-theme="dark"] .tab-btn.brand-NOVIDESA.active{color:#a78bfa;border-bottom-color:#7c3aed}
+[data-theme="dark"] .tab-btn.brand-KEMIX.active{color:#f9a8d4;border-bottom-color:#be185d}
+.tab-count{background:var(--accent-bg);color:var(--accent);border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700}
+/* ═══════════════════════════════════════════════
+   MAIN CONTENT
+═══════════════════════════════════════════════ */
+.tab-panel{display:none;padding:16px 0;flex:1}
+.tab-panel.active{display:block}
+/* ═══════════════════════════════════════════════
+   TOOLBAR / FILTROS
+═══════════════════════════════════════════════ */
+.toolbar{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;padding:0 16px}
+.search-wrap{position:relative;flex:1;min-width:180px;max-width:360px}
+.search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);pointer-events:none}
+.search-input{width:100%;padding:8px 12px 8px 32px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px}
+.search-input:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.filter-select{padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;min-width:130px}
+.filter-select:focus{border-color:var(--accent)}
+/* ═══════════════════════════════════════════════
+   TABLE
+═══════════════════════════════════════════════ */
+.table-wrap{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);overflow:auto;box-shadow:var(--shadow);margin:0 16px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{position:sticky;top:0;z-index:2}
+thead th{background:var(--surface2);padding:10px 12px;text-align:left;font-size:11.5px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;border-bottom:1px solid var(--border)}
+thead th:first-child{border-radius:var(--radius) 0 0 0}
+thead th:last-child{border-radius:0 var(--radius) 0 0}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--surface2)}
+tbody td{padding:9px 12px;vertical-align:middle}
+.col-clave{font-size:11.5px;color:var(--text2);font-family:monospace;white-space:nowrap;font-weight:600}
+.col-desc{max-width:280px;line-height:1.3}
+.col-desc small{display:block;font-size:11px;color:var(--text3);margin-top:1px}
+.col-price{font-weight:600;color:var(--green);font-size:13px;white-space:nowrap}
+.col-price.compra{color:var(--text2);font-weight:500}
+.col-unit{font-size:11.5px;background:var(--surface2);border-radius:3px;padding:2px 6px;display:inline-block}
+.badge-marca{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:600;white-space:nowrap}
+.badge-IMPAC{background:#fef3c7;color:#92400e}
+.badge-FANOSA{background:#d1fae5;color:#065f46}
+.badge-NOVIDESA{background:#ede9fe;color:#5b21b6}
+.badge-KEMIX{background:#fce7f3;color:#9d174d}
+[data-theme="dark"] .badge-IMPAC{background:#451a03;color:#fbbf24}
+[data-theme="dark"] .badge-FANOSA{background:#064e3b;color:#34d399}
+[data-theme="dark"] .badge-NOVIDESA{background:#2e1065;color:#a78bfa}
+[data-theme="dark"] .badge-KEMIX{background:#500724;color:#f9a8d4}
+.badge-cat{font-size:11px;padding:2px 7px;border-radius:20px;background:var(--accent-bg);color:var(--accent);white-space:nowrap}
+.no-price{color:var(--text3);font-style:italic;font-size:11.5px}
+.obs-text{font-size:11px;color:var(--text3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* row actions */
+.row-actions{display:flex;gap:4px;opacity:0;transition:opacity .15s}
+tr:hover .row-actions{opacity:1}
+.row-btn{padding:3px 8px;border-radius:3px;font-size:11px;background:var(--accent-bg);color:var(--accent);cursor:pointer;border:none}
+.row-btn:hover{background:var(--accent);color:#fff}
+.row-btn.del{background:var(--red-bg);color:var(--red)}
+.row-btn.del:hover{background:var(--red);color:#fff}
+/* ═══════════════════════════════════════════════
+   COLUMN TOGGLER
+═══════════════════════════════════════════════ */
+.col-panel{position:relative;display:inline-block}
+.col-dropdown{position:absolute;top:calc(100% + 4px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 0;min-width:200px;box-shadow:var(--shadow-md);z-index:200;display:none}
+.col-dropdown.open{display:block}
+.col-item{padding:6px 14px;display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
+.col-item:hover{background:var(--surface2)}
+.col-item input[type=checkbox]{accent-color:var(--accent);width:14px;height:14px}
+/* ═══════════════════════════════════════════════
+   COTIZADOR — BÚSQUEDA
+═══════════════════════════════════════════════ */
+.cot-search-wrap{position:relative;max-width:400px;margin-bottom:10px}
+.cot-search-wrap svg{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.cot-search{width:100%;padding:9px 12px 9px 32px;background:var(--surface);border:1.5px solid var(--accent);border-radius:var(--radius-sm);color:var(--text);font-size:13px}
+.cot-search:focus{box-shadow:0 0 0 2px var(--accent-bg)}
+.cot-suggestions{position:absolute;top:calc(100% + 2px);left:0;right:0;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);max-height:250px;overflow-y:auto;box-shadow:var(--shadow-md);z-index:200;display:none}
+.cot-suggestions.open{display:block}
+.sug-item{padding:8px 12px;cursor:pointer;font-size:12.5px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.sug-item:last-child{border-bottom:none}
+.sug-item:hover{background:var(--surface2)}
+.sug-clave{font-size:11px;color:var(--text3);font-family:monospace;min-width:80px}
+.sug-precio{color:var(--green);font-weight:600;font-size:12px;margin-left:auto;white-space:nowrap}
+.toggle-sw{position:relative;width:38px;height:20px;display:inline-block}
+.toggle-sw input{opacity:0;width:0;height:0}
+.toggle-sw .slider{position:absolute;inset:0;background:var(--border2);border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-sw .slider:before{content:'';position:absolute;width:14px;height:14px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:.2s}
+.toggle-sw input:checked + .slider{background:var(--accent)}
+.toggle-sw input:checked + .slider:before{transform:translateX(18px)}
+/* ═══════════════════════════════════════════════
+   MODAL / OVERLAY
+═══════════════════════════════════════════════ */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:500;display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius);padding:24px;max-width:520px;width:100%;box-shadow:var(--shadow-md);max-height:90vh;overflow-y:auto}
+.modal h3{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-field{display:flex;flex-direction:column;gap:4px}
+.form-field label{font-size:11.5px;font-weight:600;color:var(--text2);text-transform:uppercase}
+.form-field input,.form-field select,.form-field textarea{padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:13px}
+.form-field input:focus,.form-field select:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-bg)}
+.form-field.full{grid-column:1/-1}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+/* ═══════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════ */
+#toast{position:fixed;bottom:20px;right:20px;z-index:1000;display:flex;flex-direction:column;gap:6px}
+.toast-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 16px;font-size:13px;box-shadow:var(--shadow-md);display:flex;align-items:center;gap:8px;min-width:220px;animation:slideIn .2s ease}
+.toast-item.success{border-left:3px solid var(--green)}
+.toast-item.error{border-left:3px solid var(--red)}
+.toast-item.info{border-left:3px solid var(--accent)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+/* ═══════════════════════════════════════════════
+   PAGINATION
+═══════════════════════════════════════════════ */
+.pager{display:flex;align-items:center;gap:6px;padding:10px 16px;font-size:12.5px;color:var(--text2)}
+.pager-btn{padding:4px 10px;border-radius:4px;background:var(--surface);border:1px solid var(--border);cursor:pointer;font-size:12px;color:var(--text2)}
+.pager-btn:hover{background:var(--surface2)}
+.pager-btn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.pager-info{margin-left:auto;font-size:12px;color:var(--text3)}
+/* ═══════════════════════════════════════════════
+   COTIZADOR PROFESIONAL — DOCUMENTO
+═══════════════════════════════════════════════ */
+.cot-actions{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;position:sticky;top:0;z-index:50}
+.cot-actions .cot-search-wrap{flex:1;min-width:180px;max-width:340px;margin-bottom:0}
+.cot-doc-outer{padding:16px;background:var(--bg)}
+.cot-doc{background:#fff;color:#1e293b;border-radius:10px;box-shadow:0 2px 24px rgba(0,0,0,.10),0 1px 4px rgba(0,0,0,.06);max-width:860px;margin:0 auto;overflow:visible;font-family:'Segoe UI',system-ui,sans-serif}
+[data-theme="dark"] .cot-doc{box-shadow:0 2px 24px rgba(0,0,0,.45)}
+.cot-doc-head{background:linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);color:#fff;padding:20px 24px;display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:10px 10px 0 0}
+.cot-co-name{font-size:18px;font-weight:800;letter-spacing:-.3px;margin-bottom:2px}
+.cot-co-meta{font-size:12px;opacity:.85;display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.cot-co-meta span{display:flex;align-items:center;gap:4px}
+.cot-quote-box{text-align:right}
+.cot-quote-date{font-size:11.5px;opacity:.8;margin-top:2px}
+.cot-quote-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:2px}
+.cot-editable{background:rgba(255,255,255,.12);border:1px dashed rgba(255,255,255,.4);border-radius:3px;padding:1px 5px;cursor:text;transition:background .15s;min-width:40px;display:inline-block}
+.cot-editable:hover{background:rgba(255,255,255,.2)}
+.cot-editable:focus{background:rgba(255,255,255,.25);outline:none;border-style:solid}
+.cot-num-input{background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.5);border-radius:3px;padding:2px 8px;color:#fff;font:inherit;font-size:20px;font-weight:800;font-family:monospace;width:150px;text-align:right}
+.cot-num-input:focus{background:rgba(255,255,255,.25);outline:none;border-style:solid}
+.cot-logo-wrap{display:flex;align-items:center;gap:10px}
+.cot-logo-box{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative}
+.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:6px}
+.cot-logo-img{width:100%;height:100%;object-fit:contain}
+.cot-client-strip{background:#f0f6ff;border-bottom:2px solid #2563eb;padding:14px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+@media screen and (max-width:600px){.cot-client-strip{grid-template-columns:1fr}}
+.cot-cf{display:flex;flex-direction:column;gap:2px}
+.cot-cf-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b}
+.cot-cf-val{font-size:13px;color:#1e293b;border-bottom:1px solid #cbd5e1;padding:3px 0;min-height:22px}
+.cot-cf-val input{width:100%;border:none;background:transparent;font:inherit;color:inherit;padding:0;outline:none}
+.cot-cf-val input::placeholder{color:#94a3b8}
+.cot-items{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.cot-items table{width:100%;border-collapse:collapse;font-size:12.5px;table-layout:auto}
+.cot-items thead th{background:#1e3a5f;color:#fff;padding:9px 10px;text-align:left;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cot-items thead th:last-child{text-align:right}
+.cot-items tbody tr{border-bottom:1px solid #e2e8f0}
+.cot-items tbody tr:nth-child(even){background:#fafbff}
+.cot-items tbody tr:hover{background:#eef3ff}
+.cot-items tbody td{padding:8px 10px;color:#1e293b;vertical-align:middle}
+.cot-items .td-num{color:#94a3b8;font-size:11px}
+.cot-items .td-clave{font-family:monospace;font-size:11px;color:#475569}
+.cot-items .td-sub{text-align:right;font-weight:600;color:#0d6efd}
+.qty-cell input{width:56px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:center;background:#f8faff}
+.qty-cell input:focus{border-color:#2563eb;outline:none}
+.price-cell input{width:80px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:right;background:#f8faff}
+.price-cell input:focus{border-color:#2563eb;outline:none}
+.del-cell button{background:none;border:none;color:#94a3b8;cursor:pointer;padding:3px 6px;border-radius:3px;font-size:13px;line-height:1}
+.del-cell button:hover{background:#fee2e2;color:#dc2626}
+.cot-empty-msg{padding:30px;text-align:center;color:#94a3b8;font-style:italic;background:#fafbfc}
+.cot-notes-section label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b;display:block;margin-bottom:4px}
+.cot-notes-section textarea{width:100%;border:1px solid #cbd5e1;border-radius:4px;padding:6px 8px;font:inherit;font-size:12px;color:#1e293b;resize:none;background:#fafbfc;height:80px}
+.cot-notes-section textarea:focus{border-color:#2563eb;outline:none}
+.cot-totals-table{min-width:260px;font-size:13px}
+.cot-totals-table tr td{padding:5px 0}
+.cot-totals-table .t-label{color:#64748b;padding-right:16px}
+.cot-totals-table .t-val{text-align:right;font-weight:600;color:#1e293b;white-space:nowrap}
+.cot-totals-table .t-total td{border-top:2px solid #1e3a5f;padding-top:10px;font-size:16px;font-weight:800}
+.cot-totals-table .t-total .t-label{color:#1e3a5f}
+.cot-totals-table .t-total .t-val{color:#2563eb;font-size:17px}
+.cot-entrega-row td{color:#059669!important}
+.cot-toggle-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;margin-bottom:4px}
+.delivery-input{width:100px;padding:3px 7px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;font-size:13px;text-align:right;background:#f0fdf4}
+.delivery-input:focus{border-color:#059669;outline:none}
+.cot-doc-footer{background:#f8faff;border-top:1px solid #e2e8f0;padding:12px 24px;font-size:11px;color:#64748b;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0 0 10px 10px}
+.cot-totals-wrap{display:grid;grid-template-columns:1fr auto;padding:16px 24px;gap:16px;border-top:1px solid #e2e8f0;align-items:start}
+/* ═══════════════════════════════════════════════
+   PRINT — SOLO PESTAÑA ACTIVA · 1:1 con la vista
+   Principios:
+   · @page fija el área de impresión
+   · Solo se muestra el panel con data-printing
+   · Colores forzados con print-color-adjust:exact
+   · Sin transitions, sin sticky, sin overflow:hidden
+   · Mobile CSS ya NO sangra aquí (usa screen and)
+═══════════════════════════════════════════════ */
+@media print {
+
+  /* ── 0. Color adjust global — PRIMERO ── */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    transition: none !important;
+    animation: none !important;
+  }
+
+  /* ── 1. Página ── */
+  @page {
+    size: A4 portrait;
+    margin: 14mm 15mm 14mm 15mm;
+  }
+
+  /* ── 2. Reset base ── */
+  html, body {
+    background: #fff !important;
+    color: #1e293b !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-size: 10pt !important;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
+  }
+  .app { min-height: unset !important; }
+
+  /* ── 3. Ocultar chrome de la app ── */
+  #header, #statsbar, #tabs, .toolbar, .header-actions, .pager,
+  .btn-save, .row-actions, .cot-actions, .no-print, #toast,
+  .overlay, .del-cell, .cot-toggle-row { display: none !important; }
+
+  /* ── 4. Posicionamiento — reset sticky/fixed ── */
+  thead { position: static !important; z-index: auto !important; }
+
+  /* ── 5. Mostrar SOLO la pestaña activa ── */
+  .tab-panel { display: none !important; }
+  body[data-printing="db"]  #panel-db  { display: block !important; }
+  body[data-printing="cot"] #panel-cot { display: block !important; }
+
+  /* ══════════════ PANEL: BASE DE DATOS ══════════════ */
+  #panel-db { padding: 0 !important; }
+  #panel-db .container { padding: 0 !important; max-width: 100% !important; }
+  #panel-db .table-wrap {
+    overflow: visible !important;
+    box-shadow: none !important;
+    border: 1px solid #c0c8d4 !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+  }
+  #panel-db table { font-size: 8pt !important; width: 100% !important; }
+  #panel-db thead th {
+    background: #1e3a5f !important; color: #fff !important;
+    padding: 5px 7px !important; font-size: 7pt !important;
+    border-bottom: none !important;
+  }
+  #panel-db tbody td { padding: 4px 7px !important; font-size: 8pt !important; }
+  #panel-db tbody tr { page-break-inside: avoid; break-inside: avoid; }
+  #panel-db .badge-cat, #panel-db .badge-marca { font-size: 7pt !important; padding: 1px 4px !important; }
+
+  /* ══════════════ PANEL: COTIZADOR ══════════════ */
+  #panel-cot { padding: 0 !important; }
+  .cot-doc-outer { padding: 0 !important; background: #fff !important; margin: 0 !important; }
+
+  /* Documento principal — sin overflow, sin sombra, ancho completo */
+  .cot-doc {
+    box-shadow: none !important; border-radius: 0 !important;
+    max-width: 100% !important; width: 100% !important;
+    overflow: visible !important; margin: 0 !important;
+    color: #1e293b !important;
+  }
+
+  /* Encabezado con gradiente — mantener colores corporativos */
+  .cot-doc-head {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 100%) !important;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;   /* igual que pantalla desktop */
+    gap: 12px !important;
+    align-items: center !important;
+    padding: 14px 18px !important;
+    overflow: visible !important;
+    page-break-inside: avoid; break-inside: avoid;
+  }
+  .cot-logo-wrap { display: flex !important; align-items: center !important; gap: 10px !important; }
+  .cot-logo-box  { overflow: visible !important; }
+  .cot-logo-img  { max-height: 46px !important; }
+  .cot-co-name   { font-size: 13pt !important; color: #fff !important; font-weight: 800 !important; }
+  .cot-co-meta   { font-size: 8pt  !important; color: rgba(255,255,255,.9) !important; flex-wrap: wrap !important; }
+  .cot-quote-box { text-align: right !important; }
+  .cot-quote-label { font-size: 7pt !important; color: rgba(255,255,255,.8) !important; }
+  .cot-quote-date  { font-size: 8pt  !important; color: rgba(255,255,255,.8) !important; }
+
+  /* Campos editables — quitar apariencia de edición */
+  .cot-editable, [contenteditable] {
+    border: none !important; background: transparent !important;
+    padding: 0 !important; cursor: default !important; outline: none !important;
+    -webkit-user-modify: read-only !important;
+  }
+  .cot-num-input {
+    border: none !important; background: transparent !important;
+    color: #fff !important; padding: 0 !important;
+    font-size: 14pt !important; width: auto !important; font-weight: 800 !important;
+  }
+
+  /* Franja cliente — grid 2 columnas igual que pantalla */
+  .cot-client-strip {
+    background: #f0f6ff !important;
+    border-bottom: 2px solid #2563eb !important;
+    padding: 10px 18px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;  /* igual que pantalla */
+    gap: 8px !important;
+    page-break-inside: avoid; break-inside: avoid;
+  }
+  .cot-cf-lbl  { font-size: 7pt  !important; color: #64748b !important; }
+  .cot-cf-val  { font-size: 9.5pt !important; color: #1e293b !important; border-bottom: 1px solid #e2e8f0 !important; }
+  .cot-cf-val input {
+    border: none !important; background: transparent !important;
+    font-size: 9.5pt !important; width: 100% !important; padding: 0 !important;
+  }
+
+  /* Tabla de materiales */
+  .cot-items { overflow: visible !important; }
+  .cot-items table {
+    font-size: 9pt !important; min-width: unset !important;
+    width: 100% !important; table-layout: auto !important;
+  }
+  .cot-items thead th {
+    background: #1e3a5f !important; color: #fff !important;
+    padding: 6px 8px !important; font-size: 8pt !important;
+  }
+  .cot-items tbody td { padding: 5px 8px !important; font-size: 9pt !important; }
+  .cot-items tbody tr:nth-child(even) { background: #f8faff !important; }
+  .cot-items tbody tr { page-break-inside: avoid; break-inside: avoid; }
+
+  /* Inputs en la tabla — limpiar apariencia */
+  .qty-cell input, .price-cell input {
+    border: none !important; background: transparent !important;
+    text-align: inherit !important; padding: 0 !important; width: auto !important;
+  }
+
+  /* Totales + notas — grid 2 columnas igual que pantalla */
+  .cot-totals-wrap {
+    page-break-inside: avoid; break-inside: avoid;
+    display: grid !important;
+    grid-template-columns: 1fr auto !important;   /* igual que pantalla */
+    padding: 12px 18px !important; gap: 16px !important;
+    border-top: 1px solid #e2e8f0 !important;
+  }
+  .cot-notes-section textarea {
+    border: none !important; background: transparent !important;
+    resize: none !important; overflow: visible !important;
+    height: auto !important; font-size: 8pt !important; white-space: pre-wrap !important;
+  }
+  .cot-totals-table { font-size: 10pt !important; min-width: 220px !important; }
+  .cot-totals-table tr td  { padding: 4px 0 !important; }
+  .cot-totals-table .t-total td   { font-size: 12pt !important; }
+  .cot-totals-table .t-total .t-val { font-size: 13pt !important; color: #2563eb !important; }
+
+  /* Entrega — mostrar solo el valor calculado, ocultar el input de edición */
+  .delivery-input { display: none !important; }
+  /* Ocultar la fila de entrega si está desactivada */
+  #cot-entrega-row[data-entrega-on="0"] { display: none !important; }
+
+  /* ══════ FIRMA / PIE ══════ */
+  .cot-doc-firma { overflow: visible !important; padding: 14px 18px 10px !important; page-break-inside: avoid; break-inside: avoid; }
+  .cot-watermark { color: rgba(37,99,235,.07) !important; font-size: 64px !important; }
+  .cot-firma-addwrap { display: none !important; }
+  .cot-firma-img { display: block !important; max-height: 52px !important; }
+  .cot-firma-label { font-size: 7.5pt !important; color: #2563eb !important; }
+  .cot-firma-name { font-size: 8.5pt !important; }
+  .cot-firma-role, .cot-firma-contact { font-size: 7.5pt !important; }
+  .cot-firma-disclaimer { font-size: 7pt !important; }
+  /* Footer barra oscura */
+  .cot-footer-bar {
+    background: #1e3a5f !important; color: #fff !important;
+    border-radius: 0 !important; padding: 7px 18px !important;
+    -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+  }
+  .cot-footer-contacts { font-size: 7.5pt !important; gap: 12px !important; opacity: .9 !important; }
+  .cot-footer-slogan { font-size: 8pt !important; }
+}
+.print-header{display:none}
+/* ═══════════════════════════════════════════════
+   RESPONSIVE — MOBILE
+═══════════════════════════════════════════════ */
+.table-wrap,.cot-table-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media screen and (max-width:768px){
+  .header-meta{display:none}
+  .header-inner{gap:8px;padding:8px 10px}
+  .sys-name{font-size:13px}
+  .logo-box{width:34px;height:34px;font-size:14px}
+  .btn span{display:none}
+  .btn{padding:7px 8px}
+  .btn-save{padding:6px 10px;font-size:11px}
+  .btn-save span{display:inline}
+  .tabs-inner{overflow-x:auto;-webkit-overflow-scrolling:touch;flex-wrap:nowrap;padding:0 8px;scrollbar-width:none}
+  .tabs-inner::-webkit-scrollbar{display:none}
+  .tab-btn{font-size:11.5px;padding:10px 10px;white-space:nowrap}
+  .tab-count{display:none}
+  .stats-inner{gap:8px;font-size:11.5px;padding:0 10px}
+  .toolbar{gap:6px;padding:8px 10px}
+  .search-wrap{min-width:130px}
+  .filter-select{min-width:90px;font-size:12px;padding:6px 6px}
+  thead th{padding:7px 7px;font-size:10.5px}
+  tbody td{padding:6px 7px;font-size:12px}
+  .col-desc{max-width:150px}
+  .badge-cat,.badge-marca{font-size:10px;padding:1px 5px}
+  .col-price{font-size:12px}
+  /* Cotizador mobile */
+  .cot-actions{padding:8px 10px;gap:6px;flex-wrap:wrap}
+  .cot-doc-outer{padding:6px}
+  .cot-doc{border-radius:6px}
+  .cot-doc-head{padding:14px 14px;grid-template-columns:1fr;gap:8px}
+  .cot-quote-box{text-align:left}
+  .cot-co-name{font-size:15px}
+  .cot-co-meta{font-size:11px;gap:6px}
+  .cot-num-input{width:120px;font-size:16px}
+  .cot-client-strip{padding:10px 14px;grid-template-columns:1fr}
+  .cot-items table{font-size:11px}
+  .cot-items thead th{padding:6px 7px;font-size:9.5px}
+  .cot-items tbody td{padding:6px 7px;font-size:11px}
+  .cot-totals-wrap{padding:12px 14px;grid-template-columns:1fr;gap:12px}
+  .cot-totals-table{width:100%}
+  .cot-notes-section textarea{height:60px}
+  .cot-doc-footer{padding:8px 14px;font-size:10.5px}
+  .qty-cell input{width:46px}
+  .price-cell input{width:68px}
+  .modal-grid{grid-template-columns:1fr}
+  .pager{flex-wrap:wrap;gap:4px;padding:8px 10px}
+}
+@media screen and (max-width:480px){
+  .cot-doc-head{padding:12px}
+  .cot-co-name{font-size:13px}
+  .stat-item:nth-child(n+3){display:none}
+  .col-clave{font-size:10.5px}
+}
+/* ═══════════════════════════════════════════════
+   MISC UTILS
+═══════════════════════════════════════════════ */
+.flex{display:flex}.gap-8{gap:8px}.items-center{align-items:center}
+.divider{width:1px;height:20px;background:var(--border);flex-shrink:0}
+.text-muted{color:var(--text2)}.text-small{font-size:12px}
+.hidden{display:none!important}
+.cot-empty-row td{padding:30px;text-align:center;color:var(--text3);font-style:italic}
+/* ═══════════════════════════════════════════════
+   FIRMA / PIE DE COTIZACIÓN
+═══════════════════════════════════════════════ */
+.cot-doc-firma{position:relative;overflow:hidden;padding:20px 24px 16px;border-top:1px solid #e2e8f0}
+.cot-watermark{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-25deg);font-size:80px;font-weight:900;color:rgba(37,99,235,.07);letter-spacing:10px;pointer-events:none;white-space:nowrap;z-index:0;user-select:none;font-family:'Segoe UI',sans-serif;text-transform:uppercase}
+.cot-firma-cols{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;position:relative;z-index:1}
+.cot-firma-col{padding:0 28px;text-align:center}
+.cot-firma-col:first-child{padding-left:0}
+.cot-firma-col:last-child{padding-right:0}
+.cot-firma-sep{background:#e2e8f0}
+.cot-firma-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#2563eb;margin-bottom:10px}
+.cot-firma-addwrap{margin-bottom:6px}
+.cot-firma-btn{background:none;border:1.5px dashed #93c5fd;color:#3b82f6;border-radius:4px;padding:4px 14px;font-size:11px;cursor:pointer;transition:all .15s;font-family:var(--font)}
+.cot-firma-btn:hover{background:#eff6ff;border-color:#2563eb;color:#1d4ed8}
+.cot-firma-img{max-width:160px;max-height:58px;object-fit:contain;display:block;margin:0 auto 4px}
+.cot-firma-line{border:none;border-bottom:1.5px solid #1e3a5f;margin:10px 20px 8px}
+.cot-firma-name{font-size:12px;font-weight:700;color:#1e293b;text-transform:uppercase;letter-spacing:.02em}
+.cot-firma-role{font-size:11px;color:#64748b;margin-top:2px}
+.cot-firma-contact{font-size:10.5px;color:#2563eb;margin-top:2px}
+.cot-firma-disclaimer{text-align:center;font-size:10px;color:#94a3b8;margin-top:14px;padding-top:10px;border-top:1px solid #f1f5f9;position:relative;z-index:1}
+/* Footer barra oscura */
+.cot-footer-bar{background:#1e3a5f;color:#fff;padding:10px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;border-radius:0 0 10px 10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.cot-footer-contacts{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:11px;opacity:.9}
+.cot-footer-contacts span{display:flex;align-items:center;gap:5px}
+.cot-footer-slogan{font-size:11.5px;font-style:italic;opacity:.85;font-weight:400;text-align:right;letter-spacing:.01em}
+@media screen and (max-width:600px){
+  .cot-firma-cols{grid-template-columns:1fr;gap:20px}
+  .cot-firma-sep{display:none}
+  .cot-footer-bar{flex-direction:column;align-items:flex-start}
+  .cot-footer-slogan{text-align:left}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ HEADER ═══ -->
+<header id="header">
+  <div class="header-inner container">
+    <div class="logo-area">
+      <div class="logo-box" id="logoBox" onclick="triggerLogoUpload()" title="Click para cambiar logo">
+        <img id="logoImg" class="logo-img" style="display:none" alt="Logo">
+        <span id="logoText">GS</span>
+      </div>
+      <input type="file" id="logoFileInput" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleLogoUpload(this)">
+      <div class="logo-text">
+        <div class="sys-name" id="sysName" title="Click para editar">GamaSur — Materiales de Construcción</div>
+        <div class="sys-sub" id="sysSub">Gestor de Precios y Cotizador Rápido</div>
+      </div>
+    </div>
+    <div class="header-meta" id="headerMeta">
+      <div class="meta-item">📍 <span id="metaCiudad" title="Click para editar">Villahermosa, Tab.</span></div>
+      <div class="divider"></div>
+      <div class="meta-item">📅 Vigencia: <span id="metaVigencia" title="Click para editar">Mayo 2026</span></div>
+      <div class="divider"></div>
+      <div class="meta-item">⏰ <span id="metaUpdate"></span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-ghost btn-sm" onclick="resetData()" title="Restablecer datos originales">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1,4 1,10 7,10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+        <span>Resetear</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="openImport()" title="Importar JSON">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <span>Importar</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="exportJSON()" title="Exportar JSON">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>Exportar</span>
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="printPage()" title="Imprimir/PDF">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        <span>Imprimir</span>
+      </button>
+      <button class="btn-icon" onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">🌙</button>
+      <button class="btn btn-save" onclick="saveHTML()" title="Descargar HTML actualizado">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        <span>Guardar HTML</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ STATS BAR ═══ -->
+<div id="statsbar">
+  <div class="stats-inner container">
+    <div class="stat-item"><span class="stat-dot" style="background:var(--accent)"></span> <span id="statTotal">0</span> productos</div>
+    <div class="stat-item">🏭 <span id="statMarcas">0</span> marcas</div>
+    <div class="stat-item">📦 <span id="statCats">0</span> categorías</div>
+    <div class="stat-item" id="statFiltered" style="display:none">🔍 <span id="statFilteredN">0</span> resultados</div>
+    <div style="margin-left:auto" class="stat-item">
+      <button class="btn btn-primary btn-sm" onclick="openAddModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Agregar producto
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TABS ═══ -->
+<div id="tabs">
+  <div class="tabs-inner container" style="overflow-x:auto;gap:0">
+    <button class="tab-btn active" onclick="switchTab('general')" id="tab-general">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      General
+      <span class="tab-count" id="dbCount">0</span>
+    </button>
+    <button class="tab-btn brand-IMPAC" onclick="switchTab('IMPAC')" id="tab-IMPAC">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#d97706;margin-right:2px"></span>
+      IMPAC
+      <span class="tab-count" id="cnt-IMPAC" style="background:#fef3c7;color:#92400e">0</span>
+    </button>
+    <button class="tab-btn brand-FANOSA" onclick="switchTab('FANOSA')" id="tab-FANOSA">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#059669;margin-right:2px"></span>
+      FANOSA
+      <span class="tab-count" id="cnt-FANOSA" style="background:#d1fae5;color:#065f46">0</span>
+    </button>
+    <button class="tab-btn brand-NOVIDESA" onclick="switchTab('NOVIDESA')" id="tab-NOVIDESA">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#7c3aed;margin-right:2px"></span>
+      NOVIDESA
+      <span class="tab-count" id="cnt-NOVIDESA" style="background:#ede9fe;color:#5b21b6">0</span>
+    </button>
+    <button class="tab-btn brand-KEMIX" onclick="switchTab('KEMIX')" id="tab-KEMIX">
+      <span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#be185d;margin-right:2px"></span>
+      KEMIX
+      <span class="tab-count" id="cnt-KEMIX" style="background:#fce7f3;color:#9d174d">0</span>
+    </button>
+    <div style="width:1px;background:var(--border);margin:8px 6px;align-self:stretch"></div>
+    <button class="tab-btn" onclick="switchTab('cot')" id="tab-cot">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      Cotizador
+      <span class="tab-count" id="cotCount">0</span>
+    </button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+   PANEL: CATÁLOGO (General + Marcas)
+═══════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-db">
+  <div class="container">
+    <div class="print-header">
+      <h2 id="ph-title">GamaSur — Lista de Precios</h2>
+      <p id="ph-sub"></p>
+    </div>
+    <!-- Banner de marca activa -->
+    <div id="brandBanner" style="display:none;padding:10px 16px 0"></div>
+    <div class="toolbar">
+      <div class="search-wrap">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" class="search-input" id="searchInput" placeholder="Buscar por clave, descripción, categoría…" oninput="applyFilters()">
+      </div>
+      <select class="filter-select" id="filterMarca" onchange="applyFilters()">
+        <option value="">Todas las marcas</option>
+      </select>
+      <select class="filter-select" id="filterCat" onchange="applyFilters()">
+        <option value="">Todas las categorías</option>
+      </select>
+      <button class="btn btn-ghost btn-sm" onclick="clearFilters()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Limpiar
+      </button>
+      <div class="col-panel" style="margin-left:auto">
+        <button class="btn btn-ghost btn-sm" onclick="toggleColPanel()" id="colToggleBtn">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          Columnas
+        </button>
+        <div class="col-dropdown" id="colDropdown">
+          <div class="col-item"><input type="checkbox" id="col-clave" checked onchange="toggleCol('clave')"> Clave</div>
+          <div class="col-item"><input type="checkbox" id="col-marca" checked onchange="toggleCol('marca')"> Marca</div>
+          <div class="col-item"><input type="checkbox" id="col-cat" checked onchange="toggleCol('cat')"> Categoría</div>
+          <div class="col-item"><input type="checkbox" id="col-desc" checked onchange="toggleCol('desc')"> Descripción</div>
+          <div class="col-item"><input type="checkbox" id="col-unit" checked onchange="toggleCol('unit')"> Unidad</div>
+          <div class="col-item"><input type="checkbox" id="col-pc" checked onchange="toggleCol('pc')"> P.Compra s/IVA</div>
+          <div class="col-item"><input type="checkbox" id="col-pciva" checked onchange="toggleCol('pciva')"> P.Compra c/IVA</div>
+          <div class="col-item"><input type="checkbox" id="col-pv" checked onchange="toggleCol('pv')"> P.Venta s/IVA</div>
+          <div class="col-item"><input type="checkbox" id="col-pviva" checked onchange="toggleCol('pviva')"> P.Venta c/IVA</div>
+          <div class="col-item"><input type="checkbox" id="col-obs" onchange="toggleCol('obs')"> Observaciones</div>
+          <div class="col-item"><input type="checkbox" id="col-acc" checked onchange="toggleCol('acc')"> Acciones</div>
+        </div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="mainTable">
+        <thead id="mainThead"></thead>
+        <tbody id="mainTbody"></tbody>
+      </table>
+    </div>
+    <div class="pager" id="pager"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+   TAB: COTIZADOR PROFESIONAL
+═══════════════════════════════════════ -->
+<div class="tab-panel" id="panel-cot">
+
+  <!-- Barra de acciones (no se imprime) -->
+  <div class="cot-actions no-print">
+    <!-- Buscador -->
+    <div style="position:relative;flex:1;min-width:180px;max-width:360px" id="cotSearchContainer">
+      <div class="cot-search-wrap" style="margin-bottom:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" class="cot-search" id="cotSearch" placeholder="Buscar y agregar material…" oninput="cotSearchInput()" autocomplete="off">
+      </div>
+      <div class="cot-suggestions" id="cotSug"></div>
+    </div>
+    <!-- Tipo de precio (oculto — siempre venta) -->
+    <input type="hidden" id="precioTipo" value="venta">
+    <div style="font-size:12px;color:var(--text2);display:flex;align-items:center;gap:4px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      Precios de venta al público
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="clearCot()" title="Limpiar cotización">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3,6 5,6 21,6"/><path d="M19,6l-1,14a2,2,0,0,1-2,2H8a2,2,0,0,1-2-2L5,6"/></svg>
+        Limpiar
+      </button>
+      <button class="btn btn-ghost btn-sm" onclick="printPage()" title="Imprimir / Guardar PDF">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6,9 6,2 18,2 18,9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Imprimir
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="printPage()" title="Guardar como PDF">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        Generar PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Documento de cotización (imprimible) -->
+  <div class="cot-doc-outer">
+    <div class="cot-doc" id="cotDoc">
+
+      <!-- Encabezado empresa + número cotización -->
+      <div class="cot-doc-head">
+        <div class="cot-logo-wrap">
+          <div class="cot-logo-box" id="cotLogoBox" onclick="triggerLogoUpload()" title="Click para cambiar logo">
+            <img id="cotLogoImg" class="cot-logo-img" style="display:none" alt="Logo">
+            <span id="cotLogoText">GS</span>
+          </div>
+          <div>
+            <div class="cot-co-name">
+              <span class="cot-editable" id="cotCoName" contenteditable="true" title="Click para editar">GamaSur — Materiales de Construcción</span>
+            </div>
+            <div class="cot-co-meta">
+              <span>📞 <span class="cot-editable" id="cotCoTel" contenteditable="true">Tel: (993) 000-0000</span></span>
+              <span>📍 <span class="cot-editable" id="cotCoCiudad" contenteditable="true">Villahermosa, Tabasco</span></span>
+              <span>✉️ <span class="cot-editable" id="cotCoEmail" contenteditable="true">ventas@gamasur.com</span></span>
+            </div>
+          </div>
+        </div>
+        <div class="cot-quote-box">
+          <div class="cot-quote-label">COTIZACIÓN</div>
+          <div><input class="cot-num-input" id="cotNumInput" value="COT-2026-001" title="Número de cotización editable"></div>
+          <div class="cot-quote-date" id="cotQuoteDate"></div>
+        </div>
+      </div>
+
+      <!-- Datos del cliente -->
+      <div class="cot-client-strip">
+        <div class="cot-cf">
+          <span class="cot-cf-lbl">Cliente / Empresa</span>
+          <div class="cot-cf-val"><input type="text" id="clNombre" placeholder="Nombre o empresa…"></div>
+        </div>
+        <div class="cot-cf">
+          <span class="cot-cf-lbl">Teléfono</span>
+          <div class="cot-cf-val"><input type="text" id="clTel" placeholder="Teléfono de contacto…"></div>
+        </div>
+        <div class="cot-cf">
+          <span class="cot-cf-lbl">Dirección / Referencia</span>
+          <div class="cot-cf-val"><input type="text" id="clDir" placeholder="Dirección o referencia de entrega…"></div>
+        </div>
+        <div class="cot-cf">
+          <span class="cot-cf-lbl">Obra / Proyecto</span>
+          <div class="cot-cf-val"><input type="text" id="clObra" placeholder="Nombre de obra o proyecto…"></div>
+        </div>
+      </div>
+
+      <!-- Tabla de materiales -->
+      <div class="cot-items">
+        <table id="cotItemsTable">
+          <thead>
+            <tr>
+              <th style="width:28px">#</th>
+              <th style="width:100px">Clave</th>
+              <th>Descripción</th>
+              <th style="width:52px">Und</th>
+              <th style="width:72px;text-align:center">Cant.</th>
+              <th style="width:96px;text-align:right">P.Unit s/IVA</th>
+              <th style="width:96px;text-align:right">Subtotal</th>
+              <th class="no-print" style="width:32px"></th>
+            </tr>
+          </thead>
+          <tbody id="cotTbody">
+            <tr><td colspan="8" class="cot-empty-msg">Busca y agrega materiales para comenzar la cotización</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Totales + notas -->
+      <div class="cot-totals-wrap">
+        <!-- Notas -->
+        <div class="cot-notes-section">
+          <label>Notas / Condiciones</label>
+          <textarea id="clNotas" placeholder="Precios sujetos a cambio sin previo aviso. Vigencia: 5 días hábiles. Flete no incluido salvo indicación."></textarea>
+          <div class="no-print" style="margin-top:8px;display:flex;flex-direction:column;gap:6px">
+            <div class="cot-toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="ivaToggle" checked onchange="updateTotals()"><span class="slider"></span></label>
+              <span style="font-size:12px;color:var(--text2)">Incluir IVA 16%</span>
+            </div>
+          </div>
+        </div>
+        <!-- Totales -->
+        <div>
+          <table class="cot-totals-table">
+            <tbody>
+              <tr><td class="t-label">Subtotal s/IVA</td><td class="t-val" id="tSubtotal">$0.00</td></tr>
+              <tr id="rowIVA"><td class="t-label">IVA (16%)</td><td class="t-val" id="tIVA">$0.00</td></tr>
+              <tr class="cot-entrega-row" id="cot-entrega-row">
+                <td class="t-label">
+                  Costo de entrega
+                  <div class="no-print" style="margin-top:3px">
+                    <label class="toggle-sw" style="vertical-align:middle"><input type="checkbox" id="entregaToggle" onchange="updateTotals()"><span class="slider"></span></label>
+                    <span style="font-size:11px;color:var(--text3);margin-left:4px">Activar</span>
+                  </div>
+                </td>
+                <td class="t-val">
+                  <input class="delivery-input no-print" id="entregaInput" type="number" min="0" step="1" value="0" placeholder="0.00" onchange="updateTotals()">
+                  <span id="entregaDisplay" style="display:none;font-weight:600;color:#059669">$0.00</span>
+                </td>
+              </tr>
+              <tr class="t-total"><td class="t-label">TOTAL GENERAL</td><td class="t-val" id="tTotal">$0.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección de firmas -->
+      <div class="cot-doc-firma">
+        <div class="cot-watermark">COTIZACIÓN</div>
+        <div class="cot-firma-cols">
+          <!-- Elaboró -->
+          <div class="cot-firma-col">
+            <div class="cot-firma-label">ELABORÓ</div>
+            <div class="cot-firma-addwrap no-print">
+              <button class="cot-firma-btn" onclick="triggerFirmaUpload('firma-elab')">+ Agregar firma</button>
+              <input type="file" id="firma-elab-input" accept="image/*" style="display:none" onchange="handleFirmaUpload('firma-elab',this)">
+            </div>
+            <img id="firma-elab-img" class="cot-firma-img" style="display:none" alt="">
+            <hr class="cot-firma-line">
+            <div class="cot-firma-name">ARQ. FRANCISCO JAVIER CAB RUIZ</div>
+            <div class="cot-firma-role">Distribuidor NOVIDESA — GAMA SUR</div>
+            <div class="cot-firma-contact">993 132 8489 · francisco.cab@gamasur.mx</div>
+          </div>
+          <div class="cot-firma-sep"></div>
+          <!-- Autoriza -->
+          <div class="cot-firma-col">
+            <div class="cot-firma-label">AUTORIZA / ACEPTA</div>
+            <div class="cot-firma-addwrap no-print">
+              <button class="cot-firma-btn" onclick="triggerFirmaUpload('firma-auth')">+ Agregar firma</button>
+              <input type="file" id="firma-auth-input" accept="image/*" style="display:none" onchange="handleFirmaUpload('firma-auth',this)">
+            </div>
+            <img id="firma-auth-img" class="cot-firma-img" style="display:none" alt="">
+            <hr class="cot-firma-line">
+            <div class="cot-firma-name" id="firma-auth-name">CLIENTE / REPRESENTANTE</div>
+            <div class="cot-firma-role">Cliente / Representante legal</div>
+          </div>
+        </div>
+        <!-- Nota legal editable -->
+        <div class="cot-firma-disclaimer">
+          <span class="cot-editable" id="cotFooter" contenteditable="true">Precios en MXN. No incluyen flete salvo indicación. Vigencia 5 días hábiles. Sujetos a disponibilidad de inventario.</span>
+        </div>
+      </div>
+
+      <!-- Footer barra corporativa -->
+      <div class="cot-footer-bar">
+        <div class="cot-footer-contacts">
+          <span>📞 993 132 8489</span>
+          <span>✉️ francisco.cab@gamasur.mx</span>
+          <span>🌐 gamasur.mx</span>
+          <span>📷 @gamadelsureste</span>
+        </div>
+        <div class="cot-footer-slogan">Piensa diferente… Construye inteligente.</div>
+      </div>
+
+    </div><!-- .cot-doc -->
+  </div><!-- .cot-doc-outer -->
+
+</div><!-- #panel-cot -->
+
+</div><!-- .app -->
+
+<!-- ═══ MODALS ═══ -->
+<!-- Modal agregar/editar producto -->
+<div class="overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Agregar Producto</h3>
+    <div class="modal-grid">
+      <div class="form-field"><label>Clave</label><input type="text" id="fClave" placeholder="EJ: IMP-001"></div>
+      <div class="form-field"><label>Marca</label>
+        <select id="fMarca">
+          <option>IMPAC</option><option>FANOSA</option><option>NOVIDESA</option><option>KEMIX</option>
+        </select>
+      </div>
+      <div class="form-field full"><label>Descripción</label><input type="text" id="fDesc" placeholder="Nombre completo del producto"></div>
+      <div class="form-field"><label>Categoría</label>
+        <select id="fCat">
+          <option>Impermeabilizantes</option><option>Mantos Asfálticos</option>
+          <option>Pinturas</option><option>Adhesivos y Selladores</option>
+          <option>Morteros</option><option>Aditivos para Concreto</option>
+          <option>Accesorios</option><option>Paneles Aislantes</option>
+          <option>Paneles Entrepiso</option><option>Cimbra y Encofrado</option>
+          <option>Sistemas Constructivos</option><option>Aislantes</option>
+          <option>Productos EPS</option><option>Canaletas y Accesorios</option><option>Otro</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Unidad</label>
+        <select id="fUnidad">
+          <option>CUB</option><option>GAL</option><option>LTO</option><option>KG</option>
+          <option>SACO</option><option>ROLLO</option><option>BOLSA</option><option>PZA</option>
+          <option>METRO</option><option>m²</option><option>m³</option><option>TAMBO</option><option>ml</option>
+        </select>
+      </div>
+      <div class="form-field"><label>Precio Compra s/IVA</label><input type="number" id="fPrecioC" placeholder="0.00" step="0.01"></div>
+      <div class="form-field"><label>Precio Venta s/IVA</label><input type="number" id="fPrecioV" placeholder="0.00" step="0.01"></div>
+      <div class="form-field full"><label>Observaciones</label><input type="text" id="fObs" placeholder="Notas adicionales"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveProduct()" id="modalSaveBtn">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal importar JSON -->
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <h3>Importar Datos JSON</h3>
+    <p style="font-size:12.5px;color:var(--text2);margin-bottom:12px">Pega el JSON exportado previamente. Los datos actuales serán <strong>reemplazados</strong>.</p>
+    <textarea id="importText" style="width:100%;height:200px;padding:8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-size:12px;font-family:monospace;resize:vertical" placeholder='[{"clave":"...","marca":"...","descripcion":"...",...}]'></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeImport()">Cancelar</button>
+      <button class="btn btn-primary" onclick="doImport()">Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast"></div>
+
+<script>
+/* ═════════════════════════════════════════════════
+   DATOS INICIALES — GENERADOS DESDE EXCEL
+   ══════════════════════════════════ JSON_DATA_START
+═════════════════════════════════════════════════ */
+const INITIAL_DATA = [{"clave":"VCIIMSETR1O","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SELLO SUPER CONCENTRADO C/19 LTS","unidad":"CUB","precioCompra":1977.08,"precioVenta":2636.11,"obs":""},{"clave":"VGIIMSETR1O","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SELLO SUPER CONCENTRADO G/3.8 LTS","unidad":"GAL","precioCompra":486.42,"precioVenta":648.55,"obs":""},{"clave":"VLIIMSETR1O","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SELLO SUPER CONCENTRADO 1 LTO","unidad":"LTO","precioCompra":159.62,"precioVenta":212.83,"obs":""},{"clave":"VCIIMSEBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SELLO CUBETA 19 LTS.","unidad":"CUB","precioCompra":652.89,"precioVenta":870.52,"obs":""},{"clave":"VGIIMSEBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SELLO GALON 3.8 L","unidad":"GAL","precioCompra":258.92,"precioVenta":345.23,"obs":""},{"clave":"VCIIMCPBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC CEMENTO PLASTICO CUBETA 19 LTS.","unidad":"CUB","precioCompra":1289.06,"precioVenta":1718.74,"obs":""},{"clave":"VGIIMCPBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC CEMENTO PLASTICO GALON 3.8 LTS.","unidad":"GAL","precioCompra":297.81,"precioVenta":397.08,"obs":""},{"clave":"VLIIMCPBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC CEMENTO PLASTICO 1 KG","unidad":"KG","precioCompra":90.51,"precioVenta":120.67,"obs":""},{"clave":"VPXUNRSBL101","marca":"IMPAC","categoria":"Accesorios","descripcion":"ROLLO TELA SUPER REFUERZO 110 MT2","unidad":"ROLLO","precioCompra":1106.21,"precioVenta":1474.94,"obs":""},{"clave":"VPXUNRSBL102","marca":"IMPAC","categoria":"Accesorios","descripcion":"ROLLO SUPER REFUERZO 1.10 X 60 MTS","unidad":"ROLLO","precioCompra":732.08,"precioVenta":976.1,"obs":""},{"clave":"VPXUNBUBL101","marca":"IMPAC","categoria":"Accesorios","descripcion":"BOLSA SUPER REFUERZO 1.10 X 10 MTS","unidad":"BOLSA","precioCompra":171.19,"precioVenta":228.26,"obs":""},{"clave":"VPXUNRFBL101N","marca":"IMPAC","categoria":"Accesorios","descripcion":"ROLLO DE TELA REF.SENCILLA NAC. 110 MT2","unidad":"ROLLO","precioCompra":406.65,"precioVenta":542.2,"obs":""},{"clave":"VPXUNRFBL102","marca":"IMPAC","categoria":"Accesorios","descripcion":"ROLLO DE TELA REF.SENCILLA 1.1 X 60 MTS","unidad":"ROLLO","precioCompra":258.93,"precioVenta":345.24,"obs":""},{"clave":"VPXUNBRBL101","marca":"IMPAC","categoria":"Accesorios","descripcion":"BOLSA REFUERZO SENCILLO 1.10 X 10 MTS","unidad":"BOLSA","precioCompra":64.12,"precioVenta":85.49,"obs":""},{"clave":"VCIIM10BL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC PREMIUM 10 ANOS CUBETA 19 LTS.","unidad":"CUB","precioCompra":1612.25,"precioVenta":2149.66,"obs":""},{"clave":"VCIIM10BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC PREMIUM N IMPERMEAB. CUB. 19 LTS.","unidad":"CUB","precioCompra":1637.97,"precioVenta":2183.96,"obs":""},{"clave":"VCIIM10TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC PREMIUM N IMPERM.TERRACOTA C/19LTS","unidad":"CUB","precioCompra":1637.97,"precioVenta":2183.96,"obs":""},{"clave":"VAGIIM07BL1N5","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 7000 N IMPERMEAB. CUBETA 22.8 LTS.","unidad":"CUB","precioCompra":1949.45,"precioVenta":2599.27,"obs":""},{"clave":"VAGIIM07TE1N5","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 7000N TERRACOTA C/22.8 LTS","unidad":"CUB","precioCompra":1949.45,"precioVenta":2599.27,"obs":""},{"clave":"VCIIM07BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 7000 N IMPERMEAB. CUBETA 19 LTS.","unidad":"CUB","precioCompra":1669.78,"precioVenta":2226.37,"obs":""},{"clave":"VCIIM07BL1N5","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 7000 N IMPERMEAB. CUBETA 19 LTS. (22.8)","unidad":"CUB","precioCompra":1949.45,"precioVenta":2599.27,"obs":""},{"clave":"VCIIM07TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 7000 N IMPERMEAB.TERRACOTA C/19LTS","unidad":"CUB","precioCompra":1669.78,"precioVenta":2226.37,"obs":""},{"clave":"VCIIM05BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMPERMEAB. CUBETA 19 LTS.","unidad":"CUB","precioCompra":1055.96,"precioVenta":1407.94,"obs":""},{"clave":"VCIIM05TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMPERMEAB.TERRACOTA C/19LTS","unidad":"CUB","precioCompra":1055.96,"precioVenta":1407.94,"obs":""},{"clave":"VCIIM05BL1NW","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMPERMEAB. CUBETA 19 LTS. (W)","unidad":"CUB","precioCompra":1055.96,"precioVenta":1407.94,"obs":""},{"clave":"VCIIM05TE1NW","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMPERMEAB.TERRACOTA C/19LTS (W)","unidad":"CUB","precioCompra":1055.96,"precioVenta":1407.94,"obs":""},{"clave":"VGIIM05BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMPERMEAB. GALON 3.8 LTS.","unidad":"GAL","precioCompra":443.68,"precioVenta":591.58,"obs":""},{"clave":"VGIIM05TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 5000 N IMP. TERRACOTA GALON 3.8LTS","unidad":"GAL","precioCompra":443.68,"precioVenta":591.58,"obs":""},{"clave":"VCIIM03BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 3000 N IMPERMEAB. CUBETA 19 LTS.","unidad":"CUB","precioCompra":1197.15,"precioVenta":1596.2,"obs":""},{"clave":"VCIIM03TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 3000 N IMPERMEAB.TERRACOTA C/19LTS","unidad":"CUB","precioCompra":1199.07,"precioVenta":1598.76,"obs":""},{"clave":"VGIIM03BL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 3000 IMPERMEAB. GALON 3.8 LTS.","unidad":"GAL","precioCompra":335.59,"precioVenta":447.45,"obs":""},{"clave":"VGIIM03BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 3000 N IMPERMEAB. GALON 3.8 LTS.","unidad":"GAL","precioCompra":346.9,"precioVenta":462.53,"obs":""},{"clave":"VGIIM03TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC 3000 N IMP. TERRACOTA G/3.8 LTS","unidad":"GAL","precioCompra":346.9,"precioVenta":462.53,"obs":""},{"clave":"VCIIMM7BL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 7 BCO. FIBRATADO C/19","unidad":"CUB","precioCompra":975.44,"precioVenta":1300.58,"obs":""},{"clave":"VCIIMM7TE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 7 TERR. FIBRATADO C/19L","unidad":"CUB","precioCompra":975.44,"precioVenta":1300.58,"obs":""},{"clave":"VCIIMM5BL1S","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 5 BCO. FIBRATADO C/19 L","unidad":"CUB","precioCompra":835.01,"precioVenta":1113.35,"obs":""},{"clave":"VCIIMM5TE1S","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 5 TCA. FIBRATADO C/19 L","unidad":"CUB","precioCompra":835.01,"precioVenta":1113.35,"obs":""},{"clave":"VGIIMM5BL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 5 BCO. FIBRATADO C/3.8L","unidad":"GAL","precioCompra":259.71,"precioVenta":346.28,"obs":""},{"clave":"VGIIMM5TE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 5 TER. FIBRATADO C/3.8L","unidad":"GAL","precioCompra":259.71,"precioVenta":346.28,"obs":""},{"clave":"VCIIMM3BL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 3 BCO. FIBRATADO C/19 L","unidad":"CUB","precioCompra":765.32,"precioVenta":1020.42,"obs":""},{"clave":"VCIIMM3TE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC IMPER MAXI 3 TERR. FIBRATADO C/19L","unidad":"CUB","precioCompra":765.32,"precioVenta":1020.42,"obs":""},{"clave":"VCIIMMEBL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC METAL CUBETA 19 LTS.","unidad":"CUB","precioCompra":2047.96,"precioVenta":2730.61,"obs":""},{"clave":"VCIIMSK7BL1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SOKUL 7 BLANCO CUBETA 19 LTS.","unidad":"CUB","precioCompra":1513.29,"precioVenta":2017.72,"obs":""},{"clave":"VCIIMSK7TE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SOKUL 7 TERRACOTA CUBETA 19 LTS.","unidad":"CUB","precioCompra":1513.29,"precioVenta":2017.72,"obs":""},{"clave":"VAGIIMSMBL1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SETTIMO N BLANCO CUBETA 22.8 LTS.","unidad":"CUB","precioCompra":973.9,"precioVenta":1298.54,"obs":""},{"clave":"VAGIIMSMTE1N","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SETTIMO N TERRACOTA CUB. 22.8 LTS.","unidad":"CUB","precioCompra":973.9,"precioVenta":1298.54,"obs":""},{"clave":"VCIIMSMBL1NM","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SETTIMO FIBRATADO BLANCO CUB/19 LT","unidad":"CUB","precioCompra":965.57,"precioVenta":1287.43,"obs":""},{"clave":"VCIIMSMTE1NM","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC SETTIMO FIBRATADO TERRACOTA C/19LT","unidad":"CUB","precioCompra":976.0,"precioVenta":1301.34,"obs":""},{"clave":"VCIST05BL1M","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"SNOWTEK 5 ANOS FIBRATADO CUBETA C/18 LTS","unidad":"CUB","precioCompra":735.02,"precioVenta":980.03,"obs":""},{"clave":"VCIST05TE1M","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"SNOWTEK 5 FIBRATADO TERRACOTA CUB.18 LTS","unidad":"CUB","precioCompra":735.02,"precioVenta":980.03,"obs":""},{"clave":"VCIST03TE1M","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"SNOWTEK 3 FIBRATADO TERRACOTA CUB.18 LTS","unidad":"CUB","precioCompra":673.77,"precioVenta":898.36,"obs":""},{"clave":"VCIST03BL1NM","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"SNOWTEK 3 AÑOS FIBRATADO CUBETA C/18 LTS","unidad":"CUB","precioCompra":673.77,"precioVenta":898.36,"obs":""},{"clave":"VCAPG30BL1S","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"P-GALO 300S CUBETA 18 LITROS","unidad":"CUB","precioCompra":501.65,"precioVenta":668.87,"obs":""},{"clave":"VCAPG30BL1X","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"P-GALO 300R CUBETA 18 KG.","unidad":"CUB","precioCompra":630.28,"precioVenta":840.38,"obs":""},{"clave":"VTDIMACTR1","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC ACELERANTE CURADO P/CONCRETO T/200L","unidad":"TAMBO","precioCompra":5366.7,"precioVenta":7155.61,"obs":""},{"clave":"VCDIMACTR1","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC ACELERANTE PARA CONCRETO C/19 LTS","unidad":"CUB","precioCompra":546.07,"precioVenta":728.09,"obs":""},{"clave":"VGDIMACTR1","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC ACELERANTE CURADO P/CONCR.G/3.8LTS","unidad":"GAL","precioCompra":141.21,"precioVenta":188.28,"obs":""},{"clave":"VCDIMDENE1BA","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC DESMOLDANTE PRO BASE AGUA CUB/19 L","unidad":"CUB","precioCompra":699.08,"precioVenta":932.11,"obs":""},{"clave":"VTDIMMDBL1PRO","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC MEMBRANA DE CURADO PRO TAM. 200 L","unidad":"TAMBO","precioCompra":4535.02,"precioVenta":6046.7,"obs":""},{"clave":"VCDIMMDBL1PRO","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC MEMBRANA DE CURADO PRO CUB. 19 LTS","unidad":"CUB","precioCompra":518.56,"precioVenta":691.41,"obs":""},{"clave":"VCIIMBDBL1","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND CUBETA 19 LTS.","unidad":"CUB","precioCompra":2157.01,"precioVenta":2876.01,"obs":""},{"clave":"VGIIMBDBL1","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND GALON C/3.8 LTS.","unidad":"GAL","precioCompra":457.55,"precioVenta":610.06,"obs":""},{"clave":"VLIIMBDBL1","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND 1 LT.","unidad":"LTO","precioCompra":176.17,"precioVenta":234.9,"obs":""},{"clave":"VCIIMBDBL1E","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND HL CUBETA 19 LTS","unidad":"CUB","precioCompra":1124.85,"precioVenta":1499.8,"obs":""},{"clave":"VGIIMBDBL1E","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND HL GALON 3.8 LTS","unidad":"GAL","precioCompra":280.75,"precioVenta":374.34,"obs":""},{"clave":"VLIIMBDBL1E","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC BOND HL LITRO","unidad":"LTO","precioCompra":88.1,"precioVenta":117.46,"obs":""},{"clave":"VCDIMSITR1","marca":"IMPAC","categoria":"Adhesivos y Selladores","descripcion":"IMPAC SIL CUBETA 19 LTS","unidad":"CUB","precioCompra":2345.64,"precioVenta":3127.52,"obs":""},{"clave":"VADDIMGUGR1M","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC GROUT PRO 25 KG","unidad":"SACO","precioCompra":416.46,"precioVenta":555.28,"obs":""},{"clave":"VNIIMGRBL1M","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC GRAL SACO DE 20 KGS","unidad":"SACO","precioCompra":446.97,"precioVenta":595.95,"obs":""},{"clave":"VAIDIMGRBL1M","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC GRAL SACO DE 5 KGS","unidad":"SACO","precioCompra":184.89,"precioVenta":246.52,"obs":""},{"clave":"VGDIMOFBL1M","marca":"IMPAC","categoria":"Aditivos para Concreto","descripcion":"IMPAC AF-180 GALON 5 KGS","unidad":"GAL","precioCompra":238.42,"precioVenta":317.9,"obs":""},{"clave":"VASDIMCEBL1","marca":"IMPAC","categoria":"Morteros","descripcion":"CEMENFLEX BLANCO 2 COMPONENTES 36 KGS","unidad":"SACO","precioCompra":1867.55,"precioVenta":2490.06,"obs":""},{"clave":"VASDIMCEGR1","marca":"IMPAC","categoria":"Morteros","descripcion":"CEMENFLEX GRIS 2 COMP. 36 KG","unidad":"SACO","precioCompra":1378.57,"precioVenta":1838.1,"obs":""},{"clave":"VNDIMCMBL1M","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-480 BLANCO SACO DE 20 KGS","unidad":"SACO","precioCompra":669.83,"precioVenta":893.1,"obs":""},{"clave":"VNDIMCMGR1M","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-480 GRIS SACO DE 20 KGS","unidad":"SACO","precioCompra":548.44,"precioVenta":731.25,"obs":""},{"clave":"VAIDIMSEBL1HM","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-700 BLANCO SACO 5 KGS.","unidad":"SACO","precioCompra":318.73,"precioVenta":424.97,"obs":""},{"clave":"VAIDIMCMBL1WM","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-500 BLANCO SACO DE 5 KGS","unidad":"SACO","precioCompra":159.99,"precioVenta":213.32,"obs":""},{"clave":"VAIDIMCMGR1WM","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-500 GRIS SACO DE 5 KGS","unidad":"SACO","precioCompra":146.91,"precioVenta":195.88,"obs":""},{"clave":"VLDIMCMGR1W","marca":"IMPAC","categoria":"Morteros","descripcion":"IMPAC WR-500 GRIS BOTE 1 KG","unidad":"KG","precioCompra":70.97,"precioVenta":94.62,"obs":""},{"clave":"VCEIMBS100","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC BS-100 CUBETA DE 19 LTS","unidad":"CUB","precioCompra":1513.33,"precioVenta":2017.78,"obs":""},{"clave":"VCEIMEANE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"ELASTOFLEX T1 CUBETA 19 LTS.","unidad":"CUB","precioCompra":1003.49,"precioVenta":1337.99,"obs":""},{"clave":"VCEIMEFNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC EMULSION ASFALT. FIBRATADA C/19 LT","unidad":"CUB","precioCompra":587.65,"precioVenta":783.54,"obs":""},{"clave":"VGEIMEFNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC EMULSION ASFALT. FIBRATADA G/3.8LT","unidad":"GAL","precioCompra":176.11,"precioVenta":234.82,"obs":""},{"clave":"VCEIMPRSVT","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC PRIMARIO SVT-SR CUBETA 19 LTS","unidad":"CUB","precioCompra":1553.18,"precioVenta":2070.9,"obs":""},{"clave":"VCEIMPHNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"PRIMARIO ASFALTICO H BASE AGUA C/19 LTS.","unidad":"CUB","precioCompra":908.25,"precioVenta":1211.0,"obs":""},{"clave":"VGEIMPHNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"PRIMARIO ASFALTICO H BASE AGUA G/3.8 LT","unidad":"GAL","precioCompra":206.68,"precioVenta":275.57,"obs":""},{"clave":"VCEIMPHINE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"PRIMARIO ASFALTICO HIBRIDO CUBETA 19 L","unidad":"CUB","precioCompra":1278.64,"precioVenta":1704.86,"obs":""},{"clave":"VCEIMWSNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC WET N SEAL CUBETA 19 LTS","unidad":"CUB","precioCompra":1241.86,"precioVenta":1655.82,"obs":""},{"clave":"VGEIMWSNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC WET N SEAL GALON 3.8 LTS","unidad":"GAL","precioCompra":323.33,"precioVenta":431.11,"obs":""},{"clave":"VLEIMWSNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC WET N SEAL 1 LT.","unidad":"LTO","precioCompra":160.75,"precioVenta":214.33,"obs":""},{"clave":"VCEIMCPSR","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"IMPAC CEMENT SR CUBETA 19 LTS","unidad":"CUB","precioCompra":1473.49,"precioVenta":1964.66,"obs":""},{"clave":"VCEIMCPNE1","marca":"IMPAC","categoria":"Impermeabilizantes","descripcion":"CEMENTO PLASTICO ASFALT.BASE SOLV.C/19LT","unidad":"CUB","precioCompra":1175.31,"precioVenta":1567.08,"obs":""},{"clave":"VPFIMSO45PGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC PRO 45 POLIÉSTER SBS TERRACOTA","unidad":"ROLLO","precioCompra":1630.92,"precioVenta":2174.56,"obs":""},{"clave":"VPFAMAGE40PGB","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC APP GOLD ESC 40 POLIÉSTER BLANCA","unidad":"ROLLO","precioCompra":1312.01,"precioVenta":1749.35,"obs":""},{"clave":"VPFAMAGE40PGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC APP GOLD ESC40 POLIESTER TERRACOTA","unidad":"ROLLO","precioCompra":1192.5,"precioVenta":1590.0,"obs":""},{"clave":"VPFIMAM45PGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 45 POLIESTER TERRACOTA","unidad":"ROLLO","precioCompra":1334.83,"precioVenta":1779.77,"obs":""},{"clave":"VPFIMSPE40PGT3M","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC SBS PREMIUM ESC40 POLIÉSTER T3M","unidad":"ROLLO","precioCompra":1192.5,"precioVenta":1590.0,"obs":""},{"clave":"VPFIMAM40PGB","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 40 POLIESTER BLANCA","unidad":"ROLLO","precioCompra":1200.53,"precioVenta":1600.71,"obs":""},{"clave":"VPFIMAM40PGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 40 POLIESTER TERRACOTA","unidad":"ROLLO","precioCompra":1177.15,"precioVenta":1569.53,"obs":""},{"clave":"VPFIMAM35PGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 35 POLIESTER TERRACOTA","unidad":"ROLLO","precioCompra":1127.82,"precioVenta":1503.76,"obs":""},{"clave":"VPFIMAM40FGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 40 FIBRA DE VIDRIO TERRACOTA","unidad":"ROLLO","precioCompra":1284.87,"precioVenta":1713.16,"obs":""},{"clave":"VPFIMAM35FGT","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC HOGAR 35 FIBRA DE VIDRIO TERRACOTA","unidad":"ROLLO","precioCompra":945.28,"precioVenta":1260.37,"obs":""},{"clave":"VPXIMCE","marca":"IMPAC","categoria":"Accesorios","descripcion":"CEPILLO APLICADOR IXTLE 10 C/MANGO (PZ)","unidad":"PZA","precioCompra":80.3,"precioVenta":107.07,"obs":""},{"clave":"VPXUNAF","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"ANTORCHA PARA APLICACION DE MANTOS ASFALTICOS","unidad":"PZA","precioCompra":1480.34,"precioVenta":1973.79,"obs":""},{"clave":"VKFUNGVBL1","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"GRAVILLA BLANCA BOLSA DE UN KILO","unidad":"BOLSA","precioCompra":20.54,"precioVenta":27.39,"obs":""},{"clave":"VKFUNGVTE1","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"GRAVILLA TERRACOTA BOLSA DE UN KILO","unidad":"BOLSA","precioCompra":13.07,"precioVenta":17.43,"obs":""},{"clave":"VPXIMBTNE102","marca":"IMPAC","categoria":"Mantos Asfálticos","descripcion":"IMPAC BANDA TAPAGOTERAS DE 10 CMS X10 MT","unidad":"PZA","precioCompra":410.23,"precioVenta":546.97,"obs":""},{"clave":"VCPREGOBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA GOLD PINTURA BLANCO CUBETA 19 LTS","unidad":"CUB","precioCompra":1642.2,"precioVenta":2189.59,"obs":""},{"clave":"VCPREOBBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA OBBRA PINTURA BLANCO CUBETA 19LTS","unidad":"CUB","precioCompra":679.0,"precioVenta":905.34,"obs":""},{"clave":"VCPREPEBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"PINTURA RENOVA PREMIUM BLANCO CUB 19 LTS","unidad":"CUB","precioCompra":1953.45,"precioVenta":2604.6,"obs":""},{"clave":"VCPRESEBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA SELLO 5 PLUS ACRILICO C/19 LTS.","unidad":"CUB","precioCompra":1196.47,"precioVenta":1595.3,"obs":""},{"clave":"VCPRESUBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA SUPER PINTURA BLANCA C/19 LTS","unidad":"CUB","precioCompra":859.14,"precioVenta":1145.53,"obs":""},{"clave":"VCTREOBBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA OBBRA TEXTURIZADO CUBETA 30 KG.","unidad":"CUB","precioCompra":565.24,"precioVenta":753.66,"obs":""},{"clave":"VCTRESUBL1","marca":"IMPAC","categoria":"Pinturas","descripcion":"RENOVA SUPER TEXTURIZADO BLANCO C/30 KGS","unidad":"SACO","precioCompra":667.96,"precioVenta":890.61,"obs":""},{"clave":"FAN-001","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Politerm® BLU — Perlas EPS para mortero aligerado","unidad":"Bulto/m³","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA · ventasvsa@fanosa.com"},{"clave":"FAN-002","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Aislaterm® Placa EPS Convencional","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-003","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Aislaterm® Placa Greenboard® — EPS EIFS/ETICS","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-004","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Aislaterm® Placa Blueboard® — EPS alta densidad","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-005","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Aislaterm® Steelfoam® — Fachada cortina/tapón","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-006","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Muro Estructural (hasta 20 pisos)","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-007","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Muro Divisorio","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-008","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Muro Doble","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-009","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Muro Doble Malla","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-010","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Escalera prefabricada","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-011","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Construpanel — Descanso de Escalera","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-012","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Steelfoam® — Sistema Fachada Cortina","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-013","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Steelfoam® — Sistema Tapón","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-014","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Steelfoam® — A la medida","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-015","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Insulpanel® — Techo (acero galv. + EPS)","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-016","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Insulpanel® — Muro (acero galv. + EPS)","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-017","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Insulpanel® — Insulfoil (lámina + foil)","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-018","marca":"FANOSA","categoria":"Sistemas Constructivos","descripcion":"Geofoam® — Bloque EPS geotécnico","unidad":"m³","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-019","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Casetón EPS — Losas y cubiertas","unidad":"pza/m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-020","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Bovedilla EPS — Vigueta-bovedilla","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-021","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Placa Aislante EPS — Muros/cubiertas/pisos","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-022","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Placa Aligerante EPS — Reduce volumen de concreto","unidad":"m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-023","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Perla Pre-expandida EPS","unidad":"m³/Bulto","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-024","marca":"FANOSA","categoria":"Productos EPS","descripcion":"Arquiformas y Molduras EPS — Cornisas/perfiles","unidad":"ml","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-025","marca":"FANOSA","categoria":"Agropecuario","descripcion":"Semilleros EPS — Charolas germinación","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-026","marca":"FANOSA","categoria":"Agropecuario","descripcion":"Caja para Uva EPS — Embalaje conservación","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-027","marca":"FANOSA","categoria":"Pesquero","descripcion":"Caja para Almeja EPS","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-028","marca":"FANOSA","categoria":"Pesquero","descripcion":"Caja para Langosta EPS","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-029","marca":"FANOSA","categoria":"Pesquero","descripcion":"Caja para Erizo de Mar EPS","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-030","marca":"FANOSA","categoria":"Pesquero","descripcion":"Caja para Pescado EPS","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-031","marca":"FANOSA","categoria":"Pesquero","descripcion":"Caja para Tilapia EPS","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-032","marca":"FANOSA","categoria":"Empaques Industriales","descripcion":"Empaque Moldeado EPS — Alta densidad","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-033","marca":"FANOSA","categoria":"Empaques Industriales","descripcion":"Empaque Cortado EPS — Esquineros/placas","unidad":"pza/m²","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"FAN-034","marca":"FANOSA","categoria":"Doméstico","descripcion":"Hielera EPS — Conservador térmico","unidad":"pza","precioCompra":0,"precioVenta":0,"obs":"Cotizar con FANOSA"},{"clave":"IKOS-001","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 6cm Dens.16kg/m³ Ancho 154mm Cal.22","unidad":"METRO","precioCompra":223.78,"precioVenta":290.62,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-002","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 8cm Dens.16kg/m³ Ancho 154mm Cal.22","unidad":"METRO","precioCompra":235.58,"precioVenta":305.94,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-003","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 8cm Dens.16kg/m³ Ancho 174mm Cal.22","unidad":"METRO","precioCompra":256.38,"precioVenta":332.96,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-004","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 10cm Dens.16kg/m³ Ancho 174mm Cal.22","unidad":"METRO","precioCompra":268.19,"precioVenta":348.3,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-005","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 10cm Dens.16kg/m³ Ancho 194mm Cal.22","unidad":"METRO","precioCompra":285.1,"precioVenta":370.26,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-006","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 12cm Dens.16kg/m³ Ancho 194mm Cal.22","unidad":"METRO","precioCompra":296.86,"precioVenta":385.53,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-007","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 12cm Dens.16kg/m³ Ancho 214mm Cal.22","unidad":"METRO","precioCompra":311.48,"precioVenta":404.53,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-008","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 15cm Dens.16kg/m³ Ancho 214mm Cal.22","unidad":"METRO","precioCompra":324.48,"precioVenta":421.4,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-009","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 20cm Dens.16kg/m³ Ancho 214mm Cal.22","unidad":"METRO","precioCompra":349.26,"precioVenta":453.59,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-010","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 10cm Dens.16kg/m³ Ancho 194mm Cal.20","unidad":"METRO","precioCompra":349.11,"precioVenta":453.39,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-011","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 12cm Dens.16kg/m³ Ancho 194mm Cal.20","unidad":"METRO","precioCompra":362.24,"precioVenta":470.45,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-012","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 12cm Dens.16kg/m³ Ancho 214mm Cal.20","unidad":"METRO","precioCompra":382.59,"precioVenta":496.87,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-013","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 15cm Dens.16kg/m³ Ancho 214mm Cal.20","unidad":"METRO","precioCompra":401.81,"precioVenta":521.83,"obs":"Directo fábrica mayo 2026"},{"clave":"IKOS-014","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IKOS Panel Aislante 20cm Dens.16kg/m³ Ancho 214mm Cal.20","unidad":"METRO","precioCompra":434.25,"precioVenta":563.96,"obs":"Directo fábrica mayo 2026"},{"clave":"IKPLU-015","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IK PLUS Panel Aislante 10cm Dens.16kg/m³ Ancho 194mm Cal.22","unidad":"METRO","precioCompra":338.22,"precioVenta":439.25,"obs":"Directo fábrica mayo 2026"},{"clave":"IKPLU-016","marca":"NOVIDESA","categoria":"Paneles Aislantes","descripcion":"IK PLUS Panel Aislante 10cm Dens.16kg/m³ Ancho 194mm Cal.20","unidad":"METRO","precioCompra":368.49,"precioVenta":478.56,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-017","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 15cm Dens.16kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":236.43,"precioVenta":307.05,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-018","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 18cm Dens.20kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":299.13,"precioVenta":388.48,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-019","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 20cm Dens.20kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":316.12,"precioVenta":410.54,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-020","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 20cm Dens.20kg/m³ Sin Postes","unidad":"METRO","precioCompra":210.12,"precioVenta":272.89,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-021","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 25cm Dens.20kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":359.5,"precioVenta":466.88,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-022","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 29cm Dens.20kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":401.5,"precioVenta":521.43,"obs":"Directo fábrica mayo 2026"},{"clave":"MAKRO-023","marca":"NOVIDESA","categoria":"Paneles Entrepiso","descripcion":"MAKROS II Entrepiso 32cm Dens.20kg/m³ 154mm Cal.22","unidad":"METRO","precioCompra":407.97,"precioVenta":529.84,"obs":"Directo fábrica mayo 2026"},{"clave":"HOLMA-024","marca":"NOVIDESA","categoria":"Cimbra y Encofrado","descripcion":"HOLMAK Cimbra Aislante para Muro","unidad":"PZA","precioCompra":81.32,"precioVenta":105.61,"obs":"Directo fábrica mayo 2026"},{"clave":"HOLMA-025","marca":"NOVIDESA","categoria":"Cimbra y Encofrado","descripcion":"HOLMAK Panel Esquinero Exterior Derecho","unidad":"PZA","precioCompra":72.37,"precioVenta":93.98,"obs":"Directo fábrica mayo 2026"},{"clave":"HOLMA-026","marca":"NOVIDESA","categoria":"Cimbra y Encofrado","descripcion":"HOLMAK Panel Esquinero Exterior Izquierdo","unidad":"PZA","precioCompra":72.37,"precioVenta":93.98,"obs":"Directo fábrica mayo 2026"},{"clave":"HOLMA-027","marca":"NOVIDESA","categoria":"Cimbra y Encofrado","descripcion":"HOLMAK Panel Esquinero Interior Derecho","unidad":"PZA","precioCompra":72.37,"precioVenta":93.98,"obs":"Directo fábrica mayo 2026"},{"clave":"HOLMA-028","marca":"NOVIDESA","categoria":"Cimbra y Encofrado","descripcion":"HOLMAK Panel Esquinero Interior Izquierdo","unidad":"PZA","precioCompra":72.37,"precioVenta":93.98,"obs":"Directo fábrica mayo 2026"},{"clave":"CONEC-029","marca":"NOVIDESA","categoria":"Accesorios","descripcion":"Conector 4in (para panel aislante)","unidad":"PZA","precioCompra":13.89,"precioVenta":18.04,"obs":"Directo fábrica mayo 2026"},{"clave":"CONEC-030","marca":"NOVIDESA","categoria":"Accesorios","descripcion":"Conector 6in (para panel aislante)","unidad":"PZA","precioCompra":15.73,"precioVenta":20.43,"obs":"Directo fábrica mayo 2026"},{"clave":"CONEC-031","marca":"NOVIDESA","categoria":"Accesorios","descripcion":"Conector 8in (para panel aislante)","unidad":"PZA","precioCompra":20.27,"precioVenta":26.32,"obs":"Directo fábrica mayo 2026"},{"clave":"PLACA-032","marca":"NOVIDESA","categoria":"Aislantes","descripcion":"Placa Aislante EPS Densidad 16 kg/m³","unidad":"PZA","precioCompra":42.7,"precioVenta":55.45,"obs":"Directo fábrica mayo 2026"},{"clave":"MALLA-033","marca":"NOVIDESA","categoria":"Accesorios","descripcion":"Malla Fibra de Vidrio 4x5 de 150gr","unidad":"ROLLO","precioCompra":868.95,"precioVenta":1128.5,"obs":"Directo fábrica mayo 2026"},{"clave":"CANAL-034","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 6cm Cal. 26","unidad":"PZA","precioCompra":105.99,"precioVenta":137.65,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-035","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 8cm Cal. 26","unidad":"PZA","precioCompra":123.46,"precioVenta":160.34,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-036","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 10cm Cal. 26","unidad":"PZA","precioCompra":140.92,"precioVenta":183.01,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-037","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 12cm Cal. 26","unidad":"PZA","precioCompra":165.68,"precioVenta":215.17,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-038","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 15cm Cal. 26","unidad":"PZA","precioCompra":176.13,"precioVenta":228.73,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-039","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 10cm Cal. 22","unidad":"PZA","precioCompra":224.79,"precioVenta":291.93,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-040","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 12cm Cal. 22","unidad":"PZA","precioCompra":230.21,"precioVenta":298.97,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-041","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 15cm Cal. 22","unidad":"PZA","precioCompra":237.7,"precioVenta":308.7,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-042","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 10cm Cal. 20","unidad":"PZA","precioCompra":253.8,"precioVenta":329.6,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-043","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 12cm Cal. 20","unidad":"PZA","precioCompra":265.64,"precioVenta":344.99,"obs":"Lista precios mayo 2026"},{"clave":"CANAL-044","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Canal en forma de U 15cm Cal. 20","unidad":"PZA","precioCompra":281.99,"precioVenta":366.22,"obs":"Lista precios mayo 2026"},{"clave":"ACCES-045","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Ángulo de 1 3/4\" Cal. 22","unidad":"PZA","precioCompra":99.92,"precioVenta":129.77,"obs":"Lista precios mayo 2026"},{"clave":"ACCES-046","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Ángulo en L de 2\" x 4\" Cal. 20 (Pza Moldeada)","unidad":"PZA","precioCompra":207.72,"precioVenta":269.76,"obs":"Lista precios mayo 2026"},{"clave":"ACCES-047","marca":"NOVIDESA","categoria":"Canaletas y Accesorios","descripcion":"Solera 1 1/2\" Cal. 22 (Pza Moldeada)","unidad":"PZA","precioCompra":43.2,"precioVenta":56.1,"obs":"Lista precios mayo 2026"}];
+/* ══════════════════ JSON_DATA_END ══════════════════ */
+const INITIAL_CFG = {"sysName":"GamaSur — Materiales de Construcción","ciudad":"Villahermosa, Tab.","vigencia":"Mayo 2026","theme":"light","cotCoName":"GamaSur — Materiales de Construcción","cotCoTel":"Tel: (993) 000-0000","cotCoCiudad":"Villahermosa, Tabasco","cotCoEmail":"ventas@gamasur.com","cotFooter":"Precios en MXN. No incluyen flete salvo indicación. Vigencia 5 días hábiles. Sujetos a disponibilidad de inventario."};
+/* ══ CFG_END ══ */
+
+/* ═════════════════════════════════════════════════
+   CONFIGURACIÓN INICIAL
+═════════════════════════════════════════════════ */
+const CFG_KEY = 'gamasur_cfg';
+const DATA_KEY = 'gamasur_data';
+const IVA = 0.16;
+const PAGE_SIZE = 50;
+
+let db = [];
+let filtered = [];
+let cotItems = [];
+let editingId = null;
+let currentPage = 1;
+let colVisible = {clave:true,marca:true,cat:true,desc:true,unit:true,pc:true,pciva:true,pv:true,pviva:true,obs:false,acc:true};
+let cfg = JSON.parse(JSON.stringify(INITIAL_CFG));
+
+/* ═════════════════════════════════════════════════
+   INIT
+═════════════════════════════════════════════════ */
+function init(){
+  loadState();
+  renderHeader();
+  buildFilters();
+  activeBrand = '';
+  updateBrandBanner();
+  applyFilters();
+  renderColHeaders();
+  updateStats();
+  updateMetaUpdate();
+  initCotizador();
+  loadFirmas();
+  // Sync client name on cotizador form
+  const _cl = document.getElementById('clNombre');
+  if(_cl) _cl.addEventListener('input', syncClientName);
+  document.getElementById('themeBtn').textContent = cfg.theme==='dark'?'☀️':'🌙';
+  document.addEventListener('click', e => {
+    if(!e.target.closest('.col-panel')) closeColPanel();
+    if(!e.target.closest('#cotSearchContainer')) closeCotSug();
+  });
+}
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem(DATA_KEY);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      // Validate it's a non-empty array of products
+      db = (Array.isArray(parsed) && parsed.length > 0) ? parsed : JSON.parse(JSON.stringify(INITIAL_DATA));
+    } else {
+      db = JSON.parse(JSON.stringify(INITIAL_DATA));
+    }
+  }catch(e){
+    db = JSON.parse(JSON.stringify(INITIAL_DATA));
+    try{ localStorage.removeItem(DATA_KEY); }catch(e2){}
+  }
+  try{
+    const rc = localStorage.getItem(CFG_KEY);
+    if(rc){ const c=JSON.parse(rc); if(c && typeof c==='object') Object.assign(cfg,c); }
+  }catch(e){
+    try{ localStorage.removeItem(CFG_KEY); }catch(e2){}
+  }
+  if(cfg.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
+}
+
+function saveState(){
+  try{
+    localStorage.setItem(DATA_KEY, JSON.stringify(db));
+    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+  }catch(e){/* localStorage not available in this context — silent fail */}
+  updateMetaUpdate();
+}
+
+function renderHeader(){
+  document.getElementById('sysName').textContent = cfg.sysName;
+  document.getElementById('metaCiudad').textContent = cfg.ciudad;
+  document.getElementById('metaVigencia').textContent = cfg.vigencia;
+  const lt = document.getElementById('logoText');
+  if(lt) lt.textContent = cfg.sysName.substring(0,2).toUpperCase();
+  document.title = cfg.sysName;
+  // Aplicar logo guardado
+  if(cfg.logo) applyLogo(cfg.logo);
+  // Sincronizar cotLogoText
+  const clt = document.getElementById('cotLogoText');
+  if(clt) clt.textContent = cfg.sysName.substring(0,2).toUpperCase();
+}
+
+function updateMetaUpdate(){
+  const el = document.getElementById('metaUpdate');
+  if(el) el.textContent = 'Act: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+
+/* ═════════════════════════════════════════════════
+   STATS
+═════════════════════════════════════════════════ */
+function updateStats(){
+  document.getElementById('statTotal').textContent = db.length;
+  document.getElementById('statMarcas').textContent = new Set(db.map(x=>x.marca)).size;
+  document.getElementById('statCats').textContent = new Set(db.map(x=>x.categoria)).size;
+  document.getElementById('dbCount').textContent = db.length;
+  document.getElementById('cotCount').textContent = cotItems.length;
+  ['IMPAC','FANOSA','NOVIDESA','KEMIX'].forEach(b=>{
+    const el=document.getElementById('cnt-'+b);
+    if(el) el.textContent = db.filter(p=>p.marca===b).length;
+  });
+}
+
+/* ═════════════════════════════════════════════════
+   FILTERS / SEARCH
+═════════════════════════════════════════════════ */
+function buildFilters(){
+  const ms = document.getElementById('filterMarca');
+  const marcas = [...new Set(db.map(x=>x.marca))].sort();
+  ms.innerHTML = '<option value="">Todas las marcas</option>' + marcas.map(m=>`<option>${m}</option>`).join('');
+  updateCatFilter();
+  // Update brand tab counts
+  ['IMPAC','FANOSA','NOVIDESA','KEMIX'].forEach(b=>{
+    const el=document.getElementById('cnt-'+b);
+    if(el) el.textContent = db.filter(p=>p.marca===b).length;
+  });
+}
+
+function applyFilters(){
+  const q = document.getElementById('searchInput').value.trim().toLowerCase();
+  const marca = activeBrand || document.getElementById('filterMarca').value;
+  const cat = document.getElementById('filterCat').value;
+  filtered = db.filter(p=>{
+    if(marca && p.marca!==marca) return false;
+    if(cat && p.categoria!==cat) return false;
+    if(q){
+      const hay = (p.clave+p.descripcion+p.marca+p.categoria).toLowerCase();
+      return q.split(' ').every(w=>hay.includes(w));
+    }
+    return true;
+  });
+  currentPage = 1;
+  renderTable();
+  const sf = document.getElementById('statFiltered');
+  const sfn = document.getElementById('statFilteredN');
+  const fmVal = document.getElementById('filterMarca')?.value || '';
+  if(q || cat || (fmVal && !activeBrand)){
+    if(sf) sf.style.display='';
+    if(sfn) sfn.textContent = filtered.length;
+  } else {
+    if(sf) sf.style.display='none';
+  }
+}
+
+function clearFilters(){
+  document.getElementById('searchInput').value='';
+  if(!activeBrand) document.getElementById('filterMarca').value='';
+  document.getElementById('filterCat').value='';
+  applyFilters();
+}
+
+/* ═════════════════════════════════════════════════
+   TABLE RENDER
+═════════════════════════════════════════════════ */
+function fmt(n){
+  const v = Number(n);
+  if(isNaN(v) || v === 0 || n === null || n === undefined || n === '') return null;
+  return '$'+v.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function renderColHeaders(){
+  const thead = document.getElementById('mainThead');
+  const cols = [
+    {k:'clave',l:'Clave'},{k:'marca',l:'Marca'},{k:'cat',l:'Categoría'},
+    {k:'desc',l:'Descripción'},{k:'unit',l:'Unidad'},
+    {k:'pc',l:'P.Compra s/IVA'},{k:'pciva',l:'P.Compra c/IVA'},
+    {k:'pv',l:'P.Venta s/IVA'},{k:'pviva',l:'P.Venta c/IVA'},
+    {k:'obs',l:'Observaciones'},{k:'acc',l:'Acciones'}
+  ];
+  thead.innerHTML = '<tr>'+cols.filter(c=>colVisible[c.k]).map(c=>`<th>${c.l}</th>`).join('')+'</tr>';
+}
+
+function renderTable(){
+  const start=(currentPage-1)*PAGE_SIZE, end=start+PAGE_SIZE;
+  const page=filtered.slice(start,end);
+  const tbody=document.getElementById('mainTbody');
+  if(!page.length){
+    tbody.innerHTML=`<tr><td colspan="20" style="padding:40px;text-align:center;color:var(--text3)">No se encontraron productos</td></tr>`;
+    renderPager();return;
+  }
+  const cv=colVisible;
+  tbody.innerHTML=page.map((p,i)=>{
+    const dbIdx=db.indexOf(p); // real index in db for safe edits/cotizar
+    const pcFmt=fmt(p.precioCompra), pvFmt=fmt(p.precioVenta);
+    const pcIva=fmt(p.precioCompra?p.precioCompra*(1+IVA):0);
+    const pvIva=fmt(p.precioVenta?p.precioVenta*(1+IVA):0);
+    const noP='<span class="no-price">—</span>';
+    let cells='';
+    if(cv.clave) cells+=`<td><span class="col-clave">${esc(p.clave)}</span></td>`;
+    if(cv.marca) cells+=`<td><span class="badge-marca badge-${p.marca}">${esc(p.marca)}</span></td>`;
+    if(cv.cat) cells+=`<td><span class="badge-cat">${esc(p.categoria)}</span></td>`;
+    if(cv.desc) cells+=`<td class="col-desc">${esc(p.descripcion)}</td>`;
+    if(cv.unit) cells+=`<td><span class="col-unit">${esc(p.unidad)}</span></td>`;
+    if(cv.pc) cells+=`<td class="col-price compra">${pcFmt||noP}</td>`;
+    if(cv.pciva) cells+=`<td class="col-price compra">${pcIva&&p.precioCompra?pcIva:noP}</td>`;
+    if(cv.pv) cells+=`<td class="col-price">${pvFmt||noP}</td>`;
+    if(cv.pviva) cells+=`<td class="col-price">${pvIva&&p.precioVenta?pvIva:noP}</td>`;
+    if(cv.obs) cells+=`<td><span class="obs-text" title="${esc(p.obs)}">${esc(p.obs)||''}</span></td>`;
+    if(cv.acc) cells+=`<td><div class="row-actions"><button class="row-btn" onclick="cotAdd(${dbIdx})">+Cotizar</button><button class="row-btn" onclick="editProduct(${dbIdx})">✏️</button><button class="row-btn del" onclick="delProduct(${dbIdx})">🗑</button></div></td>`;
+    return `<tr>${cells}</tr>`;
+  }).join('');
+  renderPager();
+}
+
+function renderPager(){
+  const total=Math.ceil(filtered.length/PAGE_SIZE);
+  const p=document.getElementById('pager');
+  if(total<=1){p.innerHTML=`<span class="pager-info">Total: ${filtered.length} productos</span>`;return;}
+  let html='';
+  html+=`<button class="pager-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>`;
+  const pages=[];
+  for(let i=1;i<=total;i++){
+    if(i===1||i===total||Math.abs(i-currentPage)<=2) pages.push(i);
+    else if(pages[pages.length-1]!=='…') pages.push('…');
+  }
+  pages.forEach(pg=>{
+    if(pg==='…') html+=`<span style="padding:0 4px;color:var(--text3)">…</span>`;
+    else html+=`<button class="pager-btn ${pg===currentPage?'active':''}" onclick="goPage(${pg})">${pg}</button>`;
+  });
+  html+=`<button class="pager-btn" onclick="goPage(${currentPage+1})" ${currentPage===total?'disabled':''}>›</button>`;
+  html+=`<span class="pager-info">${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,filtered.length)} de ${filtered.length}</span>`;
+  p.innerHTML=html;
+}
+
+function goPage(n){
+  const total=Math.ceil(filtered.length/PAGE_SIZE);
+  if(n<1||n>total) return;
+  currentPage=n;
+  renderTable();
+  document.getElementById('mainTable').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+/* ═════════════════════════════════════════════════
+   COLUMN TOGGLE
+═════════════════════════════════════════════════ */
+function toggleColPanel(){document.getElementById('colDropdown').classList.toggle('open')}
+function closeColPanel(){document.getElementById('colDropdown').classList.remove('open')}
+function toggleCol(k){colVisible[k]=!colVisible[k];renderColHeaders();renderTable()}
+
+/* ═════════════════════════════════════════════════
+   TAB SWITCH — General + Marcas + Cotizador
+═════════════════════════════════════════════════ */
+let activeBrand = '';
+
+function switchTab(t){
+  if(t === 'cot'){
+    // Mostrar panel cotizador, ocultar catálogo
+    document.getElementById('panel-db').classList.remove('active');
+    document.getElementById('panel-cot').classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('tab-cot').classList.add('active');
+    renderCotTable();
+    return;
+  }
+  // Es una pestaña de catálogo (general o marca)
+  document.getElementById('panel-cot').classList.remove('active');
+  document.getElementById('panel-db').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  const tabId = t === 'general' ? 'tab-general' : 'tab-'+t;
+  document.getElementById(tabId).classList.add('active');
+
+  // Configurar filtro de marca activo
+  activeBrand = (t === 'general') ? '' : t;
+  updateBrandBanner();
+  updateCatFilter();
+  currentPage = 1;
+  // Limpiar búsqueda y filtro cat al cambiar de marca
+  document.getElementById('searchInput').value = '';
+  document.getElementById('filterCat').value = '';
+  // Ocultar/mostrar selector de marca (redundante en pestañas de marca)
+  const fm = document.getElementById('filterMarca');
+  if(activeBrand){
+    fm.style.display = 'none';
+    fm.value = '';
+  } else {
+    fm.style.display = '';
+  }
+  applyFilters();
+}
+
+function updateBrandBanner(){
+  const banner = document.getElementById('brandBanner');
+  const brandColors = {
+    IMPAC:    {bg:'#fef3c7',color:'#92400e',border:'#d97706'},
+    FANOSA:   {bg:'#d1fae5',color:'#065f46',border:'#059669'},
+    NOVIDESA: {bg:'#ede9fe',color:'#5b21b6',border:'#7c3aed'},
+    KEMIX:    {bg:'#fce7f3',color:'#9d174d',border:'#be185d'},
+  };
+  if(!activeBrand){banner.style.display='none';return;}
+  const c = brandColors[activeBrand] || {bg:'var(--accent-bg)',color:'var(--accent)',border:'var(--accent)'};
+  const count = db.filter(p=>p.marca===activeBrand).length;
+  banner.style.display = '';
+  banner.innerHTML = `<div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:var(--radius);background:${c.bg};border:1px solid ${c.border};color:${c.color};font-size:13px;font-weight:600;margin-bottom:4px">
+    <span>${activeBrand}</span>
+    <span style="font-weight:400;font-size:12px;opacity:.8">${count} productos en catálogo</span>
+  </div>`;
+}
+
+function updateCatFilter(){
+  const cs = document.getElementById('filterCat');
+  const srcData = activeBrand ? db.filter(p=>p.marca===activeBrand) : db;
+  const cats = [...new Set(srcData.map(x=>x.categoria))].sort();
+  cs.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c=>`<option>${c}</option>`).join('');
+}
+
+/* ═════════════════════════════════════════════════
+   MODAL AGREGAR / EDITAR
+═════════════════════════════════════════════════ */
+function openAddModal(idx=null){
+  editingId=idx;
+  const modal=document.getElementById('modalOverlay');
+  const title=document.getElementById('modalTitle');
+  if(idx!==null){
+    title.textContent='Editar Producto';
+    const p=db[idx];
+    document.getElementById('fClave').value=p.clave;
+    document.getElementById('fMarca').value=p.marca;
+    document.getElementById('fDesc').value=p.descripcion;
+    document.getElementById('fCat').value=p.categoria;
+    document.getElementById('fUnidad').value=p.unidad;
+    document.getElementById('fPrecioC').value=p.precioCompra||'';
+    document.getElementById('fPrecioV').value=p.precioVenta||'';
+    document.getElementById('fObs').value=p.obs||'';
+  }else{
+    title.textContent='Agregar Producto';
+    ['fClave','fDesc','fPrecioC','fPrecioV','fObs'].forEach(id=>document.getElementById(id).value='');
+  }
+  modal.classList.add('open');
+}
+
+function editProduct(idx){openAddModal(idx)}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('open');
+  editingId=null;
+}
+
+function saveProduct(){
+  const clave=document.getElementById('fClave').value.trim();
+  const desc=document.getElementById('fDesc').value.trim();
+  if(!clave||!desc){toast('Clave y descripción son obligatorios','error');return;}
+  const prod={
+    clave,marca:document.getElementById('fMarca').value,
+    categoria:document.getElementById('fCat').value,
+    descripcion:desc,unidad:document.getElementById('fUnidad').value,
+    precioCompra:parseFloat(document.getElementById('fPrecioC').value)||0,
+    precioVenta:parseFloat(document.getElementById('fPrecioV').value)||0,
+    obs:document.getElementById('fObs').value.trim()
+  };
+  if(editingId!==null){db[editingId]=prod;toast('Producto actualizado','success')}
+  else{db.push(prod);toast('Producto agregado','success')}
+  saveState();buildFilters();applyFilters();updateStats();closeModal();
+}
+
+function delProduct(idx){
+  if(!confirm('¿Eliminar producto?')) return;
+  db.splice(idx,1);saveState();buildFilters();applyFilters();updateStats();toast('Producto eliminado');
+}
+
+/* ═════════════════════════════════════════════════
+   COTIZADOR PROFESIONAL
+═════════════════════════════════════════════════ */
+let cotQuoteNum = 1;
+
+function initCotizador(){
+  // Auto-fecha de cotización
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  const el = document.getElementById('cotQuoteDate');
+  if(el) el.textContent = 'Fecha: '+dateStr;
+  // Número de cotización desde cfg
+  if(cfg.cotQuoteNum){ const n=parseInt(cfg.cotQuoteNum); cotQuoteNum=isNaN(n)?1:n; }
+  const numEl = document.getElementById('cotNumInput');
+  if(numEl) numEl.value = 'COT-'+today.getFullYear()+'-'+String(cotQuoteNum).padStart(3,'0');
+  // Sincronizar datos de empresa desde cfg
+  if(cfg.cotCoName) setEditableVal('cotCoName', cfg.cotCoName);
+  if(cfg.cotCoTel) setEditableVal('cotCoTel', cfg.cotCoTel);
+  if(cfg.cotCoCiudad) setEditableVal('cotCoCiudad', cfg.cotCoCiudad);
+  if(cfg.cotCoEmail) setEditableVal('cotCoEmail', cfg.cotCoEmail);
+  if(cfg.cotFooter) setEditableVal('cotFooter', cfg.cotFooter);
+  // Guardar cambios en editable fields
+  ['cotCoName','cotCoTel','cotCoCiudad','cotCoEmail','cotFooter'].forEach(id=>{
+    const e = document.getElementById(id);
+    if(!e) return;
+    e.addEventListener('blur',()=>{
+      cfg[id] = e.textContent.trim();
+      saveState();
+    });
+    e.addEventListener('keydown',ev=>{if(ev.key==='Enter'){ev.preventDefault();e.blur()}});
+  });
+  // Quote number editable
+  const qn = document.getElementById('cotNumInput');
+  if(qn) qn.addEventListener('change',()=>{
+    const m = qn.value.match(/(\d+)$/);
+    if(m){ cotQuoteNum=parseInt(m[1]); cfg.cotQuoteNum=cotQuoteNum; saveState(); }
+  });
+  // Set correct initial state for delivery toggle
+  updateTotals();
+}
+
+function setEditableVal(id, val){
+  const el = document.getElementById(id);
+  if(el && val) el.textContent = val;
+}
+
+function nextQuoteNum(){
+  cotQuoteNum++;
+  cfg.cotQuoteNum = cotQuoteNum;
+  const today = new Date();
+  const numEl = document.getElementById('cotNumInput');
+  if(numEl) numEl.value = 'COT-'+today.getFullYear()+'-'+String(cotQuoteNum).padStart(3,'0');
+  saveState();
+}
+
+
+function cotSearchInput(){
+  const q = document.getElementById('cotSearch').value.trim().toLowerCase();
+  const sug = document.getElementById('cotSug');
+  if(!q){sug.classList.remove('open');return;}
+  const results = db.filter(p=>(p.clave+p.descripcion+p.marca).toLowerCase().includes(q)).slice(0,12);
+  if(!results.length){sug.classList.remove('open');return;}
+  const tipo = document.getElementById('precioTipo').value;
+  sug.innerHTML = results.map(p=>{
+    const pr = tipo==='compra' ? p.precioCompra : p.precioVenta;
+    return `<div class="sug-item" onclick="cotAddByIdx(${db.indexOf(p)})">
+      <span class="sug-clave">${esc(p.clave)}</span>
+      <span style="flex:1">${esc(p.descripcion)}</span>
+      <span class="sug-precio">${fmt(pr)||'—'}</span>
+    </div>`;
+  }).join('');
+  sug.classList.add('open');
+}
+
+function closeCotSug(){document.getElementById('cotSug').classList.remove('open')}
+
+function cotAdd(dbIdx){cotAddByIdx(dbIdx);switchTab('cot')}
+
+function cotAddByIdx(dbIdx){
+  const p = db[dbIdx];
+  const tipo = document.getElementById('precioTipo').value;
+  const precio = (tipo==='compra' ? p.precioCompra : p.precioVenta) || 0;
+  const existing = cotItems.find(x=>x.clave===p.clave);
+  if(existing){existing.qty+=1;}
+  else{cotItems.push({clave:p.clave,desc:p.descripcion,unidad:p.unidad,precio,qty:1,dbIdx});}
+  document.getElementById('cotSearch').value='';
+  closeCotSug();
+  renderCotTable();updateTotals();updateStats();
+  toast('+ '+p.clave,'success');
+}
+
+function renderCotTable(){
+  const tbody = document.getElementById('cotTbody');
+  if(!cotItems.length){
+    tbody.innerHTML=`<tr><td colspan="8" class="cot-empty-msg">Busca y agrega materiales para comenzar la cotización</td></tr>`;
+    updateTotals();return;
+  }
+  tbody.innerHTML = cotItems.map((item,i)=>{
+    const sub = item.qty * item.precio;
+    return `<tr>
+      <td class="td-num">${i+1}</td>
+      <td class="td-clave">${esc(item.clave)}</td>
+      <td>${esc(item.desc)}</td>
+      <td style="font-size:11.5px;color:#64748b">${esc(item.unidad)}</td>
+      <td class="qty-cell"><input type="number" min="0.01" step="any" value="${item.qty}" onchange="setQty(${i},this.value)"></td>
+      <td class="price-cell"><input type="number" min="0" step="0.01" value="${item.precio.toFixed(2)}" onchange="setPrice(${i},this.value)" title="Editar precio"></td>
+      <td class="td-sub">$${sub.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+      <td class="del-cell no-print"><button onclick="cotDel(${i})" title="Eliminar">✕</button></td>
+    </tr>`;
+  }).join('');
+  updateTotals();
+}
+
+function setQty(i,v){const n=parseFloat(v);if(!isNaN(n)&&n>0){cotItems[i].qty=n;renderCotTable()}}
+function setPrice(i,v){const n=parseFloat(v);if(!isNaN(n)&&n>=0){cotItems[i].precio=n;renderCotTable()}}
+function cotDel(i){cotItems.splice(i,1);renderCotTable();updateStats()}
+
+function clearCot(){
+  if(cotItems.length && !confirm('¿Limpiar toda la cotización?')) return;
+  cotItems=[];
+  ['clNombre','clTel','clDir','clObra','clNotas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const _nm = document.getElementById('firma-auth-name');
+  if(_nm) _nm.textContent = 'CLIENTE / REPRESENTANTE';
+  nextQuoteNum();
+  renderCotTable();updateStats();
+}
+
+function updateTotals(){
+  const sub = cotItems.reduce((s,x)=> s + (isNaN(x.qty)?0:x.qty) * (isNaN(x.precio)?0:x.precio), 0);
+  const ivaEl = document.getElementById('ivaToggle');
+  const ivaOn = ivaEl ? ivaEl.checked : true;
+  const iva = ivaOn ? sub * IVA : 0;
+  const entEl = document.getElementById('entregaToggle');
+  const entregaOn = entEl ? entEl.checked : false;
+  const entRaw = parseFloat((document.getElementById('entregaInput')||{}).value);
+  const entrega = entregaOn && !isNaN(entRaw) ? entRaw : 0;
+  const total = sub + iva + entrega;
+
+  const setTxt = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
+  setTxt('tSubtotal', fmtNum(sub));
+  setTxt('tIVA', fmtNum(iva));
+  setTxt('tTotal', fmtNum(total));
+
+  const rowIVA = document.getElementById('rowIVA');
+  if(rowIVA) rowIVA.style.opacity = ivaOn ? '1' : '0.35';
+
+  const entDisplay = document.getElementById('entregaDisplay');
+  const entInput   = document.getElementById('entregaInput');
+  const entRow     = document.getElementById('cot-entrega-row');
+  if(entDisplay) entDisplay.textContent = fmtNum(entrega);
+  if(entInput)   entInput.style.display  = entregaOn ? ''       : 'none';
+  if(entDisplay) entDisplay.style.display = entregaOn ? ''       : 'none';
+  // Marca la fila para que print CSS pueda decidir
+  if(entRow) entRow.setAttribute('data-entrega-on', entregaOn ? '1' : '0');
+}
+
+function fmtNum(n){
+  const v = isNaN(n) ? 0 : (n||0);
+  return '$'+v.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+/* ═════════════════════════════════════════════════
+   THEME
+═════════════════════════════════════════════════ */
+function toggleTheme(){
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  const newTheme=isDark?'light':'dark';
+  document.documentElement.setAttribute('data-theme',newTheme);
+  document.getElementById('themeBtn').textContent=newTheme==='dark'?'☀️':'🌙';
+  cfg.theme=newTheme;saveState();
+}
+
+/* ═════════════════════════════════════════════════
+   EDICIÓN INLINE DE ENCABEZADO
+   Guard data-il previene listeners duplicados.
+   {once:true} en blur evita doble ejecución (Enter+blur).
+═════════════════════════════════════════════════ */
+function setupInlineEdits(){
+  ['sysName','metaCiudad','metaVigencia'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(!el || el.dataset.il) return;
+    el.dataset.il = '1';
+    el.title = 'Click para editar';
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', () => {
+      if(el.contentEditable === 'true') return;
+      const original = el.textContent;
+      el.contentEditable = 'true';
+      el.style.outline = '2px solid var(--accent)';
+      el.style.borderRadius = '3px';
+      el.style.padding = '1px 4px';
+      el.focus();
+      // Select all text
+      const range = document.createRange();
+      range.selectNodeContents(el);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+
+      const finish = (save) => {
+        el.contentEditable = 'false';
+        el.style.outline = '';
+        el.style.borderRadius = '';
+        el.style.padding = '';
+        const val = el.textContent.trim() || original;
+        el.textContent = val;
+        if(!save){ el.textContent = original; return; }
+        if(id==='sysName'){
+          cfg.sysName = val; document.title = val;
+          const lt = document.getElementById('logoText');
+          if(lt) lt.textContent = val.substring(0,2).toUpperCase();
+          const clt = document.getElementById('cotLogoText');
+          if(clt) clt.textContent = val.substring(0,2).toUpperCase();
+        }
+        if(id==='metaCiudad') cfg.ciudad = val;
+        if(id==='metaVigencia') cfg.vigencia = val;
+        saveState();
+      };
+
+      el.addEventListener('blur', () => finish(true), {once:true});
+      el.addEventListener('keydown', e => {
+        if(e.key==='Enter'){ e.preventDefault(); finish(true); el.blur(); }
+        if(e.key==='Escape'){ finish(false); el.blur(); }
+      }, {once:true});
+    });
+  });
+}
+
+/* ═════════════════════════════════════════════════
+   EXPORT / IMPORT JSON
+═════════════════════════════════════════════════ */
+function exportJSON(){
+  const blob=new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download=`GamaSur_datos_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();toast('JSON exportado','success');
+}
+
+function openImport(){document.getElementById('importOverlay').classList.add('open')}
+function closeImport(){document.getElementById('importOverlay').classList.remove('open')}
+
+function resetData(){
+  if(!confirm('¿Restaurar todos los datos originales? Se perderán cambios guardados en este dispositivo.')) return;
+  try{ localStorage.removeItem(DATA_KEY); localStorage.removeItem(CFG_KEY); }catch(e){}
+  db = JSON.parse(JSON.stringify(INITIAL_DATA));
+  cfg = JSON.parse(JSON.stringify(INITIAL_CFG));
+  document.documentElement.setAttribute('data-theme','light');
+  renderHeader();buildFilters();activeBrand='';updateBrandBanner();applyFilters();renderColHeaders();updateStats();
+  toast('✅ Datos restaurados a versión original','success');
+}
+function doImport(){
+  try{
+    const raw=document.getElementById('importText').value.trim();
+    const data=JSON.parse(raw);
+    if(!Array.isArray(data)) throw new Error('No es un arreglo');
+    db=data;saveState();buildFilters();applyFilters();updateStats();
+    closeImport();toast(`${db.length} productos importados`,'success');
+  }catch(e){toast('JSON inválido: '+e.message,'error')}
+}
+
+/* ═════════════════════════════════════════════════
+   FIRMAS EDITABLES
+═════════════════════════════════════════════════ */
+function triggerFirmaUpload(id){
+  const inp = document.getElementById(id+'-input');
+  if(inp) inp.click();
+}
+function handleFirmaUpload(id, input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(id+'-img');
+    if(img){ img.src=e.target.result; img.style.display='block'; }
+    cfg['sig_'+id] = e.target.result;
+    saveState();
+    toast('Firma guardada','success');
+  };
+  reader.readAsDataURL(file);
+  input.value='';
+}
+function loadFirmas(){
+  ['firma-elab','firma-auth'].forEach(id=>{
+    const data = cfg['sig_'+id];
+    if(data){
+      const img = document.getElementById(id+'-img');
+      if(img){ img.src=data; img.style.display='block'; }
+    }
+  });
+}
+function syncClientName(){
+  const cl = document.getElementById('clNombre');
+  const nm = document.getElementById('firma-auth-name');
+  if(!cl || !nm) return;
+  const v = cl.value.trim().toUpperCase();
+  nm.textContent = v || 'CLIENTE / REPRESENTANTE';
+}
+
+/* ═════════════════════════════════════════════════
+   LOGO EDITABLE
+═════════════════════════════════════════════════ */
+function triggerLogoUpload(){
+  document.getElementById('logoFileInput').click();
+}
+
+function handleLogoUpload(input){
+  const file = input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const b64 = e.target.result;
+    cfg.logo = b64;
+    applyLogo(b64);
+    saveState();
+    toast('Logo actualizado','success');
+  };
+  reader.readAsDataURL(file);
+  input.value = ''; // reset so same file can be re-uploaded
+}
+
+function applyLogo(b64){
+  // Header logo
+  const img = document.getElementById('logoImg');
+  const txt = document.getElementById('logoText');
+  if(img && b64){img.src=b64;img.style.display='';if(txt)txt.style.display='none';}
+  else if(img){img.style.display='none';if(txt)txt.style.display='';}
+  // Cotizador logo
+  const cImg = document.getElementById('cotLogoImg');
+  const cTxt = document.getElementById('cotLogoText');
+  if(cImg && b64){cImg.src=b64;cImg.style.display='';if(cTxt)cTxt.style.display='none';}
+  else if(cImg){cImg.style.display='none';if(cTxt)cTxt.style.display='';}
+}
+
+/* ═════════════════════════════════════════════════
+   IMPRESIÓN POR PESTAÑA ACTIVA
+═════════════════════════════════════════════════ */
+function printPage(){
+  const isPanelCot = document.getElementById('panel-cot').classList.contains('active');
+  document.body.setAttribute('data-printing', isPanelCot ? 'cot' : 'db');
+  window.print();
+  setTimeout(()=>document.body.removeAttribute('data-printing'), 500);
+}
+
+window.addEventListener('beforeprint', ()=>{
+  const isPanelCot = document.getElementById('panel-cot').classList.contains('active');
+  document.body.setAttribute('data-printing', isPanelCot ? 'cot' : 'db');
+});
+window.addEventListener('afterprint', ()=>{
+  document.body.removeAttribute('data-printing');
+});
+
+/* ═════════════════════════════════════════════════
+   GUARDAR HTML (la función estrella)
+═════════════════════════════════════════════════ */
+function saveHTML(){
+  const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  const jsonStr = JSON.stringify(db);
+  const cfgStr = JSON.stringify(cfg);
+  // Actualizar bloque de datos
+  const regex = /(const INITIAL_DATA = )[\s\S]*?(;[\s\S]*?\/\* ══════════════════ JSON_DATA_END)/;
+  let newHTML = currentHTML.replace(regex, `const INITIAL_DATA = ${jsonStr};\n/* ══════════════════ JSON_DATA_END`);
+  // Actualizar bloque de cfg
+  const cfgRegex = /(const INITIAL_CFG = )[\s\S]*?(;[\s\S]*?\/\* ══ CFG_END)/;
+  newHTML = newHTML.replace(cfgRegex, `const INITIAL_CFG = ${cfgStr};\n/* ══ CFG_END`);
+  const now = new Date();
+  const fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
+  const blob = new Blob([newHTML],{type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  toast(`✅ Guardado: ${fname}`,'success');
+}
+
+/* ═════════════════════════════════════════════════
+   TOAST
+═════════════════════════════════════════════════ */
+function toast(msg,type='info'){
+  const container=document.getElementById('toast');
+  const el=document.createElement('div');
+  el.className=`toast-item ${type}`;
+  el.textContent=msg;
+  container.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transform='translateX(20px)';el.style.transition='all .3s';setTimeout(()=>el.remove(),300)},3000);
+}
+
+/* ═════════════════════════════════════════════════
+   ARRANQUE
+═════════════════════════════════════════════════ */
+// Global error catcher — prevents silent crashes from killing the whole app
+window.onerror = function(msg, src, line, col, err){
+  console.error('GamaSur error:', msg, 'line:', line, err);
+  return false; // don't suppress default browser error handling
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  try { init(); } catch(e) {
+    console.error('init() failed:', e);
+    // Even if init crashes, try to restore basic tab switching
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      const onclick = btn.getAttribute('onclick');
+      if (onclick) {
+        btn.addEventListener('click', () => { try { eval(onclick); } catch(e2){} });
+      }
+    });
+  }
+  try { setupInlineEdits(); } catch(e) { console.error('setupInlineEdits failed:', e); }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>GamaSur — Herramientas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════
+   BASE
+═══════════════════════════ */
+:root{
+  --cream:   #f0ede6;
+  --cream2:  #e6e1d8;
+  --surface: #ffffff;
+  --navy:    #1e3a5f;
+  --blue:    #2563eb;
+  --teal:    #0f7173;
+  --amber:   #c2622a;
+  --text:    #1c1916;
+  --text2:   #6b6760;
+  --text3:   #a09c96;
+  --border:  rgba(28,25,22,.09);
+  --live-bg: #e6f2ee;
+  --live-fg: #2d6a55;
+  --shadow:  0 2px 16px rgba(28,25,22,.07);
+  --font-s: 'DM Serif Display', Georgia, serif;
+  --font-b: 'Inter', system-ui, -apple-system, sans-serif;
+  --r: 14px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px;-webkit-font-smoothing:antialiased}
+body{
+  font-family:var(--font-b);
+  background:var(--cream);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;flex-direction:column;
+  align-items:center;
+}
+a{text-decoration:none;color:inherit}
+button{font-family:var(--font-b);cursor:pointer;border:none;outline:none;background:none}
+input,select,textarea{font-family:var(--font-b)}
+
+/* ═══════════════════════════
+   WRAPPER
+═══════════════════════════ */
+.wrap{width:100%;max-width:680px;padding:0 24px;display:flex;flex-direction:column}
+
+/* ═══════════════════════════
+   HEADER / IDENTITY
+═══════════════════════════ */
+.id-header{
+  padding: 52px 0 36px;
+  display:flex;flex-direction:column;gap:14px;
+  align-items:flex-start;
+  position:relative;
+}
+.id-logo-row{display:flex;align-items:center;gap:12px}
+.id-logo-box{
+  width:48px;height:48px;border-radius:10px;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700;font-size:17px;
+  overflow:hidden;cursor:pointer;position:relative;flex-shrink:0;
+  transition:opacity .15s;
+}
+.id-logo-box:hover{opacity:.88}
+.id-logo-box:hover::after{
+  content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.35);
+  display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:10px;
+}
+.id-logo-img{width:100%;height:100%;object-fit:contain}
+.id-sup{
+  font-family:var(--font-b);
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--navy);opacity:.55;
+}
+input#logoFile{display:none}
+
+.id-title{
+  font-family:var(--font-s);
+  font-size:clamp(2.2rem,6vw,3rem);
+  line-height:1.1;
+  color:var(--text);
+  font-weight:400;
+}
+.id-title em{
+  font-style:italic;
+  color:var(--navy);
+}
+.id-sub{
+  font-size:13.5px;
+  color:var(--text2);
+  line-height:1.55;
+}
+.id-sub em{
+  font-style:normal;
+  color:var(--navy);
+  font-weight:500;
+}
+
+/* ═══════════════════════════
+   SECTION LABEL
+═══════════════════════════ */
+.sec-label{
+  display:flex;align-items:center;gap:12px;
+  font-size:10.5px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text3);margin-bottom:12px;
+}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ═══════════════════════════
+   APP LIST
+═══════════════════════════ */
+.app-list{display:flex;flex-direction:column;gap:10px;margin-bottom:40px}
+
+/* ═══════════════════════════
+   CARD
+═══════════════════════════ */
+.app-card{
+  background:var(--surface);
+  border-radius:var(--r);
+  box-shadow:var(--shadow);
+  display:flex;align-items:center;gap:14px;
+  padding:16px 18px;
+  cursor:pointer;
+  transition:transform .15s,box-shadow .15s;
+  position:relative;
+  overflow:hidden;
+  border:1px solid transparent;
+}
+.app-card::before{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:4px;
+  background:var(--card-color,var(--navy));
+  border-radius:var(--r) 0 0 var(--r);
+}
+.app-card:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(28,25,22,.11);border-color:var(--cream2)}
+.app-card.soon{opacity:.55;cursor:default}
+.app-card.soon:hover{transform:none;box-shadow:var(--shadow)}
+
+.card-icon{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--icon-bg,#eef3f9);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+}
+.card-content{flex:1;min-width:0}
+.card-name{
+  font-size:15px;font-weight:600;color:var(--text);
+  line-height:1.25;margin-bottom:3px;
+  display:flex;align-items:baseline;gap:5px;flex-wrap:wrap;
+}
+.card-name em{
+  font-style:italic;font-weight:400;
+  font-family:var(--font-s);
+  color:var(--card-color,var(--navy));
+  font-size:16px;
+}
+.card-desc{font-size:12.5px;color:var(--text2);line-height:1.45}
+
+.card-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.badge{
+  font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+  padding:4px 10px;border-radius:20px;white-space:nowrap;
+}
+.badge-live{background:var(--live-bg);color:var(--live-fg)}
+.badge-soon{background:#f0ede6;color:var(--text3);border:1px solid var(--border)}
+.badge-new{background:#dbeafe;color:#1e40af}
+.chevron{color:var(--text3);display:flex;align-items:center;flex-shrink:0}
+
+/* ═══════════════════════════
+   ADD CARD
+═══════════════════════════ */
+.add-card{
+  background:transparent;
+  border:1.5px dashed var(--cream2);
+  border-radius:var(--r);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  padding:14px 18px;cursor:pointer;
+  color:var(--text3);font-size:13px;
+  transition:all .15s;
+}
+.add-card:hover{border-color:var(--navy);color:var(--navy);background:rgba(30,58,95,.04)}
+.add-icon{font-size:18px}
+
+/* ═══════════════════════════
+   FOOTER SLOGAN
+═══════════════════════════ */
+.slogan{
+  text-align:center;
+  font-family:var(--font-s);
+  font-style:italic;
+  font-size:14px;
+  color:var(--text3);
+  padding:24px 0 40px;
+}
+
+/* ═══════════════════════════
+   MODAL
+═══════════════════════════ */
+.overlay{
+  position:fixed;inset:0;background:rgba(28,25,22,.45);
+  z-index:500;display:none;align-items:center;justify-content:center;padding:20px;
+}
+.overlay.open{display:flex}
+.modal{
+  background:#fff;border-radius:var(--r);padding:28px;
+  max-width:440px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.18);
+}
+.modal-title{
+  font-family:var(--font-s);font-size:1.4rem;font-weight:400;
+  color:var(--text);margin-bottom:20px;
+}
+.field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+.field label{font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text2)}
+.field input,.field select,.field textarea{
+  padding:9px 12px;border:1.5px solid var(--cream2);border-radius:8px;
+  font:inherit;font-size:13px;color:var(--text);background:var(--cream);
+  transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{
+  outline:none;border-color:var(--navy);background:#fff;
+}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:20px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 18px;border-radius:8px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:all .15s;border:none}
+.btn-primary{background:var(--navy);color:#fff}
+.btn-primary:hover{background:#162e4d}
+.btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--cream2)}
+.btn-ghost:hover{border-color:var(--navy);color:var(--navy)}
+
+/* ═══════════════════════════
+   TOAST
+═══════════════════════════ */
+#toast{position:fixed;bottom:24px;right:24px;z-index:900;display:flex;flex-direction:column;gap:6px}
+.toast-item{
+  background:#fff;border:1px solid var(--cream2);border-radius:10px;
+  padding:10px 16px;font-size:13px;box-shadow:var(--shadow);
+  animation:toastIn .2s ease;
+}
+.toast-item.success{border-left:3px solid var(--live-fg)}
+.toast-item.error{border-left:3px solid #c0392b}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ═══════════════════════════
+   RESPONSIVE
+═══════════════════════════ */
+@media(max-width:520px){
+  .id-header{padding:36px 0 28px}
+  .id-title{font-size:2rem}
+  .card-desc{display:none}
+  .modal{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ═══ IDENTITY ═══ -->
+  <header class="id-header">
+    <div class="id-logo-row">
+      <div class="id-logo-box" id="logoBox" onclick="document.getElementById('logoFile').click()" title="Cambiar logo">
+        <img id="logoImg" class="id-logo-img" style="display:none" alt="">
+        <span id="logoTxt">GS</span>
+      </div>
+      <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp" onchange="handleLogo(this)">
+      <span class="id-sup">Francisco Javier Cab Ruiz · Gama Sur</span>
+    </div>
+    <h1 class="id-title">Gama <em>Sur</em></h1>
+    <p class="id-sub">Tu plataforma comercial. Todo en <em>un lugar</em>.</p>
+  </header>
+
+  <!-- ═══ LISTA ═══ -->
+  <div class="sec-label">Herramientas</div>
+  <div class="app-list" id="appList"></div>
+
+  <!-- ═══ ADD ═══ -->
+  <div class="add-card" onclick="openModal()">
+    <span class="add-icon">+</span>
+    <span>Agregar herramienta</span>
+  </div>
+
+  <!-- ═══ SLOGAN ═══ -->
+  <p class="slogan">Piensa diferente. Construye inteligente.</p>
+
+</div><!-- .wrap -->
+
+<!-- ═══ MODAL ═══ -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal">
+    <div class="modal-title">Nueva herramienta</div>
+    <div class="field"><label>Nombre</label><input id="fName" type="text" placeholder="Ej: Calculadora de materiales"></div>
+    <div class="field"><label>Descripción</label><input id="fDesc" type="text" placeholder="¿Para qué sirve?"></div>
+    <div class="field"><label>Archivo / URL</label><input id="fUrl" type="text" placeholder="herramienta.html  ó  https://…"></div>
+    <div class="field">
+      <label>Ícono (emoji)</label>
+      <input id="fIcon" type="text" placeholder="📦" maxlength="4">
+    </div>
+    <div class="field">
+      <label>Color acento</label>
+      <select id="fColor">
+        <option value="#1e3a5f">Azul marino (GamaSur)</option>
+        <option value="#0f7173">Verde azulado</option>
+        <option value="#c2622a">Naranja tierra</option>
+        <option value="#6d28d9">Morado</option>
+        <option value="#0ea5e9">Celeste</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="addApp()">Agregar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════
+   DATOS INICIALES
+   JSON_APPS_START
+════════════════════════════════════════ */
+const INITIAL_APPS = [
+  {
+    id: "precios-cotizador",
+    name: "Gestor de",
+    nameItalic: "Precios",
+    desc: "Catálogo IMPAC · FANOSA · NOVIDESA · KEMIX. Cotizador profesional con firma.",
+    icon: "💰",
+    color: "#1e3a5f",
+    iconBg: "#eef2f8",
+    url: "precios.html",
+    badge: "live",
+    badgeLabel: "En vivo"
+  },
+  {
+    id: "cotizador-trabajos",
+    name: "Cotizador de",
+    nameItalic: "Trabajos",
+    desc: "Presupuestos para trabajos generales de construcción y obra.",
+    icon: "🔨",
+    color: "#0f7173",
+    iconBg: "#e8f4f4",
+    url: "cotizador-trabajos.html",
+    badge: "live",
+    badgeLabel: "En vivo"
+  }
+];
+const ROADMAP = [
+  {
+    id: "rm-calcs",
+    name: "Calculadora de",
+    nameItalic: "Materiales",
+    desc: "Área, volumen y rendimiento por tipo de producto.",
+    icon: "📐",
+    color: "#0f7173",
+    iconBg: "#e8f4f4",
+    badge: "soon",
+    badgeLabel: "Próximamente"
+  },
+  {
+    id: "rm-clientes",
+    name: "Directorio de",
+    nameItalic: "Clientes",
+    desc: "Contactos, historial de cotizaciones y seguimiento de proyectos.",
+    icon: "👥",
+    color: "#c2622a",
+    iconBg: "#f7ede5",
+    badge: "soon",
+    badgeLabel: "Próximamente"
+  },
+  {
+    id: "rm-inventario",
+    name: "Control de",
+    nameItalic: "Inventario",
+    desc: "Existencias, stock mínimo y movimientos por producto.",
+    icon: "📦",
+    color: "#6d28d9",
+    iconBg: "#f0ecfc",
+    badge: "soon",
+    badgeLabel: "Próximamente"
+  }
+];
+/* ════════════ JSON_APPS_END ════════════ */
+
+/* ════════════════════════════════════════
+   STATE
+════════════════════════════════════════ */
+const STORE = 'gamasur_lobby_v2';
+let customApps = [];
+
+function load(){
+  try{
+    const d = JSON.parse(localStorage.getItem(STORE)||'[]');
+    if(Array.isArray(d)) customApps = d;
+  }catch(e){}
+}
+function save(){
+  try{ localStorage.setItem(STORE, JSON.stringify(customApps)); }catch(e){}
+}
+
+/* ════════════════════════════════════════
+   RENDER
+════════════════════════════════════════ */
+function buildCard(app){
+  const isLive = app.badge === 'live' || app.badge === 'new';
+  const badgeClass = app.badge === 'live' ? 'badge-live' : app.badge === 'new' ? 'badge-new' : 'badge-soon';
+  const isCustom = customApps.includes(app);
+
+  const chevron = isLive
+    ? `<span class="chevron"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9,18 15,12 9,6"/></svg></span>`
+    : '';
+
+  const delBtn = isCustom
+    ? `<button onclick="event.stopPropagation();delApp('${app.id}')" style="padding:3px 7px;border-radius:5px;font-size:11px;color:#a09c96;background:none;border:1px solid #e0dbd2;cursor:pointer;transition:all .15s" onmouseover="this.style.color='#c0392b'" onmouseout="this.style.color='#a09c96'">✕</button>`
+    : '';
+
+  const card = `
+  <div class="app-card ${isLive?'':'soon'}" id="card-${app.id}"
+    style="--card-color:${app.color||'var(--navy)'};--icon-bg:${app.iconBg||'#eef3f9'}"
+    ${isLive && app.url ? `onclick="openApp('${esc(app.url)}')"` : ''}>
+    <div class="card-icon">${app.icon||'📄'}</div>
+    <div class="card-content">
+      <div class="card-name">
+        ${app.name ? esc(app.name) : ''}
+        ${app.nameItalic ? `<em>${esc(app.nameItalic)}</em>` : ''}
+      </div>
+      <div class="card-desc">${esc(app.desc||'')}</div>
+    </div>
+    <div class="card-right">
+      ${delBtn}
+      <span class="badge ${badgeClass}">${esc(app.badgeLabel||'')}</span>
+      ${chevron}
+    </div>
+  </div>`;
+  return card;
+}
+
+function render(){
+  const list = document.getElementById('appList');
+  const all = [...INITIAL_APPS, ...customApps, ...ROADMAP];
+  list.innerHTML = all.map(buildCard).join('');
+}
+
+/* ════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════ */
+function openApp(url){
+  window.location.href = url;
+}
+
+/* ════════════════════════════════════════
+   ADD / DELETE
+════════════════════════════════════════ */
+function openModal(){ document.getElementById('overlay').classList.add('open'); }
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+function handleOverlayClick(e){ if(e.target===e.currentTarget) closeModal(); }
+
+function addApp(){
+  const name  = document.getElementById('fName').value.trim();
+  const desc  = document.getElementById('fDesc').value.trim();
+  const url   = document.getElementById('fUrl').value.trim();
+  const icon  = document.getElementById('fIcon').value.trim() || '📄';
+  const color = document.getElementById('fColor').value;
+  if(!name){ toast('El nombre es obligatorio','error'); return; }
+
+  // Split name: last word becomes italic
+  const parts = name.split(' ');
+  const italic = parts.pop();
+  const base   = parts.join(' ');
+
+  customApps.push({
+    id: 'c-'+Date.now(),
+    name: base, nameItalic: italic,
+    desc, url, icon, color,
+    iconBg: '#f0f4f9',
+    badge: url ? 'live' : 'soon',
+    badgeLabel: url ? 'En vivo' : 'Próximamente'
+  });
+  save();
+  render();
+  closeModal();
+  ['fName','fDesc','fUrl','fIcon'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  toast('Herramienta agregada','success');
+}
+
+function delApp(id){
+  if(!confirm('¿Eliminar del menú?')) return;
+  customApps = customApps.filter(a=>a.id!==id);
+  save();
+  render();
+  toast('Eliminada');
+}
+
+/* ════════════════════════════════════════
+   LOGO
+════════════════════════════════════════ */
+function handleLogo(input){
+  const file = input.files[0];
+  if(!file) return;
+  const r = new FileReader();
+  r.onload = e => {
+    setLogo(e.target.result);
+    try{ localStorage.setItem('gamasur_lobby_logo', e.target.result); }catch(err){}
+    toast('Logo actualizado','success');
+  };
+  r.readAsDataURL(file);
+  input.value='';
+}
+function setLogo(src){
+  const img=document.getElementById('logoImg');
+  const txt=document.getElementById('logoTxt');
+  if(img){ img.src=src; img.style.display=''; }
+  if(txt) txt.style.display='none';
+}
+function loadLogo(){
+  try{
+    const src = localStorage.getItem('gamasur_lobby_logo');
+    if(src) setLogo(src);
+  }catch(e){}
+}
+
+/* ════════════════════════════════════════
+   TOAST
+════════════════════════════════════════ */
+function toast(msg, type='info'){
+  const c=document.getElementById('toast');
+  const el=document.createElement('div');
+  el.className=`toast-item ${type}`;
+  el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity .3s'; setTimeout(()=>el.remove(),300); },3000);
+}
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+/* ════════════════════════════════════════
+   INIT
+════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  loadLogo();
+  render();
+});
+</script>
+</body>
+</html>
