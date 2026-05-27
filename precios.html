@@ -785,6 +785,10 @@ tr:hover .row-actions{opacity:1}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Generar PDF
       </button>
+      <button class="btn btn-sm" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-weight:600" onclick="saveCotProject()" title="Guardar snapshot de esta cotización como archivo HTML independiente">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+        Guardar Proyecto
+      </button>
     </div>
   </div>
 
@@ -1755,6 +1759,98 @@ function saveHTML(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
   toast(`✅ Guardado: ${fname}`,'success');
+}
+
+/* ═════════════════════════════════════════════════
+   GUARDAR PROYECTO (snapshot cotización)
+═════════════════════════════════════════════════ */
+function saveCotProject(){
+  if(!cotItems.length){ toast('⚠️ Cotización vacía','info'); return; }
+
+  // Build a frozen, self-contained snapshot of this cotización only
+  const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+
+  // 1. Freeze INITIAL_DATA with current db (prices stay updated) + INITIAL_CFG with current cfg
+  const jsonStr = JSON.stringify(db);
+  const cfgStr  = JSON.stringify(cfg);
+  const dataRegex = /(const INITIAL_DATA = )[\s\S]*?(;[\s\S]*?\/\* ══════════════════ JSON_DATA_END)/;
+  const cfgRegex  = /(const INITIAL_CFG = )[\s\S]*?(;[\s\S]*?\/\* ══ CFG_END)/;
+  let snap = currentHTML
+    .replace(dataRegex, `const INITIAL_DATA = ${jsonStr};\n/* ══════════════════ JSON_DATA_END`)
+    .replace(cfgRegex,  `const INITIAL_CFG = ${cfgStr};\n/* ══ CFG_END`);
+
+  // 2. Inject a FROZEN_COT block — cotizador items + client data baked in
+  const frozenPayload = {
+    items: cotItems,
+    client: {
+      nombre: (document.getElementById('clNombre')||{}).value||'',
+      tel:    (document.getElementById('clTel')||{}).value||'',
+      dir:    (document.getElementById('clDir')||{}).value||'',
+      obra:   (document.getElementById('clObra')||{}).value||'',
+      notas:  (document.getElementById('clNotas')||{}).value||''
+    },
+    quoteNum: (document.getElementById('cotNumInput')||{}).value||''
+  };
+
+  // Inject FROZEN_COT constant right after the INITIAL_CFG block
+  snap = snap.replace(
+    /(\/\* ══ CFG_END ══ \*\/)/,
+    `$1\nconst FROZEN_COT = ${JSON.stringify(frozenPayload)};\n/* ══ FROZEN_COT_END ══ */`
+  );
+
+  // 3. Patch init() so it auto-loads the frozen cotización on open
+  // Insert loader right before `document.addEventListener('DOMContentLoaded'`
+  const loader = `
+// ── Snapshot loader ──────────────────────────────
+(function loadFrozenCot(){
+  if(typeof FROZEN_COT === 'undefined') return;
+  document.addEventListener('DOMContentLoaded', function(){
+    try {
+      // Wait for init() to finish wiring DOM, then inject data
+      setTimeout(function(){
+        cotItems = FROZEN_COT.items || [];
+        const fields = ['nombre','tel','dir','obra','notas'];
+        fields.forEach(function(f){
+          const el = document.getElementById('cl'+f.charAt(0).toUpperCase()+f.slice(1));
+          if(el && FROZEN_COT.client && FROZEN_COT.client[f]) el.value = FROZEN_COT.client[f];
+        });
+        const numEl = document.getElementById('cotNumInput');
+        if(numEl && FROZEN_COT.quoteNum) numEl.value = FROZEN_COT.quoteNum;
+        syncClientName();
+        renderCotTable();
+        updateStats();
+        // Open cotizador tab
+        switchTab('cot');
+        // Disable editing to keep it frozen
+        document.querySelectorAll('.cot-actions button').forEach(function(b){ b.disabled=true; b.title='Snapshot — solo lectura'; });
+        const banner = document.createElement('div');
+        banner.style.cssText='background:#7c3aed;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.04em';
+        banner.textContent='📦 SNAPSHOT DE PROYECTO — Solo lectura · Usa la app principal para editar';
+        document.body.prepend(banner);
+      }, 300);
+    } catch(e){ console.error('loadFrozenCot error:', e); }
+  });
+})();
+// ─────────────────────────────────────────────────
+`;
+
+  snap = snap.replace(
+    /document\.addEventListener\('DOMContentLoaded'/,
+    loader + "document.addEventListener('DOMContentLoaded'"
+  );
+
+  // 4. Filename: COT-YYYY-NNN_Cliente.html
+  const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
+  const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30);
+  const numEl = document.getElementById('cotNumInput');
+  const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
+  const fname = `${numSlug}_${clientSlug}.html`;
+
+  const blob = new Blob([snap],{type:'text/html;charset=utf-8'});
+  const a = document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(a.href);
+  toast(`📦 Proyecto guardado: ${fname}`,'success');
 }
 
 /* ═════════════════════════════════════════════════
