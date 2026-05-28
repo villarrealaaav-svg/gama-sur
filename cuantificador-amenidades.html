@@ -1,0 +1,3349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cuantificador Makros · GAMA SUR · v8</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F0F4F9;
+    --panel: #ffffff;
+    --ink: #1A2535;
+    --ink-soft: #3D4F63;
+    --ink-mute: #94a3b8;
+    --line: #e2e8f0;
+    --row-alt: #f1f5f9;
+    --warn: #fef3c7;
+    --warn-ink: #92400e;
+    --ok: #dcfce7;
+    --ok-ink: #166534;
+    --danger: #b91c1c;
+
+    --blue-50:  #eff6ff;
+    --blue-100: #dbeafe;
+    --blue-200: #bfdbfe;
+    --blue-300: #93c5fd;
+    --blue-500: #3b82f6;
+    --blue-600: #2563eb;
+    --blue-700: #1d4ed8;
+    --blue-brand: #2563EB;
+    --blue-deep: #1e4d8b;
+    --blue-bg: rgba(30,110,194,0.04);
+    --blue-tint: rgba(30,110,194,0.08);
+
+    --c-m16: #cfe8f3;
+    --c-m18: #d4e7c5;
+    --c-m20: #fff0b3;
+    --c-m25: #f8c8c8;
+    --c-m29: #c5d8f0;
+    --c-m32: #ddc5e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg); color: var(--ink);
+    font-family: 'Inter', -apple-system, sans-serif;
+    font-size: 14px; line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .num, input[type="number"], input[type="text"].code {
+    font-family: 'JetBrains Mono', monospace;
+    font-variant-numeric: tabular-nums;
+  }
+  .app { max-width: 1280px; margin: 0 auto; padding: 18px 22px 60px; }
+
+  header.brand {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 18px; flex-wrap: wrap;
+    border-bottom: 2px solid var(--blue-brand);
+    padding-bottom: 12px; margin-bottom: 14px;
+  }
+  header.brand .logo-wrap { display: flex; align-items: center; gap: 12px; }
+  header.brand img.logo { width: 38px; height: auto; display: block; }
+  header.brand h1 { font-size: 22px; font-weight: 800; letter-spacing: .02em; line-height: 1.1; font-family:'Barlow Condensed','Arial Narrow',sans-serif; }
+  header.brand h1 .accent { color: #EA580C; }
+  header.brand h1 small {
+    display: block; font-size: 10px; font-weight: 500;
+    color: var(--ink-soft); letter-spacing: 0.06em;
+    text-transform: uppercase; margin-top: 2px;
+  }
+  header.brand .meta {
+    font-size: 11px; color: var(--ink-soft);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex; align-items: center; gap: 8px;
+  }
+  header.brand .saved-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--ok-ink); transition: background 0.2s;
+  }
+  header.brand .saved-dot.dirty { background: var(--danger); }
+
+  .file-toolbar {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 14px; padding: 8px 10px;
+    background: var(--panel); border: 1px solid var(--blue-200);
+    border-radius: 4px;
+  }
+  .file-toolbar button {
+    background: var(--blue-50); color: var(--blue-deep);
+    border: 1px solid var(--blue-300);
+    padding: 6px 12px; font-size: 11px;
+  }
+  .file-toolbar button:hover { background: var(--blue-brand); color: #fff; border-color: var(--blue-brand); }
+  .file-toolbar button.primary { background: var(--blue-brand); color: #fff; border-color: var(--blue-brand); }
+  .file-toolbar button.primary:hover { background: var(--blue-deep); }
+  .file-toolbar .file-name {
+    margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--ink-soft);
+    align-self: center;
+  }
+
+  .tabs {
+    display: flex; gap: 0; border-bottom: 2px solid var(--blue-brand);
+    margin-bottom: 20px; overflow-x: auto;
+  }
+  .tab {
+    background: transparent; border: none;
+    border-right: 1px solid var(--line);
+    padding: 11px 16px;
+    font-family: inherit; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    cursor: pointer; color: var(--ink-soft);
+    white-space: nowrap; transition: all 0.15s; position: relative;
+  }
+  .tab:hover { color: var(--blue-deep); background: var(--blue-50); }
+  .tab.active { color: var(--blue-deep); background: var(--panel); }
+  .tab.active::after {
+    content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+    height: 3px; background: var(--blue-brand);
+  }
+  .tab .badge {
+    display: inline-block; background: var(--blue-brand); color: #fff;
+    font-size: 9px; padding: 1px 5px; margin-left: 5px;
+    border-radius: 2px; font-family: 'JetBrains Mono', monospace; letter-spacing: 0;
+  }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  section {
+    background: var(--panel); border: 1px solid var(--blue-200);
+    margin-bottom: 16px; border-radius: 4px; overflow: hidden;
+  }
+  section > h2 {
+    background: var(--blue-deep); color: #fff;
+    font-size: 12px; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    padding: 9px 14px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  section > h2 .hint {
+    font-weight: 400; color: var(--blue-200);
+    font-size: 10px; text-transform: none; letter-spacing: 0;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  section .body { padding: 14px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .field { display: block; margin-bottom: 9px; }
+  .field label {
+    display: block;
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-soft); margin-bottom: 3px; font-weight: 600;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%; border: 1px solid var(--blue-200);
+    background: var(--panel); padding: 7px 9px;
+    font-size: 13px; font-family: inherit; border-radius: 3px;
+  }
+  .field input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline: none; border-color: var(--blue-brand);
+    box-shadow: 0 0 0 2px var(--blue-tint);
+  }
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+  .field-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 9px; }
+
+  button {
+    background: var(--blue-brand); color: #fff;
+    border: none; padding: 8px 15px;
+    font-family: inherit; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    cursor: pointer; transition: background 0.15s; border-radius: 3px;
+  }
+  button:hover { background: var(--blue-deep); }
+  button.ghost {
+    background: transparent; color: var(--blue-deep);
+    border: 1px solid var(--blue-300); padding: 5px 10px; font-size: 10px;
+  }
+  button.ghost:hover { background: var(--blue-brand); color: #fff; border-color: var(--blue-brand); }
+  button.print { background: var(--blue-brand); padding: 9px 16px; }
+  button.print:hover { background: var(--blue-deep); }
+  button.icon {
+    padding: 4px 8px; font-size: 11px; background: transparent;
+    color: var(--blue-deep); border: 1px solid var(--blue-200);
+  }
+  button.icon:hover { background: var(--blue-brand); color: #fff; border-color: var(--blue-brand); }
+  button.excel { background: #166534; padding: 9px 16px; }
+  button.excel:hover { background: #14532d; }
+
+  .area-form {
+    display: grid; grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 9px; align-items: end; margin-bottom: 11px;
+  }
+  .areas-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .areas-table th {
+    background: var(--blue-50); border: 1px solid var(--blue-200);
+    padding: 6px 8px; text-align: left;
+    font-weight: 600; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.04em; color: var(--blue-deep);
+  }
+  .areas-table td { border: 1px solid var(--line); padding: 3px 5px; vertical-align: middle; }
+  .areas-table tr:nth-child(even) td { background: var(--blue-bg); }
+  .areas-table .ix-cell {
+    font-family: 'JetBrains Mono', monospace; color: var(--ink-mute);
+    text-align: center; font-size: 10px; width: 32px;
+  }
+  .areas-table input.ed {
+    width: 100%; border: none; background: transparent;
+    padding: 4px 6px; font-size: 12px; font-family: inherit;
+  }
+  .areas-table input.ed[type="number"] {
+    font-family: 'JetBrains Mono', monospace; text-align: right;
+  }
+  .areas-table input.ed:focus {
+    outline: 2px solid var(--blue-brand); outline-offset: -1px; background: #fff;
+  }
+  .areas-table .calc {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; color: var(--blue-deep);
+    background: var(--blue-50); padding: 4px 7px;
+    border-left: 3px solid var(--blue-brand);
+  }
+  .areas-table .calc.warn {
+    border-left-color: var(--danger); color: var(--danger); background: #fee2e2;
+  }
+  .areas-table .actions { display: flex; gap: 3px; justify-content: flex-end; }
+
+  .empty {
+    padding: 16px; text-align: center; color: var(--ink-mute);
+    font-style: italic; border: 1px dashed var(--line); font-size: 12px;
+    border-radius: 3px;
+  }
+
+  .price-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 9px;
+  }
+  .price-cell {
+    border: 1px solid var(--blue-200); padding: 8px 10px;
+    background: var(--blue-bg); border-radius: 3px;
+  }
+  .price-cell .label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-soft); margin-bottom: 4px;
+    display: flex; align-items: center; gap: 6px; font-weight: 600;
+  }
+  .price-cell .swatch {
+    width: 10px; height: 10px; border: 1px solid var(--ink); border-radius: 2px;
+  }
+  .price-cell .est {
+    font-size: 8px; background: var(--warn); color: var(--warn-ink);
+    padding: 1px 4px; margin-left: auto;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+    border-radius: 2px;
+  }
+  .price-cell input {
+    width: 100%; border: none; border-bottom: 1px solid var(--blue-brand);
+    background: transparent; font-size: 14px;
+    padding: 3px 0; font-weight: 600; color: var(--blue-deep);
+  }
+  .price-cell input:focus { outline: none; border-bottom-color: var(--blue-deep); }
+  .price-cell .unit {
+    font-size: 9px; color: var(--ink-mute); margin-top: 2px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .extra-row {
+    display: grid;
+    grid-template-columns: 2fr 80px 80px 100px 100px 110px auto;
+    gap: 7px; padding: 6px 0;
+    border-bottom: 1px solid var(--line); align-items: center; font-size: 12px;
+  }
+  .extra-row.head {
+    border-bottom: 2px solid var(--blue-brand);
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--blue-deep); font-weight: 600; padding-bottom: 6px;
+  }
+  .extra-row input {
+    width: 100%; border: 1px solid var(--blue-200);
+    padding: 4px 6px; font-size: 12px; font-family: inherit; border-radius: 3px;
+  }
+  .extra-row input[type="number"] { font-family: 'JetBrains Mono', monospace; }
+  .extra-row .total {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600; text-align: right; padding-right: 6px;
+    color: var(--blue-deep);
+  }
+
+  .preset-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 7px;
+  }
+  .preset-card {
+    border: 1px solid var(--blue-200); padding: 9px;
+    background: var(--blue-bg); border-radius: 3px; transition: all 0.15s;
+  }
+  .preset-card.active {
+    background: var(--blue-brand); color: #fff; border-color: var(--blue-brand);
+  }
+  .preset-card .pname { font-weight: 600; font-size: 12px; margin-bottom: 3px; }
+  .preset-card .putility {
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; opacity: 0.85;
+  }
+  .preset-card .ptools { margin-top: 6px; display: flex; gap: 3px; }
+  .preset-card .ptools button {
+    padding: 2px 6px; font-size: 9px; background: transparent;
+    color: inherit; border: 1px solid currentColor; border-radius: 2px;
+  }
+
+  .customer-db {
+    border: 1px solid var(--blue-200); background: var(--blue-bg);
+    padding: 9px; margin-top: 8px; border-radius: 3px;
+  }
+  .customer-db .toolbar { display: flex; gap: 7px; margin-bottom: 7px; }
+  .customer-db .search {
+    flex: 1; border: 1px solid var(--blue-300);
+    padding: 5px 8px; font-size: 12px; font-family: inherit; border-radius: 3px;
+  }
+  .customer-list {
+    max-height: 200px; overflow-y: auto;
+    border: 1px solid var(--blue-200); background: var(--panel); border-radius: 3px;
+  }
+  .customer-row {
+    display: grid; grid-template-columns: 1fr 1fr auto;
+    gap: 9px; padding: 6px 8px;
+    border-bottom: 1px solid var(--line);
+    align-items: center; font-size: 11px;
+  }
+  .customer-row:last-child { border-bottom: none; }
+  .customer-row:hover { background: var(--blue-50); }
+  .customer-row .cname { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .customer-row .crfc {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--ink-soft); font-size: 10px;
+  }
+  .customer-row .actions { display: flex; gap: 3px; }
+
+  .toggle-row { display: flex; align-items: center; gap: 11px; padding: 6px 0; }
+  .toggle {
+    position: relative; width: 40px; height: 22px;
+    background: var(--ink-mute); cursor: pointer; flex-shrink: 0;
+    transition: background 0.2s; border-radius: 11px;
+  }
+  .toggle.on { background: var(--blue-brand); }
+  .toggle::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; background: #fff;
+    transition: transform 0.2s; border-radius: 9px;
+  }
+  .toggle.on::after { transform: translateX(18px); }
+  .toggle-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+
+  table.quant { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.quant th {
+    background: var(--blue-deep); color: #fff;
+    border: 1px solid var(--blue-deep); padding: 7px 9px; text-align: left;
+    font-weight: 600; text-transform: uppercase;
+    font-size: 10px; letter-spacing: 0.04em;
+  }
+  table.quant td {
+    border: 1px solid var(--blue-200); padding: 6px 9px;
+    font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
+  }
+  table.quant td.text { font-family: 'Inter', sans-serif; }
+  table.quant tr.group-head td {
+    background: var(--blue-50); font-weight: 700;
+    border-top: 2px solid var(--blue-brand); color: var(--blue-deep);
+  }
+  table.quant tr.subtotal td {
+    background: var(--blue-100); font-weight: 700;
+    border-top: 1px solid var(--blue-brand); border-bottom: 1px solid var(--blue-brand);
+    color: var(--blue-deep);
+  }
+  table.quant td.right { text-align: right; }
+  table.quant td.swatch-cell { width: 5px; padding: 0; }
+
+  .exec-summary {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr));
+    gap: 9px; margin-bottom: 14px;
+  }
+  .exec-card {
+    border: 1px solid var(--blue-200); background: var(--panel);
+    padding: 10px 12px; border-radius: 3px;
+  }
+  .exec-card .lbl {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--ink-soft); font-weight: 600; margin-bottom: 3px;
+  }
+  .exec-card .val { font-size: 18px; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--blue-deep); }
+  .exec-card .sub { font-size: 10px; color: var(--ink-mute); margin-top: 2px; }
+  .exec-card.alert { background: var(--warn); border-color: var(--warn-ink); }
+  .exec-card.alert .val, .exec-card.alert .lbl { color: var(--warn-ink); }
+  .exec-card.primary { background: var(--blue-brand); color: #fff; border-color: var(--blue-brand); }
+  .exec-card.primary .val { color: #fff; font-size: 15px; }
+  .exec-card.primary .lbl { color: rgba(255,255,255,0.7); }
+  .exec-card.primary .sub { color: rgba(255,255,255,0.6); }
+
+  .diagrams { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+  .diagram-card { border: 1px solid var(--blue-200); background: var(--panel); border-radius: 3px; }
+  .diagram-card .head {
+    border-bottom: 1px solid var(--blue-200); padding: 7px 11px;
+    display: flex; justify-content: space-between; align-items: baseline;
+  }
+  .diagram-card .head .name { font-weight: 600; font-size: 12px; color: var(--blue-deep); }
+  .diagram-card .head .dim { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-soft); }
+  .diagram-card .svg-wrap { padding: 12px; background: var(--blue-bg); display: flex; justify-content: center; }
+  .diagram-card .footer {
+    border-top: 1px solid var(--blue-200); padding: 7px 11px;
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    background: var(--blue-50); color: var(--blue-deep);
+  }
+  .diagram-card .footer .badge {
+    display: inline-block; padding: 1px 5px;
+    border: 1px solid var(--blue-deep); margin-right: 4px; font-weight: 600;
+  }
+  .diagram-card .reco {
+    margin-top: 4px; font-size: 10px;
+    color: var(--warn-ink); font-family: 'Inter', sans-serif;
+  }
+  svg .panel-rect { stroke: var(--ink); stroke-width: 1; }
+  svg .panel-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; fill: var(--blue-deep); text-anchor: middle; font-weight: 600; }
+  svg .dim-text { font-family: 'JetBrains Mono', monospace; font-size: 10px; fill: var(--blue-brand); font-weight: 600; }
+  svg .dim-line { stroke: var(--blue-brand); stroke-width: 0.8; }
+
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 10px; color: var(--ink-soft); margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; }
+  .legend-swatch { width: 12px; height: 12px; border: 1px solid var(--ink); }
+
+  .minimap {
+    border: 1px solid var(--blue-200); background: var(--blue-bg);
+    padding: 14px; border-radius: 3px; text-align: center;
+  }
+  .minimap-svg { max-width: 100%; height: auto; }
+
+  .history-list {
+    max-height: 220px; overflow-y: auto;
+    border: 1px solid var(--blue-200); background: var(--blue-bg); border-radius: 3px;
+  }
+  .history-row {
+    display: grid; grid-template-columns: 110px 65px 1fr 110px auto;
+    gap: 9px; padding: 6px 10px;
+    border-bottom: 1px solid var(--line); align-items: center; font-size: 11px;
+  }
+  .history-row:last-child { border-bottom: none; }
+  .history-row .docnum { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 10px; color: var(--blue-deep); }
+  .history-row .type {
+    font-family: 'JetBrains Mono', monospace; font-size: 9px;
+    text-transform: uppercase; background: var(--blue-brand); color: #fff;
+    padding: 1px 4px; text-align: center; letter-spacing: 0.04em;
+    border-radius: 2px;
+  }
+  .history-row .type.pre { background: var(--danger); }
+  .history-row .total { font-family: 'JetBrains Mono', monospace; font-weight: 600; text-align: right; }
+  .history-row .ts { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-mute); }
+
+  .doc-toolbar {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px; padding: 10px 14px;
+    background: var(--blue-50); border: 1px solid var(--blue-200);
+    border-radius: 3px; gap: 10px; flex-wrap: wrap;
+  }
+  .doc-toolbar .title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--blue-deep); }
+  .doc-toolbar .docnum-display { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-soft); margin-left: 8px; }
+
+  .document {
+    background: #fff; border: 1px solid var(--blue-200);
+    box-shadow: 0 1px 3px rgba(30,110,194,0.08);
+    padding: 28px 32px; font-size: 11px; line-height: 1.55;
+    color: var(--ink); max-width: 880px; margin: 0 auto;
+    position: relative; overflow: hidden; border-radius: 4px;
+  }
+  .watermark-bg {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .document > *:not(.watermark-bg) { position: relative; z-index: 1; }
+
+  .doc-header {
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 18px; align-items: start;
+    border-bottom: 2px solid var(--blue-brand);
+    padding-bottom: 14px; margin-bottom: 14px;
+  }
+  .doc-header .logo-block {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; padding-right: 14px;
+    border-right: 1px solid var(--blue-200);
+  }
+  .doc-header .logo-block img { width: 64px; height: auto; display: block; }
+  .doc-header .logo-block .brand-text {
+    font-size: 11px; font-weight: 700; color: var(--blue-brand);
+    letter-spacing: 0.04em; margin-top: 4px;
+  }
+  .doc-header .emisor { font-size: 10px; line-height: 1.5; }
+  .doc-header .emisor .name {
+    font-size: 13px; font-weight: 700; color: var(--blue-deep); margin-bottom: 3px;
+  }
+  .doc-header .emisor .role {
+    font-size: 9px; color: var(--ink-soft); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 6px;
+  }
+  .doc-header .doc-id { text-align: right; font-size: 10px; }
+  .doc-header .doc-id .label {
+    text-transform: uppercase; font-size: 8px; letter-spacing: 0.1em;
+    color: var(--ink-mute); margin-bottom: 4px;
+  }
+  .doc-header .doc-id .docnum {
+    font-size: 16px; font-weight: 700;
+    background: var(--blue-brand); color: #fff;
+    padding: 6px 12px; display: inline-block; border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
+  }
+  .doc-header .doc-id .meta-dates {
+    margin-top: 6px; font-size: 9px; color: var(--ink-soft);
+  }
+
+  .doc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  .doc-meta .block {
+    border: 1px solid var(--blue-200); border-left: 3px solid var(--blue-brand);
+    padding: 8px 11px; background: rgba(255,255,255,0.92); border-radius: 2px;
+  }
+  .doc-meta .block .label {
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--blue-brand); font-weight: 700; margin-bottom: 4px;
+  }
+  .doc-meta .block .data { font-size: 11px; line-height: 1.55; }
+
+  table.doc-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 10px; margin-bottom: 14px;
+    border: 1px solid var(--blue-200);
+    background: rgba(255,255,255,0.92); border-radius: 2px; overflow: hidden;
+  }
+  table.doc-table th {
+    background: var(--blue-deep); color: #fff;
+    border: 1px solid var(--blue-deep); padding: 7px 9px; text-align: left;
+    font-weight: 700; text-transform: uppercase;
+    font-size: 9px; letter-spacing: 0.06em;
+  }
+  table.doc-table td {
+    border: 1px solid var(--blue-200); padding: 6px 9px;
+    font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
+    vertical-align: top;
+  }
+  table.doc-table tr:nth-child(even) td { background: var(--blue-bg); }
+  table.doc-table td.text { font-family: 'Inter', sans-serif; }
+  table.doc-table td.text strong { font-weight: 700; display: block; color: var(--blue-deep); }
+  table.doc-table td.text .desc {
+    font-weight: 400; color: var(--ink-soft); font-size: 9.5px;
+    margin-top: 2px; display: block;
+  }
+  table.doc-table td.right { text-align: right; }
+  table.doc-table tr.totals td {
+    background: var(--blue-100); font-weight: 700; color: var(--blue-deep);
+  }
+  table.doc-table tr.grand-total td {
+    background: var(--blue-deep); color: #fff; font-size: 12px;
+  }
+
+  .doc-conditions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 14px; font-size: 10px; }
+  .doc-conditions .block {
+    border: 1px solid var(--blue-200); border-top: 2px solid var(--blue-brand);
+    padding: 9px 11px; background: rgba(255,255,255,0.92); border-radius: 2px;
+  }
+  .doc-conditions .block strong {
+    display: block; font-size: 9px; text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 4px; color: var(--blue-brand);
+  }
+
+  .doc-footer {
+    margin-top: 18px; padding-top: 12px;
+    border-top: 1px solid var(--blue-200);
+    font-size: 9px; line-height: 1.55; color: var(--ink-soft);
+  }
+  .doc-footer strong { color: var(--blue-deep); }
+  .doc-footer .nofiscal {
+    font-weight: 700; text-transform: uppercase; text-align: center;
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--danger); margin: 10px 0; padding: 7px;
+    border: 1px solid var(--danger); background: rgba(255,255,255,0.95);
+    border-radius: 2px;
+  }
+
+  .novidesa-doc {
+    background: #fff; border: 1px solid var(--blue-200);
+    padding: 24px 28px; max-width: 720px; margin: 0 auto;
+    border-radius: 4px; position: relative; overflow: hidden;
+    box-shadow: 0 1px 3px rgba(30,110,194,0.08);
+  }
+  .novidesa-doc .nv-header {
+    display: grid; grid-template-columns: auto 1fr auto;
+    gap: 14px; align-items: center;
+    border-bottom: 2px solid var(--blue-brand); padding-bottom: 12px; margin-bottom: 12px;
+  }
+  .novidesa-doc .nv-header img { width: 50px; height: auto; }
+  .novidesa-doc .nv-header .center { text-align: center; }
+  .novidesa-doc .nv-header .center .ttl {
+    font-size: 14px; font-weight: 700; color: var(--blue-deep);
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .novidesa-doc .nv-header .center .sub {
+    font-size: 9px; color: var(--ink-soft); margin-top: 2px;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .novidesa-doc .nv-header .docnum {
+    font-family: 'JetBrains Mono', monospace; font-size: 10px;
+    background: var(--blue-brand); color: #fff;
+    padding: 4px 8px; border-radius: 2px; font-weight: 600;
+  }
+  .novidesa-doc .nv-meta {
+    font-size: 10px; margin-bottom: 12px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  }
+  .novidesa-doc .nv-meta .b {
+    border: 1px solid var(--blue-200); padding: 6px 9px;
+    border-left: 3px solid var(--blue-brand); border-radius: 2px;
+  }
+  .novidesa-doc .nv-meta .b .lbl {
+    font-size: 8px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--blue-brand); font-weight: 700; margin-bottom: 2px;
+  }
+
+  table.nv-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 11px; margin-bottom: 12px;
+    border: 1.5px solid var(--ink);
+  }
+  table.nv-table th, table.nv-table td {
+    border: 0.6px solid var(--ink); padding: 6px 8px;
+  }
+  table.nv-table thead th {
+    background: var(--blue-50); text-align: center;
+    font-size: 9px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--blue-deep);
+  }
+  table.nv-table thead .super-header {
+    background: var(--blue-deep); color: #fff;
+    font-size: 11px; letter-spacing: 0.08em;
+  }
+  table.nv-table td {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
+  }
+  table.nv-table td.concept {
+    font-family: 'Inter', sans-serif; font-weight: 700;
+    background: var(--blue-100); color: var(--blue-deep);
+    text-align: center; vertical-align: middle;
+  }
+  table.nv-table td.thickness {
+    background: var(--blue-300); color: var(--blue-deep);
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    text-align: center; vertical-align: middle;
+  }
+  table.nv-table td.location {
+    font-family: 'Inter', sans-serif; font-weight: 600;
+    background: var(--blue-bg); color: var(--blue-deep);
+    text-align: center; vertical-align: middle;
+  }
+  table.nv-table td.unidad {
+    background: var(--blue-bg); font-family: 'Inter', sans-serif;
+    font-weight: 600; vertical-align: middle;
+  }
+  table.nv-table td.totalml {
+    background: rgba(30,110,194,0.06); font-weight: 700;
+  }
+  table.nv-table td.totalm2 {
+    background: rgba(34,197,94,0.12); font-weight: 700;
+    color: var(--ok-ink);
+  }
+  table.nv-table tr.total-row td {
+    background: var(--blue-deep); color: #fff;
+    font-weight: 700; font-size: 11px;
+  }
+  table.nv-table tr.subt-row td {
+    background: var(--blue-100); color: var(--blue-deep);
+    font-weight: 700;
+  }
+
+  .toast {
+    position: fixed; bottom: 22px; right: 22px;
+    background: var(--blue-deep); color: #fff;
+    padding: 11px 16px; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    z-index: 9999; opacity: 0; transform: translateY(8px);
+    transition: opacity 0.2s, transform 0.2s; pointer-events: none;
+    border-radius: 3px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  }
+  .toast.show { opacity: 1; transform: translateY(0); }
+  .toast.success { background: var(--ok-ink); }
+  .toast.error { background: var(--danger); }
+
+  .utility-mode { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 10px; }
+
+  /* PRINT — corregido: cada pestaña activa imprime sus secciones */
+  @media print {
+    body { background: #fff; }
+    .app { padding: 0; max-width: 100%; }
+    header.brand, .tabs, .doc-toolbar, .file-toolbar, .toast, details, summary { display: none !important; }
+    .tab-panel { display: none !important; }
+    .tab-panel.active { display: block !important; }
+    .tab-panel.active section { display: block !important; }
+    .tab-panel.active section > h2 {
+      background: #fff !important; color: var(--blue-deep) !important;
+      border-bottom: 1pt solid var(--blue-deep);
+    }
+    .document, .novidesa-doc {
+      border: 1pt solid var(--blue-deep);
+      box-shadow: none;
+      padding: 14mm 16mm;
+      max-width: 100%;
+      margin: 0;
+      page-break-inside: avoid;
+    }
+    .watermark-bg { display: block !important; }
+    @page { size: A4; margin: 8mm; }
+    section { box-shadow: none; }
+    .diagrams { grid-template-columns: repeat(2, 1fr); }
+    .diagram-card { page-break-inside: avoid; }
+    table.doc-table tr, table.nv-table tr,
+    table.quant tr { page-break-inside: avoid; }
+  }
+
+  @media (max-width: 720px) {
+    .area-form { grid-template-columns: 1fr 1fr; }
+    .area-form > div:first-child { grid-column: 1 / -1; }
+    .two-col { grid-template-columns: 1fr; }
+    .doc-meta, .doc-conditions, .nv-meta { grid-template-columns: 1fr; }
+    .doc-header { grid-template-columns: 1fr; text-align: center; }
+    .doc-header .logo-block { border-right: none; padding-right: 0; padding-bottom: 8px; border-bottom: 1px solid var(--blue-200); }
+  }
+
+  details summary { list-style: none; }
+  details summary::-webkit-details-marker { display: none; }
+  details[open] summary { color: var(--blue-deep); }
+  details[open] summary::before { content: '▾ '; }
+  details:not([open]) summary::before { content: '▸ '; }
+
+
+
+  /* ========== NIVELES DE ENTREPISO ========== */
+  .nivel-select {
+    width: 100%; padding: 6px 8px;
+    border: 1px solid var(--blue-200);
+    border-radius: 3px; font-family: inherit;
+    font-size: 12px; color: var(--blue-deep);
+    background: var(--blue-50);
+    font-weight: 600; cursor: pointer;
+  }
+  .nivel-select:focus { outline: none; border-color: var(--blue-brand); }
+
+  .nivel-tab-bar {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 14px;
+  }
+  .nivel-tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 14px;
+    background: var(--panel); border: 1px solid var(--blue-200);
+    border-radius: 3px; cursor: pointer;
+    font-size: 11px; font-weight: 600;
+    color: var(--blue-deep); transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .nivel-tab:hover { border-color: var(--blue-brand); background: var(--blue-50); }
+  .nivel-tab.all  { background: var(--blue-deep); color: #fff; border-color: var(--blue-deep); }
+  .nivel-tab .nivel-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: currentColor; opacity: 0.6; flex-shrink: 0;
+  }
+  .nivel-tab .nivel-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px; opacity: 0.75;
+  }
+
+  .minimap-nivel-block { margin-bottom: 18px; }
+  .minimap-nivel-block .nivel-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 12px;
+    background: var(--blue-deep); color: #fff;
+    border-radius: 3px 3px 0 0;
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.06em;
+  }
+  .minimap-nivel-block .nivel-header .nh-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: #fff; opacity: 0.6;
+  }
+  .minimap-nivel-block .nivel-header .nh-stats {
+    margin-left: auto; font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; opacity: 0.8; font-weight: 400;
+  }
+  .minimap-nivel-block svg {
+    border: 1px solid var(--blue-200);
+    border-top: none; border-radius: 0 0 3px 3px;
+  }
+
+
+  /* ── selects de panel y dirección en tabla de áreas ── */
+  .panel-sel, .dir-sel {
+    width: 100%; padding: 4px 5px;
+    border: 1px solid var(--blue-200); border-radius: 3px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--blue-deep);
+    background: var(--blue-50); font-weight: 600; cursor: pointer;
+  }
+  .panel-sel:focus, .dir-sel:focus {
+    outline: none; border-color: var(--blue-brand);
+  }
+  .panel-sel.forzado {
+    background: #fef3c7; color: #92400e;
+    border-color: #d97706;
+  }
+  .dir-sel.largo-dir {
+    background: #ede9fe; color: #5b21b6;
+    border-color: #7c3aed;
+  }
+  .calc-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; padding: 3px 7px;
+    border-radius: 3px; font-weight: 600;
+  }
+  .calc-chip.ok  { background: var(--blue-50); color: var(--blue-deep); border-left: 3px solid var(--blue-brand); }
+  .calc-chip.warn{ background: #fee2e2; color: var(--danger); border-left: 3px solid var(--danger); }
+  .calc-chip.forced { background: #fef3c7; color: #92400e; border-left: 3px solid #d97706; }
+
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="brand">
+    <div class="logo-wrap">
+      <img class="logo" id="brandLogo" alt="GAMA SUR">
+      <h1>
+        Cuantificador <span class="accent">Makros</span>
+        <small>GAMA SUR · Arq. Cab Ruiz · v8</small>
+      </h1>
+    </div>
+    <div class="meta">
+      <span class="saved-dot" id="savedDot" title="Estado de guardado"></span>
+      <span id="savedLabel">guardado</span>
+    </div>
+  </header>
+
+  <div class="file-toolbar">
+    <button class="primary" id="btnSave" title="Guardar (Ctrl+S) — sobreescribe el archivo abierto">💾 Guardar</button>
+    <button id="btnSaveAs" title="Primera vez: crea el archivo · Después: guarda en nueva ubicación">Guardar como…</button>
+    <button id="btnOpen" title="Abrir proyecto">📂 Abrir</button>
+    <span class="file-name" id="fileName">— archivo base · sin asociar —</span>
+    <input type="file" id="importInput" accept=".json" style="display:none;">
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="general">General <span class="badge">EDITAR</span></button>
+    <button class="tab" data-tab="despiece">Despiece</button>
+    <button class="tab" data-tab="novidesa">Pedido Novidesa</button>
+    <button class="tab" data-tab="cotizacion">Cotización</button>
+    <button class="tab" data-tab="prefactura">Prefactura</button>
+  </div>
+
+  <div class="tab-panel active" id="panel-general">
+    <div class="two-col">
+      <section>
+        <h2>Datos del emisor <span class="hint">precargados · editables</span></h2>
+        <div class="body">
+          <div class="field"><label>Razón social / Nombre</label>
+            <input type="text" id="emisorNombre" value="FRANCISCO JAVIER CAB RUIZ"></div>
+          <div class="field-row">
+            <div class="field"><label>RFC</label>
+              <input type="text" id="emisorRFC" value="CARF8110049V7" class="code"></div>
+            <div class="field"><label>Régimen fiscal</label>
+              <select id="emisorRegimen">
+                <option value="612">612 · Actividades Empresariales</option>
+                <option value="626" selected>626 · RESICO Personas Físicas</option>
+                <option value="605">605 · Sueldos y Salarios</option>
+                <option value="606">606 · Arrendamiento</option>
+              </select></div>
+          </div>
+          <div class="field"><label>Dirección fiscal</label>
+            <input type="text" id="emisorDireccion" value="CALLE ARROYO SAN, #305 COL. LA SIERRA, TEAPA, TABASCO"></div>
+          <div class="field-row">
+            <div class="field"><label>Teléfono</label>
+              <input type="text" id="emisorTel" value="9932510738"></div>
+            <div class="field"><label>Correo</label>
+              <input type="text" id="emisorMail" value=""></div>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Datos del cliente <span class="hint">capturar o cargar de base</span></h2>
+        <div class="body">
+          <div class="field"><label>Razón social / Nombre</label>
+            <input type="text" id="clienteNombre" placeholder="EJ. CONSTRUCTORA EJEMPLO S.A. DE C.V."></div>
+          <div class="field-row">
+            <div class="field"><label>RFC</label>
+              <input type="text" id="clienteRFC" placeholder="XAXX010101000" class="code"></div>
+            <div class="field"><label>Régimen fiscal</label>
+              <select id="clienteRegimen">
+                <option value="">— Solicitar al cliente —</option>
+                <option value="601">601 · General Personas Morales</option>
+                <option value="603">603 · P.M. con Fines no Lucrativos</option>
+                <option value="605">605 · Sueldos y Salarios</option>
+                <option value="606">606 · Arrendamiento</option>
+                <option value="612">612 · Actividades Empresariales</option>
+                <option value="616">616 · Sin obligaciones</option>
+                <option value="621">621 · Incorporación Fiscal</option>
+                <option value="626">626 · RESICO Personas Físicas</option>
+              </select></div>
+          </div>
+          <div class="field"><label>Dirección</label>
+            <input type="text" id="clienteDireccion" placeholder="Calle, número, colonia, ciudad, CP"></div>
+          <div class="field-row">
+            <div class="field"><label>Teléfono</label>
+              <input type="text" id="clienteTel" placeholder="—"></div>
+            <div class="field"><label>Correo</label>
+              <input type="text" id="clienteMail" placeholder="—"></div>
+          </div>
+          <div class="field"><label>Proyecto / Obra</label>
+            <input type="text" id="clienteObra" placeholder="EJ. RESIDENCIAL LAS HADAS · LOTE 14"></div>
+          <div class="customer-db">
+            <div class="toolbar">
+              <input type="text" class="search" id="customerSearch" placeholder="🔎 Buscar cliente guardado…">
+              <button class="ghost" id="btnSaveCustomer">+ Guardar cliente</button>
+            </div>
+            <div class="customer-list" id="customerList"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section>
+      <h2>Utilidad y descuento del proyecto <span class="hint">presets editables</span></h2>
+      <div class="body">
+        <div style="margin-bottom:11px;">
+          <label style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);font-weight:600;">Cliente preset — utilidad embebida en precio</label>
+          <div class="preset-grid" id="presetGrid" style="margin-top:6px;"></div>
+          <div style="margin-top:7px;display:flex;gap:7px;align-items:center;">
+            <button class="ghost" id="addPresetBtn">+ Agregar preset</button>
+            <span style="font-size:10px;color:var(--ink-mute);">La utilidad se incluye en el P.U. · el cliente NO la ve</span>
+          </div>
+        </div>
+        <details style="margin-top:10px;">
+          <summary style="cursor:pointer;font-size:10px;text-transform:uppercase;letter-spacing:0.06em;color:var(--ink-soft);font-weight:600;padding:6px 0;border-top:1px dashed var(--blue-200);">⚙ Ajuste manual de utilidad y descuento</summary>
+          <div class="utility-mode" style="margin-top:8px;">
+            <div class="field"><label>Utilidad aplicada (%) — embebida en P.U.</label>
+              <input type="number" id="utilidadPct" step="0.01" min="0" max="100" value="0"></div>
+            <div class="field"><label>Descuento sobre subtotal (%)</label>
+              <input type="number" id="descuentoPct" step="0.01" min="0" max="100" value="0"></div>
+          </div>
+        </details>
+        <div class="toggle-row" style="margin-top:7px;">
+          <div class="toggle on" id="ivaToggle"></div>
+          <span class="toggle-label">Trasladar IVA 16%</span>
+          <span style="font-size:10px;color:var(--ink-mute);margin-left:auto;">Apagado = sin IVA</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Áreas del proyecto <span class="hint">edición directa · clic en cualquier celda</span></h2>
+      <div class="body">
+        <form class="area-form" id="areaForm" onsubmit="return false;"
+              style="grid-template-columns:2fr 80px 80px 1.3fr 1.2fr 1.3fr auto;">
+          <div class="field" style="margin:0;"><label>Nombre / Identificador</label>
+            <input type="text" id="areaName" placeholder="Ej. Recámara · Área A"></div>
+          <div class="field" style="margin:0;"><label>Lado A (m)</label>
+            <input type="number" step="0.01" min="0.6" id="areaA" placeholder="4.82"></div>
+          <div class="field" style="margin:0;"><label>Lado B (m)</label>
+            <input type="number" step="0.01" min="0.6" id="areaB" placeholder="4.20"></div>
+          <div class="field" style="margin:0;"><label>Nivel / Tipo</label>
+            <select id="areaNivel" class="nivel-select">
+              <option value="Entrepiso 1">Entrepiso 1</option>
+              <option value="Entrepiso 2">Entrepiso 2</option>
+              <option value="Entrepiso 3">Entrepiso 3</option>
+              <option value="Entrepiso 4">Entrepiso 4</option>
+              <option value="Azotea">Azotea</option>
+            </select></div>
+          <div class="field" style="margin:0;"><label>Panel</label>
+            <select id="areaPanelCode" class="panel-sel">
+              <option value="auto">Auto (por claro)</option>
+              <option value="M16">M16 · 15 cm</option>
+              <option value="M18">M18 · 18 cm</option>
+              <option value="M20">M20 · 20 cm</option>
+              <option value="M25">M25 · 25 cm</option>
+              <option value="M29">M29 · 29 cm</option>
+              <option value="M32">M32 · 32 cm</option>
+            </select></div>
+          <div class="field" style="margin:0;"><label>Dirección del panel</label>
+            <select id="areaDireccion" class="dir-sel">
+              <option value="corto">↔ Claro corto (defecto)</option>
+              <option value="largo">↕ Claro largo</option>
+            </select></div>
+          <div class="field" style="margin:0;"><button id="addBtn">+ Agregar</button></div>
+        </form>
+        <div id="areasContainer"></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Precios de paneles MAKROS <span class="hint">$ MXN/ml · costo de compra</span></h2>
+      <div class="body">
+        <div class="price-grid" id="priceGrid"></div>
+        <div style="margin-top:9px;font-size:10px;color:var(--ink-soft);border-left:3px solid var(--blue-brand);padding-left:10px;">
+          <strong style="color:var(--blue-deep);">Tolerancia de residuo:</strong> ≤ 12 cm se absorbe en la trabe.
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Materiales y accesorios adicionales <span class="hint">pasta · malla · canales · accesorios</span></h2>
+      <div class="body">
+        <div class="extra-row head">
+          <div>Concepto / Descripción</div><div>Unidad</div><div>Cantidad</div>
+          <div>P.U.</div><div>Subtotal</div><div>Notas</div><div></div>
+        </div>
+        <div id="extrasList"></div>
+        <div style="margin-top:9px;display:flex;gap:7px;">
+          <button class="ghost" id="addExtraBtn">+ Agregar material</button>
+          <button class="ghost" id="seedExtrasBtn">Cargar plantilla (pasta/malla/canales)</button>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Costos operativos y vigencia</h2>
+      <div class="body">
+        <div class="field-row-3">
+          <div class="field"><label>Costo maniobra ($ MXN)</label>
+            <input type="number" id="laborCost" value="36500" step="100"></div>
+          <div class="field"><label>Anticipo solicitado (%)</label>
+            <input type="number" id="anticipoPct" value="100" step="1" min="0" max="100"></div>
+          <div class="field"><label>Vigencia de cotización</label>
+            <input type="date" id="vigenciaFecha"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Historial de emisiones <span class="hint">trazabilidad · cada impresión queda registrada</span></h2>
+      <div class="body">
+        <div class="history-list" id="historyList"></div>
+        <div style="margin-top:9px;display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+          <button class="ghost" id="btnRegenNumbers">↻ Generar nueva numeración</button>
+          <button class="ghost" id="btnClearHistory">Limpiar historial</button>
+          <span style="font-size:10px;color:var(--ink-mute);">Numeración: <span id="numbersDisplay" class="code" style="color:var(--blue-deep);font-weight:600;"></span></span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="tab-panel" id="panel-despiece">
+    <div class="doc-toolbar">
+      <div class="title">Despiece y cuantificación</div>
+      <div style="display:flex;gap:6px;">
+        <button class="ghost" id="btnToggleView">Vista compacta</button>
+        <button class="print" onclick="window.print()">🖨 Imprimir / PDF</button>
+      </div>
+    </div>
+    <section><h2>Resumen ejecutivo</h2>
+      <div class="body"><div class="exec-summary" id="execSummary"></div></div></section>
+    <section><h2>Tabla de cuantificación</h2>
+      <div class="body"><div id="quantTable"></div></div></section>
+    <section><h2>Mini-mapa de áreas <span class="hint">vista comparativa a escala uniforme</span></h2>
+      <div class="body">
+        <div id="minimapWrap"></div>
+      </div></section>
+    <section><h2>Diagrama por área <span class="hint">paneles 60 cm en lado mayor</span></h2>
+      <div class="body">
+        <div class="legend" id="legend"></div>
+        <div class="diagrams" id="diagrams"></div>
+      </div></section>
+  </div>
+
+  <div class="tab-panel" id="panel-novidesa">
+    <div class="doc-toolbar">
+      <div class="title">Pedido Novidesa <span style="font-weight:400;color:var(--ink-soft);">— sin precios · listo para planta</span></div>
+      <div style="display:flex;gap:6px;">
+        <button class="excel" id="btnExportNovidesaXls">⬇ Descargar Excel</button>
+        <button class="print" onclick="window.print()">🖨 Imprimir / PDF</button>
+      </div>
+    </div>
+    <div class="novidesa-doc" id="novidesaDoc"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-cotizacion">
+    <div class="doc-toolbar">
+      <div class="title">Cotización <span class="docnum-display" id="cotNumDisplay"></span></div>
+      <button class="print" id="printCot">🖨 Imprimir / PDF</button>
+    </div>
+    <div class="document" id="cotizacionDoc"></div>
+  </div>
+
+  <div class="tab-panel" id="panel-prefactura">
+    <div class="doc-toolbar">
+      <div class="title">Prefactura · sin valor fiscal <span class="docnum-display" id="preNumDisplay"></span></div>
+      <button class="print" id="printPre">🖨 Imprimir / PDF</button>
+    </div>
+    <div class="document" id="prefacturaDoc"></div>
+  </div>
+
+
+</div>
+
+<div class="toast" id="toast"></div>
+<script id="logoScript">
+const LOGO_B64 = "iVBORw0KGgoAAAANSUhEUgAAARgAAAEUCAMAAADHktnFAAABCGlDQ1BJQ0MgUHJvZmlsZQAAeJxjYGA8wQAELAYMDLl5JUVB7k4KEZFRCuwPGBiBEAwSk4sLGHADoKpv1yBqL+viUYcLcKakFicD6Q9ArFIEtBxopAiQLZIOYWuA2EkQtg2IXV5SUAJkB4DYRSFBzkB2CpCtkY7ETkJiJxcUgdT3ANk2uTmlyQh3M/Ck5oUGA2kOIJZhKGYIYnBncAL5H6IkfxEDg8VXBgbmCQixpJkMDNtbGRgkbiHEVBYwMPC3MDBsO48QQ4RJQWJRIliIBYiZ0tIYGD4tZ2DgjWRgEL7AwMAVDQsIHG5TALvNnSEfCNMZchhSgSKeDHkMyQx6QJYRgwGDIYMZAKbWPz9HbOBQAAAAP1BMVEUAAAAHYqcJYaQBHmoQSXkEbXIQXpsQOWAQL1EA//8OHzkSRnIPPWcTXZgAPbsAe/8AAAAAAAAAAAAAAAAAAABChBuwAAAAEHRSTlMA/hMG5QWXpWMBVanFVgQCVzVnCwAADY1JREFUeNrtnemiqiAQgJFFUCrf/21PpuUAMwjlKa2Zf/eeSvycnUUh9iCD8FoIJVhC6YRtGiaDiG8aJpOIHPVlJsMS+JemuZPpmEeiLxMZyUQmUcI1QKwwzGQUE3IZyVyYirhCiLiMZNiaUn1ha6L0ZRTx62QMzqVp3G9bk6S46N/WmAvNhe2I4PLLFZOiuXTMhfUl5SKYC3Op4KJwLj+e2pH68uNcTEZfFPJp1hec4q84nRwXDIH7EaUxVfpyy3ZYX5BqSvxI6ZTzu5ns+OutiawbUX0BVcOXkzFVdhRUU18dm65c9BN2RH/ke/yuronToXb5b56iJLj0qB3FVvetZGh9cUVcRjLf6Gde5/KdOmM24HIjo35ZXwQZ1b9NZ7bRl9nP/EQ8qtOXb9MZ1W2lL1+mMwPN5VLN5avI2O305YvIyK25jGSG43PpxIniYiqq75iMPD6XOn3Rza+QsVV+t5DLFywsIrjYF7ngZA8Up0ku6kUuh25cdTSXmmqqt1+mM2Sc9nVcMn7KfJl/qex6VmVCu5cLdTcnpApc6UpkyBwuNhlaX6q5ZCgfjgy5gLfOjh62Yr6EjKrhkuvWmFVPLo5ExlTpS1fAZbx9X54rHk9fhip9kWFWRJKRB9cXXxnVkyzFl+fRh+ci6aiO+Gh/5EyPchkatyNbtc3CHzjTk6IlNghUcCHrBl8++30MMOiC74HmMpJRFTpzADIoGGIhvG3qZ5AOSwYDo6u6NTkyB7YmBMwz+pLp7B7UA6dgnuVC5m7H1JkUDP7gC7iQXbpDksHAdMXdmpLcTXWHtKYUTNqaGkq5kH0FfTwyBWDIKrOUDD2Tu2NrWgejRF8zT4JaU4bMYcGQ+uIrunS5NVoHBZPr7tXNkxxsJm4FTK6LNYi6uTW96324qgrMWndvC2vax/amZMtiFkyGS5fN+6pWMe5BZ5RQ0TByYNa5yMrcjSRjPq4v8d6RDJh1LvW52z79zLQ0rBRM2fEfQ2UltEedmZfMFYIpPP5DbUbmk/FIV4CpOBalYl9TLjaZz3IpA5PTF0P88GF1RjfFYKqORanrX5Kl12c8MHisBWAqj4tRVf1Ls6czwKC6r4MxtWGVnunHdEbu51SnwA2sgnnmeKGuzpr2cw6YborB6GeSDVXVVyBP1Du9dXtTNOg1MPapksZU9aJID2zfSSYqaFZN6elEowJoptx428KiuG2yBuZZx2iqyMjKZTn/IbZ5HUxJwKjLaumW6busyTYbgCkKpGYra3oDGWRh6TNgUAf6avWc0RnzhoDUbACmx6dEKvYC1umM+Xcy24Dpq46724CMPAaYnmrG/ZvOHANMTzcpxcv9S4W20w8BhrCj7Ar4iuoZXSB7BDArxwv1NdGmIWrEI4Lp17ZD4pUQXT0X6cz+waD+pYtq0goyaO6W5lq7B0Nw8aueo45MMgm+dzAlXGprRHRLS7yBd+dgyrhsUgnJcJz7BoP6XbSFWUtmdfvGrsG4Qn3ZrHq2xwDjqjZNNFXVM0oGLpndMRh0WSo5FUDojKntuOwfDLqMbqC5EFG7ajs3yPR2C6ZWXzJRu+KAkSsNv28wxLJLv9r+LOms5rp095x6p2BQfZGrXKi55yeWdu4TjH+SCznDWreAUe8XjBHlGX7RDGv1gWD7BIPcnSzdZoEfeiCbpi5XOgqYoXz7icW0TTYVZMaqwxwDjKzZlpNu/8uA+dyGpS3AmBouSO6WA/OxA2U20RgqRyPzfVMO5lMHPWwARgrSm5SRyYP5EJlNNEYTvoSsnitM6VN+5t/A3HysIqysDsxHyGwABl2Q6bP+pxLMJ7aM/pPG+Hz1XAvmA+/W+R8wPjPz8RSY5hMLfLcHE7zUBCNTDwad6j0cmPAHOmzNVjWYd/uZfwFzju6h3wLMm63pQGAawRqzA53ZKZjTx/3MPsHoypfD/RAYmoz5cTA1L1r8JTDdp48z2K/GfJjMfsGYz27a37PGfHQD9r7BfJDMrsFkth2oH9cYikz/66ZE6cxBpmj/UWMIMgyGWMDIYAgyDIaYgmEw0xgtg0E1pkuGwGBucjEMBgfDGsNgGAyDYTAMhsEwGAbDYBgMg2EwDIbBMBgGw2AYDINZByNDScBI8InrCFU9mPAC3WE0JpSW3kKxicYIYY4BxrehJB9oVz6wCkav/MBOwbwsq2DWhMEwGAbDYBgMg2EwDIbBMBgGw2AYDIP5eTDxHjR3QDBX8XZriQ/CUWuXOO0SzA7E7RKMkhsL8mpRKXJf2GPPdw+yy1kCBsNgGAyDYTAMhsEwGAbDYBjMu0QxGFJnGMxh2g63F0Poj8oPtTZfFgbDYBgMg2EwDIbBMBgGw2AYDINhMAxmOzCGwYwyJGN8y+vLjNydmJUxfuodiSxH1RjJT42FhYWFhYWFhYWFhYWFhYWF5XtE3ftdl4uieqW51vLjb/GXc43XZ5qyRqnpWlLGXzeGvoShr0nflhmi/xjUTteBJu3Koduk4z1g93s74NBZP66M1Fq31lFPs7+LoP/mNvoWqZVK2Pa2jrO1wsEnbvpe3X4sGLlKrt7HMv3KgFys9/GMjFcIvxM1o3P9m4V/U1CRNdiBHj+X5YKnwkebvEPJu8eV0Hk2vfzvTeVEi01ReewhWPQNwNqp2FaDqSwSWmOh6sM7sbH1u2Df/ro4/F3Ft53tYHyyHsw0OgW5uMxEX0feRiskCSY8m6AhwQzBGFc9cXiN5JAIJc6vgYleCaeKZ0DDszJVZtD2Ya8yAya6drs6naqb/wVzvWHzGLcrnRqOEYYHM4RgNOpFUjChZ1NZlTHIu+u2BvMgE78SWXtrvdcoGBkPLLCzSM3tfI/ROwptpGWxjctcwuOCgZ7PAOtmYK4PxyRDWzD0LQImvo37b+D2P9uSCdXfhioQW3F8MHLojzTmpv0rYCbizvnY0QVPYaTQdWpOem3qY1wS4CQNxt3+GHt2m7OktUUbkMugHlmvfR7MwxvYKKZIEYTfRyFg1PR7OnsbTS5i6JvKdJG/tFQSc0etaA8jsQeiptt6GsykuGK5t3bOdokYLtR4WzBcgyRBYO43CaWjyiSrjSzqNE6n9YgNwCRnlQunXgBzu1sX+YAW/FslpRfMrEH4enzLgyQ6AaPXwCzLn1wf++w8mPF+OqnCiuYlMMvNzbpA6XjO93mAaLmPBcz9c/3ir0/oZfrlZ0IDxMEYmJPfK121mP4LYMzykKbKQGWKGAF8TpDEOGBUGJjWLq5gRugQMEv098DEcx2AUPlad7utzoAxPgsGuMLZPcS5f7Aa6SLhRS2IqTqNrwCMWKx1vnOJaoxehmdKyoI0/fBRlKsGI5W8XIKoBJOApChCy5QgJqTxFYLxdwqzpggEjIIGOYj1SpJYNnorrdWTYOZGBMhj7PRFEA3kLW5Fp90Dv+aCvD2tJCGY+/OfCellwBb4jPbxeXFZflFlbOlE1i1P+pgmOdM/tlo53SC5rVk+lEsH/2oEZkr33z3d1eqMmRKwarU4Yp+JS2RZd09XXy4J7soXF4SZ/d5L/0rBXP6RygRgRHS1FAxMi8LR00at6PJabFIr6YfrPy3PyeTAxJYEfcKwBsZjYIbQZwEddHQlachDJ8ek6WUwdgmJsfOlwIACLv5mP6tMCMaHfZsETBj9g8zBk6lM4imB9K+bUi9AVz1wOooCA/T+6rWNudZvNm4VQDAKHrM65mwJGLP8Vz+tWVZljbzJFZ5RW3oRDEwuVZBlj+/5ub2FRSdg7GovKwAzCB80WRAwdEfE5jucRs7NAh/aawfBqDIwJ2dBuxsWp03kZCJeOnYIaB/aJGCg7gUqbtf7zIvbIqfF7lNerg2+FFxH4e0KJI9Be5ILdTXWG6rrbnodglHZA4j95J5CU1qSYysQjRmEzzbRCuZBp77RCfa4ABiPgdEJGDdOaTqsH+SQaRVQx04/dcneRoOYEiiE+nHmN41K6z+YiB8fsAqnam0DPD64nfbxwcHYZeJqQGqloJUsEFP39zQ3AbOyhWsabQjmqmT6oU8JmLVNYXgqY6fbB3PHoAs9u+XEg8PcZ3YXaaPKh2E/jkP+MUsZg8mfWN3OvbpT9LSkcnIeSQTGrGyWc/QMpF/mr4cgLRwvCqrbKUGXweBnF5JU17CZfQ+y4RC1w5wvcAhuKb2dbaJBnRI1fjzYEAzwWdouG4wWncdTGXvvari0CT09HOgv5nvpfWInCZjIzUg0dWnHk7njcI3Pv+kgzCVg1CN4pGA8rhv5VAa4gnY8W7xNdSwMn23wkXspjfRjgnSkJyaLkiQF9DTtIM1dlAnbpBUaA1T3GlwevxiUpqpgMr9Jkg2VnW6Wgm5t6iZu8g65C2oR9UoU+oDHdKocDNDcwGYMNOGhBszyM5nZysfg0Wa4SGeFcpO0PpyrDKIFcOb+lrlkwASNKtKSVmzpRKfKQzIDl0mOEDBhgLFg+oFQGDcu3SIU3AQdY1WmMacwVodxWYWokxlaTw2yI9bpxE84A0aFDhjkk3GnQ5/vsawlEy/w5M1iksmiBRP0XqDPCjsMBiZoA15Zx8MUfdw+75ICvA2T5gG2BsC6PGxR1DQ+d27HuY9Te3YzlNJleG/Z9j1fxLmzb8cFcf7s0IWFUwHenm9nCuppuZWsG+Ef+IO8rSJWQkkAAAAASUVORK5CYII=";
+const LOGO_DATA_URI = "data:image/png;base64," + LOGO_B64;
+document.getElementById('brandLogo').src = LOGO_DATA_URI;
+</script>
+<script id="appScript">/* ============================================================
+   CONFIGURACIÓN BASE
+   ============================================================ */
+const PANEL_WIDTH = 0.60;
+const TOLERANCE   = 0.12;
+const PANEL_DENSITY = 20; // default; M16 usa 16 kg/m3
+
+const PANEL_TYPES = [
+  { code: 'M16', espesor: 15, maxClaro: 4.00, color: 'var(--c-m16)', hex: '#cfe8f3', defaultPrice: 214.94, estimated: false, densidad: 16 },
+  { code: 'M18', espesor: 18, maxClaro: 4.50, color: 'var(--c-m18)', hex: '#d4e7c5', defaultPrice: 375.00, estimated: true  },
+  { code: 'M20', espesor: 20, maxClaro: 5.40, color: 'var(--c-m20)', hex: '#fff0b3', defaultPrice: 395.09, estimated: false },
+  { code: 'M25', espesor: 25, maxClaro: 6.00, color: 'var(--c-m25)', hex: '#f8c8c8', defaultPrice: 440.00, estimated: true  },
+  { code: 'M29', espesor: 29, maxClaro: 7.40, color: 'var(--c-m29)', hex: '#c5d8f0', defaultPrice: 475.00, estimated: true  },
+  { code: 'M32', espesor: 32, maxClaro: 9.00, color: 'var(--c-m32)', hex: '#ddc5e8', defaultPrice: 509.97, estimated: false },
+];
+
+const REGIMENES = {
+  '601':'General Personas Morales','603':'P.M. con Fines no Lucrativos',
+  '605':'Sueldos y Salarios','606':'Arrendamiento',
+  '612':'Actividades Empresariales','616':'Sin obligaciones',
+  '621':'Incorporación Fiscal','626':'RESICO Personas Físicas',
+};
+
+/* ============================================================
+   ESTADO
+   ============================================================ */
+function newDocNumbers() {
+  const yr = new Date().getFullYear();
+  STATE.counters.cot = (STATE.counters.cot || 0) + 1;
+  STATE.counters.pre = (STATE.counters.pre || 0) + 1;
+  return {
+    cot: `COT-${yr}-${String(STATE.counters.cot).padStart(4,'0')}`,
+    pre: `PRE-${yr}-${String(STATE.counters.pre).padStart(4,'0')}`,
+  };
+}
+
+const STATE = {
+  prices: {}, areas: [], extras: [],
+  presets: [
+    { id: 1, nombre: 'Arq. Candelaria', utilidad: 44 },
+    { id: 2, nombre: 'Residencial Las Hadas', utilidad: 38 },
+  ],
+  activePresetId: null,
+  customers: [],
+  config: {
+    utilidadPct: 0, descuentoPct: 0, laborCost: 36500,
+    anticipoPct: 100, iva: true, vigencia: null,
+    compactView: false,
+  },
+  emisor: {
+    nombre: 'FRANCISCO JAVIER CAB RUIZ',
+    rfc: 'CARF8110049V7', regimen: '626',
+    direccion: 'CALLE ARROYO SAN, #305 COL. LA SIERRA, TEAPA, TABASCO',
+    tel: '9932510738', mail: '',
+  },
+  cliente: { nombre:'', rfc:'', regimen:'', direccion:'', tel:'', mail:'', obra:'' },
+  docNumbers: { cot: '', pre: '' },
+  counters: { cot: 0, pre: 0 },
+  history: [],
+};
+PANEL_TYPES.forEach(p => STATE.prices[p.code] = p.defaultPrice);
+
+const STORAGE_KEY = 'cuantif_makros_v8';
+// Migración automática desde versión anterior
+(function migrateStorage() {
+  try {
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      const prev = localStorage.getItem('cuantif_makros_v7') || localStorage.getItem('cuantif_makros_v6') || localStorage.getItem('cuantif_makros_v5');
+      if (prev) localStorage.setItem(STORAGE_KEY, prev);
+    }
+  } catch(e) {}
+})();
+let fileHandle = null;
+let isDirty = false;
+
+/* ============================================================
+   PERSISTENCIA
+   ============================================================ */
+function persistLocal() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); } catch(e){}
+}
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    Object.assign(STATE, parsed);
+    // Normalizar booleanos que pudieron guardarse como strings en versiones viejas
+    if (typeof STATE.config.iva === 'string') STATE.config.iva = STATE.config.iva !== 'false';
+    if (typeof STATE.config.compactView === 'string') STATE.config.compactView = STATE.config.compactView === 'true';
+  } catch(e){}
+}
+function markDirty() {
+  isDirty = true;
+  document.getElementById('savedDot').classList.add('dirty');
+  document.getElementById('savedLabel').textContent = 'cambios sin guardar';
+  const obra = STATE.cliente.obra || STATE.cliente.nombre || '';
+  document.title = (obra ? `● ${obra}` : '●') + ' · Cuantificador Makros';
+}
+function markClean() {
+  isDirty = false;
+  document.getElementById('savedDot').classList.remove('dirty');
+  document.getElementById('savedLabel').textContent = 'guardado';
+  // Actualizar título de la pestaña del navegador
+  const obra = STATE.cliente.obra || STATE.cliente.nombre || '';
+  document.title = obra
+    ? `${obra} · Cuantificador Makros`
+    : 'Cuantificador Makros · GAMA SUR · v6';
+}
+
+async function saveProject(forceAs = false) {
+  if (!('showSaveFilePicker' in window)) { downloadJSON(); return; }
+  const btnSave = document.getElementById('btnSave');
+  const originalText = btnSave.textContent;
+  btnSave.textContent = '⏳ Guardando…';
+  btnSave.disabled = true;
+  try {
+    // Si NO hay fileHandle o se pide "Guardar como", abrir diálogo
+    if (!fileHandle || forceAs) {
+      const sugerido = `proyecto_${(STATE.cliente.nombre || 'sin_cliente').toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.json`;
+      fileHandle = await window.showSaveFilePicker({
+        suggestedName: sugerido,
+        types: [{ description: 'Proyecto Cuantificador', accept: { 'application/json': ['.json'] } }],
+      });
+      document.getElementById('fileName').textContent = '📄 ' + fileHandle.name;
+    }
+    // Sobreescribir directamente — sin diálogo si fileHandle ya existe
+    const writable = await fileHandle.createWritable();
+    await writable.write(JSON.stringify(STATE, null, 2));
+    await writable.close();
+    persistLocal();
+    markClean();
+    showToast('💾 Guardado: ' + fileHandle.name, 'success');
+  } catch (e) {
+    if (e.name !== 'AbortError') showToast('Error al guardar: ' + e.message, 'error');
+    else fileHandle = null; // si cancela el diálogo, resetear handle
+  } finally {
+    btnSave.textContent = originalText;
+    btnSave.disabled = false;
+  }
+}
+
+async function openProject() {
+  if ('showOpenFilePicker' in window) {
+    try {
+      [fileHandle] = await window.showOpenFilePicker({
+        types: [{ description: 'Proyecto Cuantificador', accept: { 'application/json': ['.json'] } }],
+      });
+      const file = await fileHandle.getFile();
+      const text = await file.text();
+      Object.keys(STATE).forEach(k => delete STATE[k]);
+      Object.assign(STATE, JSON.parse(text));
+      document.getElementById('fileName').textContent = '📄 ' + fileHandle.name;
+      persistLocal();
+      hardRefreshUI();
+      markClean();
+      showToast('Cargado: ' + fileHandle.name, 'success');
+    } catch (e) {
+      if (e.name !== 'AbortError') showToast('Error al abrir: ' + e.message, 'error');
+    }
+  } else {
+    document.getElementById('importInput').click();
+  }
+}
+
+function downloadJSON() {
+  const blob = new Blob([JSON.stringify(STATE, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `proyecto_${(STATE.cliente.nombre || 'sin_cliente').toLowerCase().replace(/[^a-z0-9]/g,'_').slice(0,30)}_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Proyecto exportado', 'success');
+  markClean();
+}
+
+document.getElementById('importInput').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return;
+  try {
+    const text = await file.text();
+    Object.keys(STATE).forEach(k => delete STATE[k]);
+    Object.assign(STATE, JSON.parse(text));
+    persistLocal(); hardRefreshUI(); markClean();
+    showToast('Cargado: ' + file.name, 'success');
+  } catch (err) { showToast('Archivo inválido', 'error'); }
+  e.target.value = '';
+});
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+let toastTimer;
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.className = 'toast ' + type, 2500);
+}
+
+/* ============================================================
+   CÁLCULO
+   ============================================================ */
+function selectPanelType(claro) {
+  for (const p of PANEL_TYPES) if (claro <= p.maxClaro) return p;
+  return null;
+}
+function computeArea(area) {
+  const a = Number(area.a), b = Number(area.b);
+  if (!a || !b || a <= 0 || b <= 0) return null;
+
+  // ── Dirección del panel ──────────────────────────────────────
+  // 'corto'  (default) → anchos de 60 cm sobre el lado largo, panel en el lado corto
+  // 'largo'            → anchos de 60 cm sobre el lado corto, panel en el lado largo
+  const dir = area.direccion || 'corto';
+  const ladoLargo    = dir === 'corto' ? Math.max(a, b) : Math.min(a, b);
+  const ladoCorto    = dir === 'corto' ? Math.min(a, b) : Math.max(a, b);
+  // En ambos casos: anchos se distribuyen en ladoLargo, claro/largo del panel = ladoCorto
+
+  // ── Tipo de panel ────────────────────────────────────────────
+  // Si el área tiene panelForzado, usar ese; si no, calcular por claro
+  let panelType;
+  let panelForzado = false;
+  if (area.panelCode && area.panelCode !== 'auto') {
+    panelType = PANEL_TYPES.find(p => p.code === area.panelCode) || null;
+    panelForzado = !!panelType;
+  } else {
+    panelType = selectPanelType(ladoCorto);
+  }
+
+  const paneles       = Math.ceil((ladoLargo - TOLERANCE) / PANEL_WIDTH);
+  const longitudPanel = ladoCorto;
+  const totalMlArea   = paneles * longitudPanel;
+  const totalM2Area   = paneles * PANEL_WIDTH * longitudPanel;
+  const cubrimiento   = paneles * PANEL_WIDTH;
+  const residuo       = ladoLargo - cubrimiento;
+
+  // ── Advertencias ─────────────────────────────────────────────
+  let recomendacion = null;
+  const autoType = selectPanelType(ladoCorto);
+  if (panelForzado && autoType && panelType) {
+    if (panelType.maxClaro < ladoCorto) {
+      recomendacion = `⚠ ${panelType.code} forzado: claro ${fmtNum(ladoCorto,2)} m supera su límite de ${fmtNum(panelType.maxClaro,2)} m.`;
+    } else if (autoType.code !== panelType.code) {
+      recomendacion = `Panel forzado a ${panelType.code} · recomendado: ${autoType.code}`;
+    }
+  } else if (!panelForzado && panelType) {
+    const margen = panelType.maxClaro - ladoCorto;
+    if (margen < 0.05) recomendacion = `Claro al límite del ${panelType.code}.`;
+  }
+
+  return {
+    ladoLargo, ladoCorto, paneles, panelType,
+    longitudPanel, totalMlArea, totalM2Area, cubrimiento, residuo,
+    panelForzado,
+    importe: panelType ? totalMlArea * STATE.prices[panelType.code] : 0,
+    recomendacion,
+    pesoKg: panelType ? totalM2Area * (panelType.espesor / 100) * (panelType.densidad || PANEL_DENSITY) : 0,
+  };
+}
+
+function aggregateAll() {
+  const groups = {};
+  PANEL_TYPES.forEach(p => groups[p.code] = {
+    type: p, lengths: new Map(),
+    totalMl: 0, totalM2: 0, importe: 0, pesoKg: 0,
+  });
+  STATE.areas.forEach(area => {
+    const r = computeArea(area);
+    if (!r || !r.panelType) return;
+    const g = groups[r.panelType.code];
+    const key = r.longitudPanel.toFixed(2);
+    const prev = g.lengths.get(key) || {
+      longitud: r.longitudPanel, pzas: 0, ml: 0, ubicaciones: new Set(),
+    };
+    prev.pzas += r.paneles;
+    prev.ml += r.totalMlArea;
+    prev.ubicaciones.add(area.name || '(s/n)');
+    g.lengths.set(key, prev);
+    g.totalMl += r.totalMlArea;
+    g.totalM2 += r.totalM2Area;
+    g.importe += r.importe;
+    g.pesoKg += r.pesoKg;
+  });
+  return groups;
+}
+
+function computeFinancials() {
+  const groups = aggregateAll();
+  // Subtotal MATERIALES (paneles + extras sin maniobra)
+  const subtotalPaneles = Object.values(groups).reduce((s, g) => s + g.importe, 0);
+  const subtotalExtras = STATE.extras.reduce((s, e) => {
+    const cant = isFinite(Number(e.cantidad)) ? Number(e.cantidad) : 0;
+    const pu   = isFinite(Number(e.pu))       ? Number(e.pu)       : 0;
+    return s + cant * pu;
+  }, 0);
+  const subtotalMateriales = subtotalPaneles + subtotalExtras;
+  // Utilidad se aplica SOLO sobre materiales (oculta al cliente)
+  const utilidadPct = Number(STATE.config.utilidadPct) || 0;
+  const utilidadMonto = subtotalMateriales * (utilidadPct / 100);
+  const subtotalConUtilidad = subtotalMateriales + utilidadMonto;
+  // Descuento sobre subtotal con utilidad
+  const descuentoPct = Number(STATE.config.descuentoPct) || 0;
+  const descuentoMonto = subtotalConUtilidad * (descuentoPct / 100);
+  const subtotalCliente = subtotalConUtilidad - descuentoMonto;
+  // Maniobra se suma DESPUÉS (desglose separado, cliente sí lo ve)
+  const labor = Number(STATE.config.laborCost) || 0;
+  const baseFinal = subtotalCliente + labor;
+  // IVA sobre (materiales con utilidad + maniobra)
+  const iva = (STATE.config.iva !== false) ? baseFinal * 0.16 : 0;
+  const total = baseFinal + iva;
+  return {
+    groups, subtotalPaneles, subtotalExtras, subtotalMateriales,
+    labor, utilidadPct, utilidadMonto, subtotalConUtilidad,
+    descuentoPct, descuentoMonto, subtotalCliente, baseFinal, iva, total,
+  };
+}
+
+/* ============================================================
+   FORMATO
+   ============================================================ */
+const fmtMoney = n => '$ ' + Number(n).toLocaleString('es-MX',
+  { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtNum = (n, d=2) => Number(n).toLocaleString('es-MX',
+  { minimumFractionDigits: d, maximumFractionDigits: d });
+function fmtDate(d) {
+  if (!d) return '—';
+  try {
+    const dt = (d instanceof Date) ? d : new Date(d.includes('T') ? d : d + 'T12:00:00');
+    if (isNaN(dt)) return String(d);
+    return dt.toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  } catch(e) { return String(d); }
+}
+function fmtDateTime(ts) {
+  return new Date(ts).toLocaleString('es-MX', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+function getDefaultVigencia() {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const dow = lastDay.getDay();
+  let diff = (dow >= 2) ? dow - 2 : dow + 5;
+  const lastTuesday = new Date(lastDay);
+  lastTuesday.setDate(lastDay.getDate() - diff);
+  return lastTuesday.toISOString().slice(0,10);
+}
+
+/* ============================================================
+   TABS
+   ============================================================ */
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    renderAll();
+  });
+});
+
+/* ============================================================
+   RENDER · PRECIOS
+   ============================================================ */
+function renderPrices() {
+  const grid = document.getElementById('priceGrid');
+  grid.innerHTML = '';
+  PANEL_TYPES.forEach(p => {
+    const cell = document.createElement('div');
+    cell.className = 'price-cell';
+    cell.innerHTML = `
+      <div class="label">
+        <span class="swatch" style="background:${p.color};"></span>
+        ${p.code} · ${p.espesor} cm
+        ${p.estimated ? '<span class="est">ajustar</span>' : ''}
+      </div>
+      <input type="number" step="0.01" min="0" value="${STATE.prices[p.code]}" data-code="${p.code}">
+      <div class="unit">$/ml · claro hasta ${fmtNum(p.maxClaro,2)} m</div>
+    `;
+    grid.appendChild(cell);
+  });
+  grid.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      STATE.prices[e.target.dataset.code] = Number(e.target.value) || 0;
+      persistLocal(); markDirty(); renderAll();
+    });
+  });
+}
+
+function renderLegend() {
+  document.getElementById('legend').innerHTML = PANEL_TYPES.map(p => `
+    <div class="legend-item">
+      <span class="legend-swatch" style="background:${p.color};"></span>
+      <strong>${p.code}</strong> · ${p.espesor} cm · hasta ${fmtNum(p.maxClaro,2)} m
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   RENDER · ÁREAS · INLINE EDIT
+   ============================================================ */
+let nextId = 1;
+function renderAreas() {
+  const wrap = document.getElementById('areasContainer');
+  if (STATE.areas.length === 0) {
+    wrap.innerHTML = '<div class="empty">Sin áreas. Agrega la primera arriba.</div>';
+    return;
+  }
+  let html = `<table class="areas-table">
+    <thead><tr>
+      <th>#</th><th>Nombre / Identificador</th>
+      <th style="width:88px;">Lado A (m)</th>
+      <th style="width:88px;">Lado B (m)</th>
+      <th style="width:120px;">Nivel / Tipo</th>
+      <th style="width:90px;">Panel</th>
+      <th style="width:110px;">Dirección</th>
+      <th>Cálculo</th>
+      <th style="width:110px;text-align:center;">🧱 Malla+Pasta</th>
+      <th style="width:100px;">Acciones</th>
+    </tr></thead><tbody>`;
+  STATE.areas.forEach((area, ix) => {
+    const r = computeArea(area);
+    let calcText = '—', calcCls = '';
+    if (r) {
+      if (r.panelType) {
+        const dirIcon = (area.direccion === 'largo') ? '↕' : '↔';
+        const forced  = r.panelForzado ? ' ⚑' : '';
+        calcText = `${dirIcon} ${r.paneles} pzas ${r.panelType.code}${forced} de ${fmtNum(r.longitudPanel,2)} m`;
+        calcCls  = r.panelForzado ? 'calc forced' : '';
+      } else {
+        calcText = `Claro ${fmtNum(r.ladoCorto,2)} m fuera de rango`;
+        calcCls = 'warn';
+      }
+    }
+    html += `<tr>
+      <td class="ix-cell">${String(ix+1).padStart(2,'0')}</td>
+      <td><input class="ed" type="text" data-id="${area.id}" data-f="name" value="${String(area.name||'').replace(/"/g,'&quot;')}"></td>
+      <td><input class="ed" type="number" step="0.01" min="0.6" data-id="${area.id}" data-f="a" value="${area.a||''}"></td>
+      <td><input class="ed" type="number" step="0.01" min="0.6" data-id="${area.id}" data-f="b" value="${area.b||''}"></td>
+      <td>
+        <select class="nivel-select nivel-ed" data-id="${area.id}" style="font-size:11px;padding:4px 6px;">
+          ${['Entrepiso 1','Entrepiso 2','Entrepiso 3','Entrepiso 4','Azotea'].map(n=>`<option value="${n}" ${(area.nivel||'Entrepiso 1')===n?'selected':''}>${n}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="panel-sel panel-ed ${(area.panelCode && area.panelCode !== 'auto') ? 'forzado' : ''}" data-id="${area.id}" style="font-size:11px;padding:4px 5px;">
+          <option value="auto" ${(!area.panelCode || area.panelCode === 'auto') ? 'selected' : ''}>Auto</option>
+          ${PANEL_TYPES.map(p => `<option value="${p.code}" ${area.panelCode === p.code ? 'selected' : ''}>${p.code} · ${p.espesor}cm</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <select class="dir-sel dir-ed ${(area.direccion === 'largo') ? 'largo-dir' : ''}" data-id="${area.id}" style="font-size:11px;padding:4px 5px;">
+          <option value="corto" ${(!area.direccion || area.direccion === 'corto') ? 'selected' : ''}>↔ Corto</option>
+          <option value="largo" ${area.direccion === 'largo' ? 'selected' : ''}>↕ Largo</option>
+        </select>
+      </td>
+      <td><div class="calc ${calcCls}">${calcText}</div></td>
+      <td style="text-align:center;">
+        <label style="display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-size:11px;">
+          <input type="checkbox" data-chk="${area.id}" ${area.mallaPasta ? 'checked' : ''} style="width:15px;height:15px;accent-color:var(--blue-brand);">
+          <span style="color:var(--blue-deep);font-weight:600;">Sí</span>
+        </label>
+      </td>
+      <td><div class="actions">
+        <button class="icon" data-act="dup" data-id="${area.id}" title="Duplicar">⎘</button>
+        <button class="icon" data-act="del" data-id="${area.id}" title="Eliminar">×</button>
+      </div></td>
+    </tr>`;
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  wrap.querySelectorAll('input.ed').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const id = Number(e.target.dataset.id);
+      const f = e.target.dataset.f;
+      const area = STATE.areas.find(a => a.id === id);
+      if (!area) return;
+      area[f] = (e.target.type === 'number') ? Number(e.target.value) : e.target.value;
+      persistLocal(); markDirty();
+      const row = e.target.closest('tr');
+      const r = computeArea(area);
+      const calcEl = row.querySelector('.calc');
+      _updateCalcCell(calcEl, r, area);
+      renderQuant(); renderDiagrams(); renderMinimap(); renderExecSummary();
+      renderCotizacion(); renderPrefactura(); renderNovidesa();
+    });
+  });
+  wrap.querySelectorAll('button[data-act]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = Number(e.target.dataset.id);
+      const act = e.target.dataset.act;
+      const idx = STATE.areas.findIndex(a => a.id === id);
+      if (idx < 0) return;
+      if (act === 'del') STATE.areas.splice(idx, 1);
+      else if (act === 'dup') {
+        const orig = STATE.areas[idx];
+        STATE.areas.splice(idx + 1, 0, { id: nextId++, name: (orig.name||'') + ' (copia)', a: orig.a, b: orig.b, nivel: orig.nivel || 'Entrepiso 1', panelCode: orig.panelCode || 'auto', direccion: orig.direccion || 'corto', mallaPasta: orig.mallaPasta });
+      }
+      persistLocal(); markDirty(); renderAll();
+    });
+  });
+  // Binding checkboxes malla+pasta
+  wrap.querySelectorAll('input[data-chk]').forEach(chk => {
+    chk.addEventListener('change', e => {
+      const id = Number(e.target.dataset.chk);
+      const area = STATE.areas.find(a => a.id === id);
+      if (!area) return;
+      area.mallaPasta = e.target.checked;
+      persistLocal(); markDirty();
+      syncMallaPastaExtras();
+      renderExtras(); renderDocsOnly();
+    });
+  });
+
+  // Binding selects de nivel inline
+  wrap.querySelectorAll('select.nivel-ed').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const id = Number(e.target.dataset.id);
+      const area = STATE.areas.find(a => a.id === id);
+      if (!area) return;
+      area.nivel = e.target.value;
+      persistLocal(); markDirty();
+      renderMinimap(); renderExecSummary();
+    });
+  });
+
+  // Binding select de tipo de panel forzado
+  wrap.querySelectorAll('select.panel-ed').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const id = Number(e.target.dataset.id);
+      const area = STATE.areas.find(a => a.id === id);
+      if (!area) return;
+      area.panelCode = e.target.value;
+      // Actualizar clase visual del select
+      e.target.classList.toggle('forzado', area.panelCode !== 'auto');
+      persistLocal(); markDirty();
+      // Recalcular y refrescar toda la fila
+      const row  = e.target.closest('tr');
+      const r    = computeArea(area);
+      const calc = row.querySelector('.calc');
+      _updateCalcCell(calc, r, area);
+      renderQuant(); renderDiagrams(); renderMinimap();
+      renderExecSummary(); renderDocsOnly();
+    });
+  });
+
+  // Binding select de dirección del panel
+  wrap.querySelectorAll('select.dir-ed').forEach(sel => {
+    sel.addEventListener('change', e => {
+      const id = Number(e.target.dataset.id);
+      const area = STATE.areas.find(a => a.id === id);
+      if (!area) return;
+      area.direccion = e.target.value;
+      e.target.classList.toggle('largo-dir', area.direccion === 'largo');
+      persistLocal(); markDirty();
+      const row  = e.target.closest('tr');
+      const r    = computeArea(area);
+      const calc = row.querySelector('.calc');
+      _updateCalcCell(calc, r, area);
+      renderQuant(); renderDiagrams(); renderMinimap();
+      renderExecSummary(); renderDocsOnly();
+    });
+  });
+}
+
+// Helper: actualiza solo la celda de cálculo en la fila
+function _updateCalcCell(calcEl, r, area) {
+  if (!calcEl) return;
+  if (!r) { calcEl.textContent = '—'; calcEl.className = 'calc'; return; }
+  if (!r.panelType) {
+    calcEl.textContent = `Claro ${fmtNum(r.ladoCorto,2)} m fuera de rango`;
+    calcEl.className = 'calc warn'; return;
+  }
+  const dirLabel = (area.direccion === 'largo') ? '↕' : '↔';
+  const forced   = r.panelForzado ? ' ⚑' : '';
+  calcEl.textContent = `${dirLabel} ${r.paneles} pzas ${r.panelType.code}${forced} de ${fmtNum(r.longitudPanel,2)} m`;
+  calcEl.className = r.panelForzado ? 'calc forced' : 'calc';
+}
+
+/* ============================================================
+   RENDER · MATERIALES EXTRAS
+   ============================================================ */
+let extraNextId = 1;
+function renderExtras() {
+  const list = document.getElementById('extrasList');
+  if (STATE.extras.length === 0) {
+    list.innerHTML = '<div class="empty">Sin materiales adicionales.</div>'; return;
+  }
+  list.innerHTML = '';
+  STATE.extras.forEach(ex => {
+    const subt = (Number(ex.cantidad)||0) * (Number(ex.pu)||0);
+    const row = document.createElement('div');
+    row.className = 'extra-row';
+    const isAuto = ex._type === 'malla' || ex._type === 'pasta';
+    // Escapar comillas para uso seguro en atributos HTML
+    const escVal = v => String(v||'').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const autoBadge = isAuto ? `<span style="font-size:8px;background:var(--blue-brand);color:#fff;padding:1px 4px;border-radius:2px;margin-left:4px;vertical-align:middle;">AUTO</span>` : '';
+    row.innerHTML = `
+      <div style="display:flex;align-items:center;gap:4px;">
+        <input type="text" data-id="${ex.id}" data-f="concepto" value="${escVal(ex.concepto)}" placeholder="Concepto" style="flex:1;">
+        ${autoBadge}
+      </div>
+      <input type="text" data-id="${ex.id}" data-f="unidad" value="${escVal(ex.unidad)}" placeholder="pza/kg/m²">
+      <input type="number" step="0.01" min="0" data-id="${ex.id}" data-f="cantidad" value="${Number(ex.cantidad)||0}" ${isAuto ? 'style="background:var(--blue-50);"' : ''}>
+      <input type="number" step="0.01" min="0" data-id="${ex.id}" data-f="pu" value="${Number(ex.pu)||0}">
+      <div class="total">${fmtMoney(subt)}</div>
+      <input type="text" data-id="${ex.id}" data-f="notas" value="${escVal(ex.notas)}" placeholder="opcional">
+      <button class="icon" data-del="${ex.id}">×</button>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const id = Number(e.target.dataset.id), f = e.target.dataset.f;
+      const ex = STATE.extras.find(x => x.id === id);
+      if (!ex) return;
+      ex[f] = (e.target.type === 'number') ? Number(e.target.value) : e.target.value;
+      persistLocal(); markDirty();
+      if (f === 'cantidad' || f === 'pu') {
+        e.target.parentElement.querySelector('.total').textContent =
+          fmtMoney((Number(ex.cantidad)||0) * (Number(ex.pu)||0));
+        renderDocsOnly();
+      }
+    });
+  });
+  list.querySelectorAll('button[data-del]').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const id = Number(e.target.dataset.del);
+      STATE.extras = STATE.extras.filter(x => x.id !== id);
+      persistLocal(); markDirty(); renderExtras(); renderDocsOnly();
+    });
+  });
+}
+document.getElementById('addExtraBtn').addEventListener('click', () => {
+  STATE.extras.push({ id: extraNextId++, concepto:'', unidad:'pza', cantidad:0, pu:0, notas:'' });
+  persistLocal(); markDirty(); renderExtras();
+});
+
+/* ============================================================
+   SYNC MALLA + PASTA desde áreas marcadas
+   ============================================================ */
+const MALLA_REND = 50;   // m² por rollo 1×50
+const PASTA_REND = 4.5;  // m² por bulto basecoat
+
+function syncMallaPastaExtras() {
+  // Calcular m² totales de áreas con malla+pasta seleccionada
+  let totalM2 = 0;
+  STATE.areas.forEach(a => {
+    if (!a.mallaPasta) return;
+    const r = computeArea(a);
+    if (r && r.panelType) totalM2 += r.totalM2Area;
+  });
+
+  // Buscar o crear línea de malla
+  let mallaEx = STATE.extras.find(e => e._type === 'malla');
+  let pastaEx = STATE.extras.find(e => e._type === 'pasta');
+
+  if (totalM2 <= 0) {
+    // Si no hay áreas marcadas, eliminar ambos si existen y están en 0
+    if (mallaEx && Number(mallaEx.cantidad) === 0) {
+      STATE.extras = STATE.extras.filter(e => e._type !== 'malla');
+    }
+    if (pastaEx && Number(pastaEx.cantidad) === 0) {
+      STATE.extras = STATE.extras.filter(e => e._type !== 'pasta');
+    }
+    return;
+  }
+
+  const rollosMalla = Math.ceil(totalM2 / MALLA_REND);
+  const bultosPasta = Math.ceil(totalM2 / PASTA_REND);
+
+  if (!mallaEx) {
+    mallaEx = { id: extraNextId++, _type: 'malla',
+      concepto: 'Malla de fibra de vidrio 4×5 mm 150g', unidad: 'rollo 1×50m',
+      cantidad: rollosMalla, pu: 0, notas: `rend. ${MALLA_REND} m²/rollo · cubre ${fmtNum(totalM2,2)} m²` };
+    STATE.extras.push(mallaEx);
+  } else {
+    mallaEx.cantidad = rollosMalla;
+    mallaEx.notas = `rend. ${MALLA_REND} m²/rollo · cubre ${fmtNum(totalM2,2)} m²`;
+  }
+
+  if (!pastaEx) {
+    pastaEx = { id: extraNextId++, _type: 'pasta',
+      concepto: 'Pasta basecoat para acabado', unidad: 'bulto',
+      cantidad: bultosPasta, pu: 0, notas: `rend. ${PASTA_REND} m²/bulto · cubre ${fmtNum(totalM2,2)} m²` };
+    STATE.extras.push(pastaEx);
+  } else {
+    pastaEx.cantidad = bultosPasta;
+    pastaEx.notas = `rend. ${PASTA_REND} m²/bulto · cubre ${fmtNum(totalM2,2)} m²`;
+  }
+}
+
+document.getElementById('seedExtrasBtn').addEventListener('click', () => {
+  [
+    { concepto:'Pasta base para acabado', unidad:'kg', cantidad:0, pu:0, notas:'cubrimiento ~1.2 kg/m²' },
+    { concepto:'Malla de refuerzo', unidad:'m²', cantidad:0, pu:0, notas:'colocada en juntas' },
+    { concepto:'Canales metálicos perimetrales', unidad:'pza', cantidad:0, pu:0, notas:'' },
+    { concepto:'Accesorios de fijación', unidad:'lote', cantidad:1, pu:0, notas:'' },
+  ].forEach(s => STATE.extras.push({ id: extraNextId++, ...s }));
+  persistLocal(); markDirty(); renderExtras();
+});
+
+/* ============================================================
+   RENDER · PRESETS
+   ============================================================ */
+let presetNextId = 100;
+function renderPresets() {
+  const grid = document.getElementById('presetGrid');
+  if (STATE.presets.length === 0) { grid.innerHTML = '<div class="empty">Sin presets.</div>'; return; }
+  grid.innerHTML = '';
+  STATE.presets.forEach(p => {
+    const card = document.createElement('div');
+    card.className = 'preset-card' + (STATE.activePresetId === p.id ? ' active' : '');
+    card.innerHTML = `
+      <div class="pname">${p.nombre}</div>
+      <div class="putility">+ ${fmtNum(p.utilidad,2)} %</div>
+      <div class="ptools">
+        <button data-act="apply" data-id="${p.id}">Aplicar</button>
+        <button data-act="edit" data-id="${p.id}">Editar</button>
+        <button data-act="del" data-id="${p.id}">×</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+  grid.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      const p = STATE.presets.find(x => x.id === id);
+      if (!p) return;
+      if (btn.dataset.act === 'apply') {
+        STATE.activePresetId = id;
+        STATE.config.utilidadPct = Number(p.utilidad) || 0;
+        document.getElementById('utilidadPct').value = Number(p.utilidad) || 0;
+      }
+      if (btn.dataset.act === 'edit') {
+        const n = prompt('Nombre del cliente:', p.nombre); if (n === null) return;
+        const u = prompt('Utilidad % a aplicar:', p.utilidad); if (u === null) return;
+        p.nombre = n.trim() || p.nombre;
+        p.utilidad = Number(u) || 0;
+      }
+      if (btn.dataset.act === 'del') {
+        if (!confirm(`¿Eliminar "${p.nombre}"?`)) return;
+        STATE.presets = STATE.presets.filter(x => x.id !== id);
+        if (STATE.activePresetId === id) STATE.activePresetId = null;
+      }
+      persistLocal(); markDirty(); renderAll();
+    });
+  });
+}
+document.getElementById('addPresetBtn').addEventListener('click', () => {
+  const n = prompt('Nombre del cliente:'); if (!n) return;
+  const u = prompt('Utilidad % a aplicar:', '20'); if (u === null) return;
+  STATE.presets.push({ id: presetNextId++, nombre: n.trim(), utilidad: Number(u) || 0 });
+  persistLocal(); markDirty(); renderPresets();
+});
+
+/* ============================================================
+   RENDER · CUSTOMER DB
+   ============================================================ */
+let customerNextId = 1000;
+let customerFilter = '';
+function renderCustomers() {
+  const list = document.getElementById('customerList');
+  const filter = customerFilter.toLowerCase();
+  const filtered = STATE.customers.filter(c =>
+    !filter ||
+    (c.nombre||'').toLowerCase().includes(filter) ||
+    (c.rfc||'').toLowerCase().includes(filter) ||
+    (c.obra||'').toLowerCase().includes(filter)
+  );
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty" style="border:none;padding:14px;">' +
+      (STATE.customers.length === 0 ? 'Sin clientes guardados.' : 'Sin coincidencias.') + '</div>';
+    return;
+  }
+  list.innerHTML = '';
+  filtered.forEach(c => {
+    const row = document.createElement('div');
+    row.className = 'customer-row';
+    row.innerHTML = `
+      <div>
+        <div class="cname">${c.nombre || '(sin nombre)'}</div>
+        <div class="crfc">${c.rfc || 'sin RFC'} ${c.obra ? '· ' + c.obra : ''}</div>
+      </div>
+      <div style="font-size:10px;color:var(--ink-soft);">${c.tel||''}</div>
+      <div class="actions">
+        <button class="icon" data-act="load" data-id="${c.id}" title="Cargar">↑</button>
+        <button class="icon" data-act="del"  data-id="${c.id}" title="Eliminar">×</button>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = Number(btn.dataset.id);
+      const c = STATE.customers.find(x => x.id === id);
+      if (!c) return;
+      if (btn.dataset.act === 'load') {
+        STATE.cliente = { ...c }; delete STATE.cliente.id;
+        syncClienteInputs(); persistLocal(); markDirty(); renderDocsOnly();
+        showToast(`Cliente cargado: ${c.nombre}`, 'success');
+      }
+      if (btn.dataset.act === 'del') {
+        if (!confirm(`¿Eliminar "${c.nombre}"?`)) return;
+        STATE.customers = STATE.customers.filter(x => x.id !== id);
+        persistLocal(); markDirty(); renderCustomers();
+      }
+    });
+  });
+}
+document.getElementById('customerSearch').addEventListener('input', e => {
+  customerFilter = e.target.value; renderCustomers();
+});
+document.getElementById('btnSaveCustomer').addEventListener('click', () => {
+  if (!STATE.cliente.nombre) { showToast('Captura el nombre primero', 'error'); return; }
+  const existing = STATE.customers.find(c =>
+    (STATE.cliente.rfc && c.rfc === STATE.cliente.rfc) ||
+    c.nombre.toLowerCase() === STATE.cliente.nombre.toLowerCase()
+  );
+  if (existing) {
+    if (!confirm(`Ya existe "${existing.nombre}". ¿Sobrescribir?`)) return;
+    Object.assign(existing, STATE.cliente);
+  } else {
+    STATE.customers.push({ id: customerNextId++, ...STATE.cliente });
+  }
+  persistLocal(); markDirty(); renderCustomers();
+  showToast('Cliente guardado', 'success');
+});
+
+/* ============================================================
+   RENDER · TABLA CUANT
+   ============================================================ */
+function renderQuant() {
+  const wrap = document.getElementById('quantTable');
+  const groups = aggregateAll();
+  const anyData = Object.values(groups).some(g => g.lengths.size > 0);
+  if (!anyData) { wrap.innerHTML = '<div class="empty">Agrega áreas.</div>'; return; }
+  const compact = STATE.config.compactView;
+  let html = `<table class="quant"><thead><tr>
+    <th></th><th>Concepto</th>
+    <th class="right">Long. (m)</th><th class="right">Pzas.</th>
+    <th class="right">Total ml</th><th class="right">Total m²</th>
+    ${compact ? '' : '<th class="right">P.U. ($/ml)</th><th class="right">Importe</th>'}
+  </tr></thead><tbody>`;
+  let gPzas=0,gMl=0,gM2=0,gImp=0;
+  PANEL_TYPES.forEach(p => {
+    const g = groups[p.code];
+    if (g.lengths.size === 0) return;
+    const lengths = Array.from(g.lengths.values()).sort((x,y) => x.longitud - y.longitud);
+    let sumPzas = 0; lengths.forEach(l => sumPzas += l.pzas);
+    const colspan = compact ? 5 : 7;
+    html += `<tr class="group-head">
+      <td class="swatch-cell" style="background:${p.color};"></td>
+      <td class="text" colspan="${colspan}"><strong>MAKROS II ${p.code} · ${p.espesor} cm · 20 kg/m³</strong></td>
+    </tr>`;
+    if (!compact) {
+      lengths.forEach(l => {
+        html += `<tr>
+          <td class="swatch-cell" style="background:${p.color};"></td>
+          <td class="text">Claro ${fmtNum(l.longitud,2)} m</td>
+          <td class="right">${fmtNum(l.longitud,2)}</td>
+          <td class="right">${l.pzas}</td>
+          <td class="right">${fmtNum(l.ml,2)}</td>
+          <td class="right">${fmtNum(l.ml * PANEL_WIDTH, 2)}</td>
+          <td class="right">${fmtMoney(STATE.prices[p.code])}</td>
+          <td class="right">${fmtMoney(l.ml * STATE.prices[p.code])}</td>
+        </tr>`;
+      });
+    }
+    html += `<tr class="subtotal">
+      <td class="swatch-cell" style="background:${p.color};"></td>
+      <td class="text"><strong>Subtotal ${p.code}${compact ? ' · ' + lengths.length + ' medida(s)' : ''}</strong></td>
+      ${compact ? '' : '<td></td>'}
+      <td class="right"><strong>${sumPzas}</strong></td>
+      <td class="right"><strong>${fmtNum(g.totalMl,2)}</strong></td>
+      <td class="right"><strong>${fmtNum(g.totalM2,2)}</strong></td>
+      ${compact ? '' : '<td></td><td class="right"><strong>'+fmtMoney(g.importe)+'</strong></td>'}
+    </tr>`;
+    gPzas += sumPzas; gMl += g.totalMl; gM2 += g.totalM2; gImp += g.importe;
+  });
+  html += `<tr class="subtotal" style="border-top:3px double var(--blue-deep);">
+    <td class="swatch-cell" style="background:var(--blue-deep);"></td>
+    <td class="text"><strong>TOTAL PANELES</strong></td>
+    ${compact ? '' : '<td></td>'}
+    <td class="right"><strong>${gPzas}</strong></td>
+    <td class="right"><strong>${fmtNum(gMl,2)}</strong></td>
+    <td class="right"><strong>${fmtNum(gM2,2)}</strong></td>
+    ${compact ? '' : '<td></td><td class="right"><strong>'+fmtMoney(gImp)+'</strong></td>'}
+  </tr></tbody></table>`;
+  wrap.innerHTML = html;
+}
+
+/* ============================================================
+   RENDER · EXEC SUMMARY
+   ============================================================ */
+function renderExecSummary() {
+  const wrap = document.getElementById('execSummary');
+  const fin = computeFinancials();
+  let totalAreas = STATE.areas.length, totalPzas = 0, totalMl = 0;
+  let totalM2Panel = 0, totalM2Real = 0, totalPesoKg = 0;
+  let outOfRange = 0, usedTypes = [];
+  STATE.areas.forEach(a => {
+    const r = computeArea(a); if (!r) return;
+    if (!r.panelType) { outOfRange++; return; }
+    totalPzas += r.paneles; totalMl += r.totalMlArea;
+    totalM2Panel += r.totalM2Area;
+    totalM2Real += a.a * a.b;
+    totalPesoKg += r.pesoKg;
+    if (!usedTypes.includes(r.panelType.code)) usedTypes.push(r.panelType.code);
+  });
+  const aprov = totalM2Panel > 0 ? (totalM2Real / totalM2Panel * 100) : 0;
+  const pesoTon = totalPesoKg / 1000;
+  wrap.innerHTML = `
+    <div class="exec-card">
+      <div class="lbl">Áreas / Tipos</div>
+      <div class="val">${totalAreas} <span style="font-size:13px;color:var(--ink-mute);">/ ${usedTypes.length}</span></div>
+      <div class="sub">${usedTypes.join(', ') || '—'}</div>
+    </div>
+    <div class="exec-card">
+      <div class="lbl">Paneles totales</div>
+      <div class="val">${totalPzas}</div>
+      <div class="sub">piezas a fabricar</div>
+    </div>
+    <div class="exec-card">
+      <div class="lbl">Metros lineales</div>
+      <div class="val">${fmtNum(totalMl,2)}</div>
+      <div class="sub">ml totales</div>
+    </div>
+    <div class="exec-card">
+      <div class="lbl">m² panel · aprov.</div>
+      <div class="val">${fmtNum(totalM2Panel,2)}</div>
+      <div class="sub">${fmtNum(aprov,1)}% real / panel</div>
+    </div>
+    <div class="exec-card">
+      <div class="lbl">Peso estimado</div>
+      <div class="val">${fmtNum(totalPesoKg,0)} kg</div>
+      <div class="sub">${fmtNum(pesoTon,2)} ton · logística</div>
+    </div>
+    <div class="exec-card">
+      <div class="lbl">Costo paneles</div>
+      <div class="val" style="font-size:14px;">${fmtMoney(fin.subtotalPaneles)}</div>
+      <div class="sub">costo de compra</div>
+    </div>
+    <div class="exec-card primary">
+      <div class="lbl">Total cotización</div>
+      <div class="val">${fmtMoney(fin.total)}</div>
+      <div class="sub">${STATE.config.iva ? 'con IVA incluido' : 'sin IVA'}</div>
+    </div>
+    ${outOfRange > 0 ? `
+    <div class="exec-card alert">
+      <div class="lbl">⚠ Fuera de rango</div>
+      <div class="val">${outOfRange}</div>
+      <div class="sub">claro &gt; 9.00 m</div>
+    </div>` : ''}
+  `;
+
+  // ── Desglose por nivel bajo las tarjetas ─────────────────────
+  const nivelesGrupo = {};
+  STATE.areas.forEach(a => {
+    const niv = a.nivel || 'Entrepiso 1';
+    if (!nivelesGrupo[niv]) nivelesGrupo[niv] = { areas:0, pzas:0, ml:0, m2:0 };
+    const r = computeArea(a);
+    nivelesGrupo[niv].areas++;
+    if (r && r.panelType) {
+      nivelesGrupo[niv].pzas += r.paneles;
+      nivelesGrupo[niv].ml   += r.totalMlArea;
+      nivelesGrupo[niv].m2   += r.totalM2Area;
+    }
+  });
+  const ORDEN_NV = ['Entrepiso 1','Entrepiso 2','Entrepiso 3','Entrepiso 4','Azotea'];
+  const nivelesOrdenados = [
+    ...ORDEN_NV.filter(n => nivelesGrupo[n]),
+    ...Object.keys(nivelesGrupo).filter(n => !ORDEN_NV.includes(n)),
+  ];
+  if (nivelesOrdenados.length > 1) {
+    const NCOLS = {
+      'Entrepiso 1':'#1e4d8b','Entrepiso 2':'#1e6ec2',
+      'Entrepiso 3':'#2563eb','Entrepiso 4':'#3b82f6','Azotea':'#b91c1c',
+    };
+    let nivelTable = `<div style="margin-top:14px;border:1px solid var(--blue-200);border-radius:3px;overflow:hidden;">
+      <div style="background:var(--blue-deep);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;padding:7px 12px;">Desglose por nivel</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px;">
+        <thead><tr style="background:var(--blue-50);">
+          <th style="padding:5px 10px;text-align:left;border-bottom:1px solid var(--blue-200);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--blue-deep);">Nivel</th>
+          <th style="padding:5px 10px;text-align:center;border-bottom:1px solid var(--blue-200);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--blue-deep);">Áreas</th>
+          <th style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--blue-200);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--blue-deep);">Piezas</th>
+          <th style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--blue-200);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--blue-deep);">ML</th>
+          <th style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--blue-200);font-size:10px;text-transform:uppercase;letter-spacing:0.04em;color:var(--blue-deep);">M²</th>
+        </tr></thead><tbody>`;
+    nivelesOrdenados.forEach((niv, i) => {
+      const g = nivelesGrupo[niv];
+      const col = NCOLS[niv] || '#525252';
+      nivelTable += `<tr style="${i % 2 === 1 ? 'background:var(--blue-bg);' : ''}">
+        <td style="padding:5px 10px;border-bottom:1px solid var(--line);">
+          <span style="display:inline-flex;align-items:center;gap:6px;">
+            <span style="width:8px;height:8px;border-radius:50%;background:${col};display:inline-block;"></span>
+            <strong style="font-family:'JetBrains Mono',monospace;font-size:11px;color:${col};">${niv}</strong>
+          </span>
+        </td>
+        <td style="padding:5px 10px;text-align:center;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;">${g.areas}</td>
+        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;">${g.pzas}</td>
+        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;">${fmtNum(g.ml,2)}</td>
+        <td style="padding:5px 10px;text-align:right;border-bottom:1px solid var(--line);font-family:'JetBrains Mono',monospace;">${fmtNum(g.m2,2)}</td>
+      </tr>`;
+    });
+    nivelTable += '</tbody></table></div>';
+    wrap.innerHTML += nivelTable;
+  }
+}
+
+/* ============================================================
+   RENDER · MINIMAP
+   ============================================================ */
+function renderMinimap() {
+  const wrap = document.getElementById('minimapWrap');
+  if (STATE.areas.length === 0) {
+    wrap.innerHTML = '<div class="empty" style="border:none;">Sin áreas para visualizar.</div>';
+    return;
+  }
+
+  // ── Constantes de layout ──────────────────────────────────
+  const PAD    = 28;
+  const GAP    = 12;
+  const SVG_H  = 240;   // altura de cada banda de nivel
+  const LABEL_H = 32;   // espacio para etiquetas bajo los rectángulos
+
+  // ── Escala global: máxima dimensión de TODAS las áreas ────
+  // maxDim = mayor "altura de panel" entre todas las áreas de todos los niveles
+  // La altura en el SVG corresponde a r.ladoCorto (el claro/largo del panel)
+  let maxDim = 0;
+  STATE.areas.forEach(a => {
+    const rTmp = computeArea(a);
+    // Usar ladoCorto porque es la dimensión vertical en el diagrama
+    const hDim = rTmp ? rTmp.ladoCorto : Math.min(Number(a.a)||0, Number(a.b)||0);
+    if (hDim > maxDim) maxDim = hDim;
+  });
+  if (maxDim === 0) {
+    wrap.innerHTML = '<div class="empty" style="border:none;">Áreas sin dimensiones.</div>';
+    return;
+  }
+  const escala = (SVG_H - 2*PAD - LABEL_H) / maxDim;
+
+  // ── Agrupar áreas por nivel ────────────────────────────────
+  // Orden predefinido para que los niveles aparezcan en orden lógico
+  const ORDEN_NIVELES = ['Entrepiso 1','Entrepiso 2','Entrepiso 3','Entrepiso 4','Azotea'];
+  const grupos = {};
+  STATE.areas.forEach(a => {
+    const niv = a.nivel || 'Entrepiso 1';
+    if (!grupos[niv]) grupos[niv] = [];
+    grupos[niv].push(a);
+  });
+
+  // Ordenar según ORDEN_NIVELES, luego cualquier nivel extra al final
+  const nivelesUsados = [
+    ...ORDEN_NIVELES.filter(n => grupos[n]),
+    ...Object.keys(grupos).filter(n => !ORDEN_NIVELES.includes(n)),
+  ];
+
+  // ── Colores por nivel ──────────────────────────────────────
+  const NIVEL_COLORS = {
+    'Entrepiso 1': '#1e4d8b',
+    'Entrepiso 2': '#1e6ec2',
+    'Entrepiso 3': '#2563eb',
+    'Entrepiso 4': '#3b82f6',
+    'Azotea':      '#b91c1c',
+  };
+  function nivelColor(n) { return NIVEL_COLORS[n] || '#525252'; }
+
+  // ── Fichas de navegación por nivel ───────────────────────
+  let tabsHtml = '<div class="nivel-tab-bar">';
+  tabsHtml += `<span class="nivel-tab all">${STATE.areas.length} área(s) · ${nivelesUsados.length} nivel(es)</span>`;
+  nivelesUsados.forEach(niv => {
+    const cnt = grupos[niv].length;
+    const col = nivelColor(niv);
+    tabsHtml += `
+      <span class="nivel-tab" style="border-color:${col};color:${col};">
+        <span class="nivel-dot" style="background:${col};opacity:1;"></span>
+        ${niv}
+        <span class="nivel-count">${cnt} área${cnt > 1 ? 's' : ''}</span>
+      </span>`;
+  });
+  tabsHtml += '</div>';
+
+  // ── Generar un SVG por nivel ──────────────────────────────
+  let blocksHtml = '';
+
+  nivelesUsados.forEach(niv => {
+    const areas = grupos[niv];
+    const col   = nivelColor(niv);
+
+    // Calcular ancho del SVG para este nivel — usando r.ladoLargo que respeta direccion
+    let totalW = PAD;
+    areas.forEach(a => {
+      const rTmp = computeArea(a);
+      const ladoLargoReal = rTmp ? rTmp.ladoLargo : Math.max(Number(a.a)||0, Number(a.b)||0);
+      totalW += ladoLargoReal * escala + GAP;
+    });
+    totalW += PAD;
+    const SVG_W = Math.max(totalW, 560);
+
+    let svg = `<svg class="minimap-svg" viewBox="0 0 ${SVG_W} ${SVG_H}" xmlns="http://www.w3.org/2000/svg">`;
+
+    let cursorX = PAD;
+    // Stats del nivel
+    let nivPzas = 0, nivMl = 0, nivM2 = 0;
+    areas.forEach(a => {
+      const r = computeArea(a);
+      if (r && r.panelType) {
+        nivPzas += r.paneles;
+        nivMl   += r.totalMlArea;
+        nivM2   += r.totalM2Area;
+      }
+    });
+
+    areas.forEach((area, ix) => {
+      const r = computeArea(area);
+      if (!r) return;
+      const a = Number(area.a) || 0, b = Number(area.b) || 0;
+      if (!a || !b) return;
+
+      // ── CORRECCIÓN: usar r.ladoLargo/ladoCorto que ya respetan area.direccion ──
+      // wPx = lado que reparte los paneles (horizontal en el SVG)
+      // hPx = largo del panel / claro (vertical en el SVG)
+      const wPx  = r.ladoLargo * escala;
+      const hPx  = r.ladoCorto * escala;
+      const yTop = SVG_H - PAD - LABEL_H - hPx;
+      const color = r.panelType ? r.panelType.hex : '#fee2e2';
+
+      // Paneles individuales dentro del área
+      if (r.panelType) {
+        // Cada panel ocupa PANEL_WIDTH en el eje de distribución (wPx)
+        const panelW = (PANEL_WIDTH / r.ladoLargo) * wPx;
+        for (let i = 0; i < r.paneles; i++) {
+          svg += `<rect x="${cursorX + i*panelW}" y="${yTop}" width="${panelW}" height="${hPx}" fill="${color}" stroke="#0a0a0a" stroke-width="0.5"/>`;
+        }
+        // Residuo: zona que sobra después del último panel completo
+        if (r.residuo > 0.001) {
+          const xRes = cursorX + (r.cubrimiento / r.ladoLargo) * wPx;
+          const wRes = (r.residuo / r.ladoLargo) * wPx;
+          svg += `<rect x="${xRes}" y="${yTop}" width="${wRes}" height="${hPx}" fill="#e5e5e5" stroke="#0a0a0a" stroke-width="0.4" stroke-dasharray="2,2"/>`;
+        }
+      } else {
+        svg += `<rect x="${cursorX}" y="${yTop}" width="${wPx}" height="${hPx}" fill="#fee2e2" stroke="#b91c1c" stroke-width="1" stroke-dasharray="3,2"/>`;
+      }
+      // Contorno del área con color del nivel
+      svg += `<rect x="${cursorX}" y="${yTop}" width="${wPx}" height="${hPx}" fill="none" stroke="${col}" stroke-width="1.5"/>`;
+
+      // Tipo de panel centrado
+      if (r.panelType && wPx > 20 && hPx > 12) {
+        const fz = Math.max(7, Math.min(11, Math.min(wPx, hPx) * 0.18));
+        svg += `<text x="${cursorX + wPx/2}" y="${yTop + hPx/2 + fz*0.35}" font-family="JetBrains Mono, monospace" font-size="${fz}" fill="${col}" text-anchor="middle" font-weight="700">${r.panelType.code}</text>`;
+      }
+
+      // Etiqueta inferior: nombre + dirección + tipo
+      const globalIdx = STATE.areas.findIndex(x => x.id === area.id);
+      const dirIcon   = (area.direccion === 'largo') ? '↕' : '↔';
+      const label     = `#${String(globalIdx+1).padStart(2,'0')} ${(area.name||'').slice(0,16)}`;
+      const dims      = `${fmtNum(r.ladoLargo,2)}×${fmtNum(r.ladoCorto,2)}`;
+      svg += `<text x="${cursorX + wPx/2}" y="${yTop + hPx + 12}" font-family="JetBrains Mono, monospace" font-size="8" fill="#475569" text-anchor="middle">${label}</text>`;
+      svg += `<text x="${cursorX + wPx/2}" y="${yTop + hPx + 22}" font-family="JetBrains Mono, monospace" font-size="8" fill="${col}" text-anchor="middle" font-weight="600">${dims} ${dirIcon}${r.panelType ? ' · ' + r.panelType.code : ''}</text>`;
+
+      cursorX += wPx + GAP;
+    });
+
+    svg += '</svg>';
+
+    // Bloque de nivel
+    const statsStr = nivPzas > 0
+      ? `${areas.length} área(s) · ${nivPzas} pzas · ${fmtNum(nivMl,2)} ml · ${fmtNum(nivM2,2)} m²`
+      : `${areas.length} área(s) · sin cuantificar`;
+
+    blocksHtml += `
+      <div class="minimap-nivel-block">
+        <div class="nivel-header" style="background:${col};">
+          <span class="nh-dot"></span>
+          ${niv}
+          <span class="nh-stats">${statsStr}</span>
+        </div>
+        ${svg}
+      </div>`;
+  });
+
+  wrap.innerHTML = tabsHtml + blocksHtml;
+}
+
+/* ============================================================
+   RENDER · DIAGRAMS
+   ============================================================ */
+function renderDiagrams() {
+  const wrap = document.getElementById('diagrams');
+  if (STATE.areas.length === 0) { wrap.innerHTML = '<div class="empty">Sin diagramas.</div>'; return; }
+  wrap.innerHTML = '';
+  STATE.areas.forEach((area, ix) => {
+    const r = computeArea(area); if (!r) return;
+    const card = document.createElement('div');
+    card.className = 'diagram-card';
+    const SVG_W = 280, SVG_H = 220, PAD = 36;
+    const drawW = SVG_W - 2*PAD, drawH = SVG_H - 2*PAD;
+    const aspect = r.ladoLargo / r.ladoCorto;
+    let w, h;
+    if (aspect >= drawW / drawH) { w = drawW; h = drawW / aspect; }
+    else { h = drawH; w = drawH * aspect; }
+    const ox = (SVG_W - w) / 2, oy = (SVG_H - h) / 2;
+
+    let svg = `<svg viewBox="0 0 ${SVG_W} ${SVG_H}" width="100%" style="max-width:340px;">`;
+    if (r.panelType) {
+      const panelW = (PANEL_WIDTH / r.ladoLargo) * w;
+      const color = r.panelType.color;
+      for (let i = 0; i < r.paneles; i++) {
+        svg += `<rect class="panel-rect" x="${ox + i*panelW}" y="${oy}" width="${panelW}" height="${h}" fill="${color}"/>`;
+      }
+      if (r.cubrimiento < r.ladoLargo) {
+        const xRes = ox + r.cubrimiento / r.ladoLargo * w;
+        const wRes = (r.ladoLargo - r.cubrimiento) / r.ladoLargo * w;
+        svg += `<rect x="${xRes}" y="${oy}" width="${wRes}" height="${h}" fill="#e5e5e5" stroke="#0a0a0a" stroke-width="0.5" stroke-dasharray="2,2"/>`;
+      }
+      svg += `<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="none" stroke="#0a0a0a" stroke-width="1.5"/>`;
+      svg += `<text class="panel-label" x="${ox + w/2}" y="${oy + h/2 + 3}">${r.panelType.code}</text>`;
+    } else {
+      svg += `<rect x="${ox}" y="${oy}" width="${w}" height="${h}" fill="#fee2e2" stroke="#b91c1c" stroke-width="1.5" stroke-dasharray="4,2"/>`;
+      svg += `<text class="panel-label" x="${ox + w/2}" y="${oy + h/2}" style="fill:#b91c1c;">FUERA DE RANGO</text>`;
+    }
+    svg += `<line class="dim-line" x1="${ox}" y1="${oy - 8}" x2="${ox + w}" y2="${oy - 8}"/>`;
+    svg += `<line class="dim-line" x1="${ox}" y1="${oy - 12}" x2="${ox}" y2="${oy - 4}"/>`;
+    svg += `<line class="dim-line" x1="${ox + w}" y1="${oy - 12}" x2="${ox + w}" y2="${oy - 4}"/>`;
+    svg += `<text class="dim-text" x="${ox + w/2}" y="${oy - 12}" text-anchor="middle">${fmtNum(r.ladoLargo,2)}</text>`;
+    svg += `<line class="dim-line" x1="${ox + w + 8}" y1="${oy}" x2="${ox + w + 8}" y2="${oy + h}"/>`;
+    svg += `<line class="dim-line" x1="${ox + w + 4}" y1="${oy}" x2="${ox + w + 12}" y2="${oy}"/>`;
+    svg += `<line class="dim-line" x1="${ox + w + 4}" y1="${oy + h}" x2="${ox + w + 12}" y2="${oy + h}"/>`;
+    svg += `<text class="dim-text" x="${ox + w + 14}" y="${oy + h/2 + 3}">${fmtNum(r.ladoCorto,2)}</text>`;
+    svg += `</svg>`;
+
+    let footer = '—';
+    if (r.panelType) {
+      footer = `<span class="badge">${r.panelType.code}</span> ${r.paneles} pzas × ${fmtNum(r.longitudPanel,2)} m = ${fmtNum(r.totalMlArea,2)} ml`;
+      if (r.residuo > 0.001) footer += ` · res ${fmtNum(r.residuo*100,1)} cm`;
+      footer += `<br><span style="color:var(--ink-soft);">peso ~${fmtNum(r.pesoKg,0)} kg</span>`;
+    } else {
+      footer = `<span style="color:var(--danger);">Claro ${fmtNum(r.ladoCorto,2)} m excede 9.00 m</span>`;
+    }
+    card.innerHTML = `
+      <div class="head">
+        <span class="name">#${String(ix+1).padStart(2,'0')} · ${area.name || '(sin nombre)'}</span>
+        <span style="display:flex;align-items:center;gap:5px;">
+          <span style="font-size:9px;font-family:'JetBrains Mono',monospace;padding:1px 5px;border-radius:2px;background:var(--blue-deep);color:#fff;font-weight:600;white-space:nowrap;">${area.nivel||'Entrepiso 1'}</span>
+          <span class="dim">${fmtNum(area.a,2)} × ${fmtNum(area.b,2)}</span>
+        </span>
+      </div>
+      <div class="svg-wrap">${svg}</div>
+      <div class="footer">${footer}${r.recomendacion ? '<div class="reco">⚠ '+r.recomendacion+'</div>' : ''}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+/* ============================================================
+   WATERMARK
+   ============================================================ */
+function buildWatermark(text) {
+  const safe = (text || '').replace(/[<>&]/g, '');
+  return `
+    <svg class="watermark-bg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 1600">
+      <defs>
+        <pattern id="wm" patternUnits="userSpaceOnUse" width="420" height="280" patternTransform="rotate(-25)">
+          <image href="${LOGO_DATA_URI}" x="0" y="0" width="120" height="118" opacity="0.05"/>
+          <text x="130" y="60" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700" fill="rgba(30,77,139,0.05)" letter-spacing="2">${safe}</text>
+          <text x="130" y="88" font-family="Inter Tight, sans-serif" font-size="10" fill="rgba(30,77,139,0.04)" letter-spacing="3">DOCUMENTO TRAZABLE · GAMA SUR</text>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#wm)"/>
+    </svg>
+  `;
+}
+
+/* ============================================================
+   RENDER · PEDIDO NOVIDESA
+   ============================================================ */
+function renderNovidesa() {
+  const groups = aggregateAll();
+  const docNum = (STATE.docNumbers.cot || 'COT-0000').replace('COT-', 'PED-');
+  const fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+
+  let bodyRows = '';
+  let totalPzas = 0, totalMl = 0, totalM2 = 0;
+  let panelTypesUsed = [];
+
+  PANEL_TYPES.forEach(p => {
+    const g = groups[p.code]; if (g.lengths.size === 0) return;
+    panelTypesUsed.push(p);
+    const lengths = Array.from(g.lengths.values()).sort((x,y) => x.longitud - y.longitud);
+    const rowsCount = lengths.length;
+
+    lengths.forEach((l, i) => {
+      bodyRows += `<tr>`;
+      if (i === 0) {
+        bodyRows += `<td class="concept" rowspan="${rowsCount + 1}">MAKROS</td>`;
+        bodyRows += `<td class="thickness" rowspan="${rowsCount + 1}">de ${p.espesor} cms.<br>de espesor</td>`;
+        bodyRows += `<td class="unidad" rowspan="${rowsCount + 1}">PZA</td>`;
+        bodyRows += `<td class="location" rowspan="${rowsCount + 1}">LOSA DE<br>ENTREPISO</td>`;
+      }
+      bodyRows += `<td>${fmtNum(l.longitud, 2)}</td>`;
+      bodyRows += `<td>${l.pzas}.00</td>`;
+      bodyRows += `<td class="totalml">${fmtNum(l.ml, 2)}</td>`;
+      if (i === 0) bodyRows += `<td class="totalm2" rowspan="${rowsCount + 1}">${fmtNum(g.totalM2, 2)}</td>`;
+      bodyRows += `</tr>`;
+    });
+
+    let subPzas = 0, subMl = 0;
+    lengths.forEach(l => { subPzas += l.pzas; subMl += l.ml; });
+    bodyRows += `<tr class="subt-row">
+      <td style="text-align:right;font-style:italic;">subtotal:</td>
+      <td>${subPzas}.00</td>
+      <td>${fmtNum(subMl, 2)}</td>
+    </tr>`;
+    totalPzas += subPzas; totalMl += subMl; totalM2 += g.totalM2;
+  });
+
+  if (!bodyRows) {
+    bodyRows = '<tr><td colspan="8" style="text-align:center;color:var(--ink-soft);padding:18px;">Sin paneles cuantificados</td></tr>';
+  } else {
+    bodyRows += `<tr class="total-row">
+      <td colspan="4" style="text-align:right;">TOTALES:</td>
+      <td>—</td>
+      <td>${totalPzas}.00</td>
+      <td>${fmtNum(totalMl, 2)}</td>
+      <td>${fmtNum(totalM2, 2)}</td>
+    </tr>`;
+  }
+
+  document.getElementById('novidesaDoc').innerHTML = `
+    ${buildWatermark(`PEDIDO ${docNum}`)}
+    <div class="nv-header">
+      <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+      <div class="center">
+        <div class="ttl">Pedido a Novidesa</div>
+        <div class="sub">${STATE.emisor.nombre} · Arq. Cab Ruiz</div>
+      </div>
+      <div class="docnum">${docNum}</div>
+    </div>
+    <div class="nv-meta">
+      <div class="b">
+        <div class="lbl">Obra / Destino</div>
+        <strong>${STATE.cliente.obra || '(capturar obra)'}</strong><br>
+        Cliente: ${STATE.cliente.nombre || '—'}<br>
+        Fecha: ${fechaHoy}
+      </div>
+      <div class="b">
+        <div class="lbl">Resumen del pedido</div>
+        Áreas: <strong>${STATE.areas.length}</strong> · Tipos: <strong>${panelTypesUsed.length}</strong><br>
+        Piezas: <strong>${totalPzas}</strong><br>
+        ml: <strong>${fmtNum(totalMl,2)}</strong> · m²: <strong>${fmtNum(totalM2,2)}</strong>
+      </div>
+    </div>
+    <table class="nv-table">
+      <thead>
+        <tr><th colspan="8" class="super-header">PANEL DE ENTREPISO AISLANTE</th></tr>
+        <tr>
+          <th colspan="2">CONCEPTO</th>
+          <th>UNIDAD</th>
+          <th>UBICACIÓN</th>
+          <th colspan="3">CANTIDAD</th>
+          <th>TOTAL (M²)</th>
+        </tr>
+        <tr>
+          <th colspan="2"></th><th></th><th></th>
+          <th>LONG.</th><th>PZAS.</th><th>TOTAL (ML)</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>${bodyRows}</tbody>
+    </table>
+    <div style="font-size:10px;color:var(--ink-soft);line-height:1.6;border-top:1px solid var(--blue-200);padding-top:10px;margin-top:10px;">
+      <strong style="color:var(--blue-deep);">Especificaciones:</strong> Panel MAKROS II de entrepiso aislante. Densidad 20 kg/m³. Ancho fijo 60 cm. Largo a medida exacta del claro.<br>
+      <strong style="color:var(--blue-deep);">Solicitud:</strong> Favor de cotizar fabricación y entrega. Confirmar tiempos.<br>
+      <strong style="color:var(--blue-deep);">${STATE.emisor.nombre}</strong> · RFC ${STATE.emisor.rfc} · Tel ${STATE.emisor.tel}
+    </div>
+  `;
+}
+
+/* ============================================================
+   EXPORT EXCEL · PEDIDO NOVIDESA (formato vertical)
+   ============================================================ */
+/* ============================================================
+   EXPORTAR PEDIDO NOVIDESA — XLSX REAL (SheetJS)
+   Compatible con Excel 2016+, no genera advertencias de formato
+   ============================================================ */
+function exportNovidesaToExcel() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Librería Excel no cargada. Verifica tu conexión.', 'error');
+    return;
+  }
+
+  const groups = aggregateAll();
+  const docNum = (STATE.docNumbers.cot || 'COT-0000').replace('COT-', 'PED-');
+  const fechaHoy = new Date().toLocaleDateString('es-MX');
+  const escClient = STATE.cliente.nombre || '—';
+  const escObra   = STATE.cliente.obra   || '—';
+
+  // ── Paleta de azules (ARGB sin #) ──────────────────────────
+  const BLUE_DEEP   = 'FF1E4D8B';
+  const BLUE_BRAND  = 'FF1E6EC2';
+  const BLUE_100    = 'FFDBEAFE';
+  const BLUE_300    = 'FF93C5FD';
+  const BLUE_50     = 'FFEFF6FF';
+  const GREEN_LIGHT = 'FFDCFCE7';
+  const GREEN_DARK  = 'FF166534';
+  const WHITE       = 'FFFFFFFF';
+  const BLACK       = 'FF000000';
+
+  // ── Helpers de estilo ──────────────────────────────────────
+  function border(weight) {
+    const b = { style: weight, color: { argb: BLACK } };
+    return { top: b, bottom: b, left: b, right: b };
+  }
+  function font(opts) {
+    return Object.assign({ name: 'Calibri', size: 11 }, opts);
+  }
+  function fill(argb) {
+    return { type: 'pattern', pattern: 'solid', fgColor: { argb } };
+  }
+  function align(h, v, wrap) {
+    const a = { horizontal: h || 'left', vertical: v || 'middle' };
+    if (wrap) a.wrapText = true;
+    return a;
+  }
+
+  // ── Crear workbook ─────────────────────────────────────────
+  const wb = XLSX.utils.book_new();
+  wb.Props = {
+    Title: `Pedido Novidesa ${docNum}`,
+    Author: STATE.emisor.nombre,
+    CreatedDate: new Date(),
+  };
+
+  // Usamos aoa (array of arrays) para máximo control
+  // Luego aplicamos estilos celda por celda con worksheet objeto
+
+  const ws = {};            // worksheet manual
+  const merges = [];        // { s:{r,c}, e:{r,c} }
+  let R = 0;                // fila actual (0-indexed)
+
+  function setCell(r, c, value, style) {
+    const addr = XLSX.utils.encode_cell({ r, c });
+    ws[addr] = { v: value, t: typeof value === 'number' ? 'n' : 's', s: style };
+  }
+  function merge(r1, c1, r2, c2) {
+    merges.push({ s: { r: r1, c: c1 }, e: { r: r2, c: c2 } });
+  }
+
+  // ── FILA 0: Meta datos ─────────────────────────────────────
+  const metaStyle = { font: font({ bold: true, color: { argb: BLUE_DEEP } }), alignment: align() };
+  const metaVal   = { font: font(), alignment: align() };
+  setCell(R, 0, 'PEDIDO:', metaStyle);
+  setCell(R, 1, docNum,   metaVal);
+  setCell(R, 3, 'FECHA:', metaStyle);
+  setCell(R, 4, fechaHoy, metaVal);
+  R++;
+
+  // ── FILA 1: Cliente / Obra ─────────────────────────────────
+  setCell(R, 0, 'CLIENTE:', metaStyle);
+  setCell(R, 1, escClient,  { font: font(), alignment: align('left','middle',true) });
+  merge(R, 1, R, 3);
+  setCell(R, 4, 'OBRA:', metaStyle);
+  setCell(R, 5, escObra,   { font: font(), alignment: align('left','middle',true) });
+  merge(R, 5, R, 7);
+  R++;
+
+  // ── FILA 2: vacía ─────────────────────────────────────────
+  R++;
+
+  // ── FILA 3: Título PANEL DE ENTREPISO AISLANTE ─────────────
+  const titleStyle = {
+    font: font({ bold: true, size: 14, color: { argb: WHITE } }),
+    fill: fill(BLUE_DEEP),
+    alignment: align('center','middle'),
+    border: border('medium'),
+  };
+  setCell(R, 0, 'PANEL DE ENTREPISO AISLANTE', titleStyle);
+  for (let c = 1; c <= 7; c++) setCell(R, c, '', titleStyle);
+  merge(R, 0, R, 7);
+  R++;
+
+  // ── FILAS 4-5: Headers ─────────────────────────────────────
+  const h1Style = {
+    font: font({ bold: true, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_50),
+    alignment: align('center','middle',true),
+    border: border('thin'),
+  };
+  // Fila 4: CONCEPTO | UNIDAD | UBICACION | CANTIDAD (x3) | TOTAL M2
+  setCell(R, 0, 'CONCEPTO',      h1Style); merge(R, 0, R, 1);
+  setCell(R, 2, 'UNIDAD',        h1Style);
+  setCell(R, 3, 'UBICACIÓN',     h1Style);
+  setCell(R, 4, 'CANTIDAD',      h1Style); merge(R, 4, R, 6);
+  setCell(R, 7, 'TOTAL (M²)',    h1Style);
+  // Rellenar cols 1,5,6 para que tengan estilo también
+  for (const c of [1, 5, 6]) setCell(R, c, '', h1Style);
+  R++;
+
+  // Fila 5: sub-headers de CANTIDAD
+  setCell(R, 0, '', h1Style); setCell(R, 1, '', h1Style);
+  setCell(R, 2, '', h1Style); setCell(R, 3, '', h1Style);
+  setCell(R, 4, 'LONG.',      h1Style);
+  setCell(R, 5, 'PZAS.',      h1Style);
+  setCell(R, 6, 'TOTAL (ML)', h1Style);
+  setCell(R, 7, '', h1Style);
+  R++;
+
+  // ── DATOS ──────────────────────────────────────────────────
+  let totalPzas = 0, totalMl = 0, totalM2 = 0;
+
+  const conceptStyle = {
+    font: font({ bold: true, size: 12, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_100),
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+  const thickStyle = {
+    font: font({ bold: true, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_300),
+    alignment: align('center','middle',true),
+    border: border('thin'),
+  };
+  const unitStyle = {
+    font: font({ bold: true, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_50),
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+  const locStyle  = unitStyle;
+  const numStyle  = {
+    font: font(),
+    numFmt: '0.00',
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+  const numBoldStyle = {
+    font: font({ bold: true }),
+    fill: fill('FFF0F9FF'),
+    numFmt: '0.00',
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+  const m2Style = {
+    font: font({ bold: true, color: { argb: GREEN_DARK } }),
+    fill: fill(GREEN_LIGHT),
+    numFmt: '0.00',
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+  const subtlblStyle = {
+    font: font({ italic: true, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_100),
+    alignment: align('right','middle'),
+    border: border('thin'),
+  };
+  const subtStyle = {
+    font: font({ bold: true, color: { argb: BLUE_DEEP } }),
+    fill: fill(BLUE_100),
+    numFmt: '0.00',
+    alignment: align('center','middle'),
+    border: border('thin'),
+  };
+
+  PANEL_TYPES.forEach(p => {
+    const g = groups[p.code];
+    if (g.lengths.size === 0) return;
+    const lengths = Array.from(g.lengths.values()).sort((x,y) => x.longitud - y.longitud);
+    const rowCount = lengths.length; // filas de datos (sin fila subtotal)
+    const dataStartR = R;
+
+    let subPzas = 0, subMl = 0;
+
+    lengths.forEach((l, i) => {
+      if (i === 0) {
+        setCell(R, 0, 'MAKROS', conceptStyle);
+        setCell(R, 1, `de ${p.espesor} cms. de espesor`, thickStyle);
+        setCell(R, 2, 'PZA', unitStyle);
+        setCell(R, 3, 'LOSA DE ENTREPISO', locStyle);
+      } else {
+        setCell(R, 0, '', conceptStyle);
+        setCell(R, 1, '', thickStyle);
+        setCell(R, 2, '', unitStyle);
+        setCell(R, 3, '', locStyle);
+      }
+      setCell(R, 4, l.longitud, numStyle);
+      setCell(R, 5, l.pzas, numStyle);
+      setCell(R, 6, l.ml, numBoldStyle);
+      if (i === 0) {
+        setCell(R, 7, g.totalM2, m2Style);
+      } else {
+        setCell(R, 7, '', m2Style);
+      }
+      subPzas += l.pzas;
+      subMl += l.ml;
+      R++;
+    });
+
+    // Merges verticales para concepto, espesor, unidad, ubicación y m2
+    if (rowCount > 1) {
+      merge(dataStartR, 0, dataStartR + rowCount - 1, 0);
+      merge(dataStartR, 1, dataStartR + rowCount - 1, 1);
+      merge(dataStartR, 2, dataStartR + rowCount - 1, 2);
+      merge(dataStartR, 3, dataStartR + rowCount - 1, 3);
+      merge(dataStartR, 7, dataStartR + rowCount - 1, 7);
+    }
+
+    // Fila de subtotal
+    setCell(R, 0, '', subtlblStyle);
+    setCell(R, 1, '', subtlblStyle);
+    setCell(R, 2, '', subtlblStyle);
+    setCell(R, 3, '', subtlblStyle);
+    setCell(R, 4, 'subtotal:', subtlblStyle);
+    setCell(R, 5, subPzas, subtStyle);
+    setCell(R, 6, subMl,   subtStyle);
+    setCell(R, 7, '',      subtStyle);
+    merge(R, 0, R, 3);  // celdas vacías izquierda fusionadas
+    R++;
+
+    totalPzas += subPzas;
+    totalMl   += subMl;
+    totalM2   += g.totalM2;
+  });
+
+  // ── FILA TOTALES ──────────────────────────────────────────
+  if (totalPzas > 0) {
+    const totalLblStyle = {
+      font: font({ bold: true, size: 12, color: { argb: WHITE } }),
+      fill: fill(BLUE_DEEP),
+      alignment: align('right','middle'),
+      border: border('medium'),
+    };
+    const totalValStyle = {
+      font: font({ bold: true, size: 12, color: { argb: WHITE } }),
+      fill: fill(BLUE_DEEP),
+      numFmt: '0.00',
+      alignment: align('center','middle'),
+      border: border('medium'),
+    };
+    setCell(R, 0, 'TOTALES:', totalLblStyle);
+    setCell(R, 1, '', totalLblStyle);
+    setCell(R, 2, '', totalLblStyle);
+    setCell(R, 3, '', totalLblStyle);
+    setCell(R, 4, '-', totalValStyle);
+    setCell(R, 5, totalPzas, totalValStyle);
+    setCell(R, 6, totalMl,   totalValStyle);
+    setCell(R, 7, totalM2,   totalValStyle);
+    merge(R, 0, R, 3);
+  }
+
+  // ── Definir ancho de columnas ──────────────────────────────
+  ws['!cols'] = [
+    { wch: 14 }, // A: MAKROS
+    { wch: 18 }, // B: espesor
+    { wch: 8  }, // C: unidad
+    { wch: 18 }, // D: ubicación
+    { wch: 9  }, // E: LONG
+    { wch: 9  }, // F: PZAS
+    { wch: 12 }, // G: TOTAL ML
+    { wch: 12 }, // H: TOTAL M2
+  ];
+
+  // ── Forzar altura de filas clave ──────────────────────────
+  ws['!rows'] = [];
+  ws['!rows'][3] = { hpt: 24 }; // título
+
+  // ── Aplicar merges ────────────────────────────────────────
+  ws['!merges'] = merges;
+
+  // ── Definir rango ─────────────────────────────────────────
+  ws['!ref'] = XLSX.utils.encode_range({ r: 0, c: 0 }, { r: R, c: 7 });
+
+  // ── Agregar hoja al workbook ──────────────────────────────
+  XLSX.utils.book_append_sheet(wb, ws, 'Pedido Novidesa');
+
+  // ── Descargar ─────────────────────────────────────────────
+  const filename = `pedido_novidesa_${docNum}.xlsx`;
+  XLSX.writeFile(wb, filename);
+  showToast('✓ Excel descargado: ' + filename, 'success');
+}
+
+document.getElementById('btnExportNovidesaXls').addEventListener('click', async () => {
+  const btn = document.getElementById('btnExportNovidesaXls');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ Generando…';
+  btn.disabled = true;
+  try {
+    exportNovidesaToExcel();
+  } finally {
+    setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 800);
+  }
+});
+
+
+/* ============================================================
+   RENDER · COTIZACIÓN
+   ============================================================ */
+function renderCotizacion() {
+  const f = computeFinancials();
+  const docNum = STATE.docNumbers.cot || 'COT-0000';
+  const fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  const cotDisp = document.getElementById('cotNumDisplay');
+  if (cotDisp) cotDisp.textContent = '· ' + docNum;
+
+  let lineas = '';
+  // Precio cliente = precio de compra con utilidad ya incluida (margen oculto)
+  const factorUtil = 1 + (Number(STATE.config.utilidadPct)||0) / 100;
+  PANEL_TYPES.forEach(p => {
+    const g = f.groups[p.code]; if (g.lengths.size === 0) return;
+    const lengths = Array.from(g.lengths.values()).sort((x,y) => x.longitud - y.longitud);
+    let sumPzas = 0; lengths.forEach(l => sumPzas += l.pzas);
+    const puCliente = STATE.prices[p.code] * factorUtil;
+    const importeCliente = g.totalMl * puCliente;
+    lineas += `<tr>
+      <td class="text">
+        <strong>MAKROS II ${p.code} · espesor ${p.espesor} cm</strong>
+        <span class="desc">Panel de entrepiso aislante ${p.densidad||20} kg/m³ · ${p.espesor} cm espesor · ${sumPzas} pzas en ${lengths.length} medida(s)</span>
+      </td>
+      <td class="right">${fmtNum(g.totalMl,2)}</td>
+      <td>ml</td>
+      <td class="right">${fmtMoney(puCliente)}</td>
+      <td class="right">${fmtMoney(importeCliente)}</td>
+    </tr>`;
+  });
+  STATE.extras.forEach(ex => {
+    const subt = (Number(ex.cantidad)||0) * (Number(ex.pu)||0) * factorUtil;
+    if (subt <= 0) return;
+    const puCliente = Number(ex.pu) * factorUtil;
+    lineas += `<tr>
+      <td class="text">
+        <strong>${ex.concepto || '(sin concepto)'}</strong>
+        ${ex.notas ? `<span class="desc">${ex.notas}</span>` : ''}
+      </td>
+      <td class="right">${fmtNum(ex.cantidad,2)}</td>
+      <td>${ex.unidad || ''}</td>
+      <td class="right">${fmtMoney(puCliente)}</td>
+      <td class="right">${fmtMoney(subt)}</td>
+    </tr>`;
+  });
+  // Maniobra NO va como línea aquí — aparece en el bloque de totales abajo
+
+  // Precio con utilidad embebida por panel (cliente ve precio final, sin desglose de margen)
+  // La utilidad ya está en el P.U. mostrado → subtotalCliente = lo que el cliente paga en materiales
+  let totRows = `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL</strong></td><td class="right"><strong>${fmtMoney(f.subtotalCliente)}</strong></td></tr>`;
+  if (f.descuentoMonto > 0)
+    totRows += `<tr class="totals"><td colspan="4" class="right">Descuento ${fmtNum(f.descuentoPct,2)}%</td><td class="right">- ${fmtMoney(f.descuentoMonto)}</td></tr>`;
+  totRows += `<tr class="totals"><td colspan="4" class="right">COSTO MANIOBRA:</td><td class="right">${fmtMoney(f.labor)}</td></tr>`;
+  if (f.iva > 0)
+    totRows += `<tr class="totals"><td colspan="4" class="right">IVA:</td><td class="right">${fmtMoney(f.iva)}</td></tr>`;
+  totRows += `<tr class="grand-total"><td colspan="4" class="right">TOTAL SISTEMA:</td><td class="right">${fmtMoney(f.total)}</td></tr>`;
+
+  document.getElementById('cotizacionDoc').innerHTML = `
+    ${buildWatermark(docNum)}
+    <div class="doc-header">
+      <div class="logo-block">
+        <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+        <div class="brand-text">GAMA SUR</div>
+      </div>
+      <div class="emisor">
+        <div class="name">${STATE.emisor.nombre}</div>
+        <div class="role">Arquitecto · Sistema MAKROS Novidesa</div>
+        RFC: <strong>${STATE.emisor.rfc}</strong> · Régimen ${STATE.emisor.regimen} · ${REGIMENES[STATE.emisor.regimen]||''}<br>
+        ${STATE.emisor.direccion}<br>
+        ${STATE.emisor.tel ? 'Tel: ' + STATE.emisor.tel : ''} ${STATE.emisor.mail ? '· ' + STATE.emisor.mail : ''}
+      </div>
+      <div class="doc-id">
+        <div class="label">Cotización</div>
+        <div class="docnum">${docNum}</div>
+        <div class="meta-dates">
+          <strong>Fecha:</strong> ${fechaHoy}<br>
+          <strong>Vigencia:</strong> ${fmtDate(STATE.config.vigencia)}
+        </div>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="block">
+        <div class="label">Cliente</div>
+        <div class="data">
+          <strong>${STATE.cliente.nombre || '(capturar nombre)'}</strong><br>
+          ${STATE.cliente.rfc ? 'RFC: ' + STATE.cliente.rfc + '<br>' : ''}
+          ${STATE.cliente.direccion || ''}<br>
+          ${STATE.cliente.tel ? 'Tel: ' + STATE.cliente.tel : ''} ${STATE.cliente.mail ? '· ' + STATE.cliente.mail : ''}
+        </div>
+      </div>
+      <div class="block">
+        <div class="label">Proyecto</div>
+        <div class="data">
+          <strong>${STATE.cliente.obra || '(capturar obra)'}</strong><br>
+          Sistema constructivo: <strong>MAKROS II Novidesa</strong><br>
+          Áreas cuantificadas: <strong>${STATE.areas.length}</strong>
+        </div>
+      </div>
+    </div>
+    <table class="doc-table">
+      <thead><tr>
+        <th>Concepto / Descripción</th>
+        <th class="right">Cantidad</th>
+        <th>Unidad</th>
+        <th class="right">P.U.</th>
+        <th class="right">Importe</th>
+      </tr></thead>
+      <tbody>
+        ${lineas || '<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);">Sin partidas</td></tr>'}
+        ${totRows}
+      </tbody>
+    </table>
+    <div class="doc-conditions">
+      <div class="block">
+        <strong>Condiciones comerciales</strong>
+        Anticipo: <strong>${STATE.config.anticipoPct}%</strong> para iniciar fabricación.<br>
+        Moneda: <strong>MXN</strong>.<br>
+        ${STATE.config.iva ? 'Precios <strong>con</strong> IVA trasladado.' : 'Precios <strong>sin</strong> IVA.'}<br>
+        Vigencia hasta: <strong>${fmtDate(STATE.config.vigencia)}</strong>.
+      </div>
+      <div class="block">
+        <strong>Notas técnicas</strong>
+        Paneles fabricados por NOVIDESA a medida exacta del claro.<br>
+        Selección de espesor por claro libre del área.<br>
+        Tolerancia de residuo ≤ 12 cm absorbida en trabe.<br>
+        No incluye cerramientos ni obra civil.
+      </div>
+    </div>
+    <div class="doc-footer">
+      <strong>${STATE.emisor.nombre}</strong> — Arquitecto · RFC ${STATE.emisor.rfc}<br>
+      Documento <strong>${docNum}</strong> · generado el ${fechaHoy} · documento trazable.<br>
+      Para emisión de CFDI fiscal solicite los datos de facturación al emisor.
+    </div>
+  `;
+}
+
+/* ============================================================
+   RENDER · PREFACTURA
+   ============================================================ */
+function renderPrefactura() {
+  const f = computeFinancials();
+  const docNum = STATE.docNumbers.pre || 'PRE-0000';
+  const fechaHoy = new Date().toLocaleDateString('es-MX', { day:'2-digit', month:'long', year:'numeric' });
+  const preDisp = document.getElementById('preNumDisplay');
+  if (preDisp) preDisp.textContent = '· ' + docNum;
+
+  let lineas = '';
+  const factorUtilPre = 1 + (Number(STATE.config.utilidadPct)||0) / 100;
+  PANEL_TYPES.forEach(p => {
+    const g = f.groups[p.code]; if (g.lengths.size === 0) return;
+    const lengths = Array.from(g.lengths.values()).sort((x,y) => x.longitud - y.longitud);
+    let sumPzas = 0; lengths.forEach(l => sumPzas += l.pzas);
+    const puCliente = STATE.prices[p.code] * factorUtilPre;
+    const importeCliente = g.totalMl * puCliente;
+    lineas += `<tr>
+      <td class="text">
+        <strong>MAKROS II ${p.code} · espesor ${p.espesor} cm</strong>
+        <span class="desc">Panel de entrepiso aislante ${p.densidad||20} kg/m³ · ${p.espesor} cm espesor · ${sumPzas} pzas · ${lengths.length} medida(s)</span>
+      </td>
+      <td class="right">${fmtNum(g.totalMl,2)}</td>
+      <td>ml</td>
+      <td class="right">${fmtMoney(puCliente)}</td>
+      <td class="right">${fmtMoney(importeCliente)}</td>
+    </tr>`;
+  });
+  STATE.extras.forEach(ex => {
+    const subt = (Number(ex.cantidad)||0) * (Number(ex.pu)||0) * factorUtilPre;
+    if (subt <= 0) return;
+    const puCliente = Number(ex.pu) * factorUtilPre;
+    lineas += `<tr>
+      <td class="text">
+        <strong>${ex.concepto || '(sin concepto)'}</strong>
+        ${ex.notas ? `<span class="desc">${ex.notas}</span>` : ''}
+      </td>
+      <td class="right">${fmtNum(ex.cantidad,2)}</td>
+      <td>${ex.unidad || ''}</td>
+      <td class="right">${fmtMoney(puCliente)}</td>
+      <td class="right">${fmtMoney(subt)}</td>
+    </tr>`;
+  });
+  // Maniobra va en bloque de totales, no como línea
+
+  let totRows = '';
+  totRows += `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL:</strong></td><td class="right"><strong>${fmtMoney(f.subtotalCliente)}</strong></td></tr>`;
+  if (f.descuentoMonto > 0)
+    totRows += `<tr class="totals"><td colspan="4" class="right">Descuento ${fmtNum(f.descuentoPct,2)}%</td><td class="right">- ${fmtMoney(f.descuentoMonto)}</td></tr>`;
+  totRows += `<tr class="totals"><td colspan="4" class="right">COSTO MANIOBRA:</td><td class="right">${fmtMoney(f.labor)}</td></tr>`;
+  if (f.iva > 0)
+    totRows += `<tr class="totals"><td colspan="4" class="right">IVA:</td><td class="right">${fmtMoney(f.iva)}</td></tr>`;
+  totRows += `<tr class="grand-total"><td colspan="4" class="right">TOTAL SISTEMA:</td><td class="right">${fmtMoney(f.total)}</td></tr>`;
+
+  document.getElementById('prefacturaDoc').innerHTML = `
+    ${buildWatermark(docNum + ' · NO FISCAL')}
+    <div class="doc-header">
+      <div class="logo-block">
+        <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+        <div class="brand-text">GAMA SUR</div>
+      </div>
+      <div class="emisor">
+        <div class="name">${STATE.emisor.nombre}</div>
+        <div class="role">Arquitecto · Sistema MAKROS Novidesa</div>
+        RFC: <strong>${STATE.emisor.rfc}</strong><br>
+        Régimen ${STATE.emisor.regimen} · ${REGIMENES[STATE.emisor.regimen]||''}<br>
+        ${STATE.emisor.direccion}<br>
+        ${STATE.emisor.tel ? 'Tel: ' + STATE.emisor.tel : ''} ${STATE.emisor.mail ? '· ' + STATE.emisor.mail : ''}
+      </div>
+      <div class="doc-id">
+        <div class="label">Prefactura</div>
+        <div class="docnum">${docNum}</div>
+        <div class="meta-dates">
+          <strong>Fecha:</strong> ${fechaHoy}<br>
+          <strong>Vigencia:</strong> ${fmtDate(STATE.config.vigencia)}
+        </div>
+      </div>
+    </div>
+    <div class="doc-meta">
+      <div class="block">
+        <div class="label">Datos del receptor</div>
+        <div class="data">
+          <strong>${STATE.cliente.nombre || '(capturar)'}</strong><br>
+          ${STATE.cliente.rfc ? 'RFC: <strong>' + STATE.cliente.rfc + '</strong><br>' : ''}
+          ${STATE.cliente.regimen ? 'Régimen: ' + STATE.cliente.regimen + ' · ' + (REGIMENES[STATE.cliente.regimen]||'') + '<br>' : ''}
+          ${STATE.cliente.direccion || ''}<br>
+          ${STATE.cliente.tel ? 'Tel: ' + STATE.cliente.tel : ''} ${STATE.cliente.mail ? '· ' + STATE.cliente.mail : ''}
+        </div>
+      </div>
+      <div class="block">
+        <div class="label">Obra / Proyecto</div>
+        <div class="data">
+          <strong>${STATE.cliente.obra || '(capturar)'}</strong><br>
+          Sistema: <strong>MAKROS II Novidesa</strong><br>
+          Áreas: <strong>${STATE.areas.length}</strong> · Anticipo: <strong>${STATE.config.anticipoPct}%</strong>
+        </div>
+      </div>
+    </div>
+    <table class="doc-table">
+      <thead><tr>
+        <th>Concepto / Descripción</th>
+        <th class="right">Cantidad</th>
+        <th>Unidad</th>
+        <th class="right">P.U.</th>
+        <th class="right">Importe</th>
+      </tr></thead>
+      <tbody>
+        ${lineas || '<tr><td colspan="5" style="text-align:center;color:var(--ink-soft);">Sin partidas</td></tr>'}
+        ${totRows}
+      </tbody>
+    </table>
+    <div class="doc-conditions">
+      <div class="block">
+        <strong>Forma y condiciones de pago</strong>
+        Anticipo: <strong>${STATE.config.anticipoPct}%</strong> al confirmar pedido.<br>
+        Moneda: <strong>MXN</strong>.<br>
+        ${STATE.config.iva ? '<strong>Precios con IVA trasladado.</strong>' : '<strong>Precios sin IVA.</strong>'}<br>
+        Vigencia: <strong>${fmtDate(STATE.config.vigencia)}</strong>.
+      </div>
+      <div class="block">
+        <strong>Información para CFDI</strong>
+        Para emisión de CFDI proporcionar:<br>
+        · RFC y razón social exacta<br>
+        · Régimen fiscal y CP del domicilio<br>
+        · Uso de CFDI · Forma y método de pago
+      </div>
+    </div>
+    <div class="doc-footer">
+      <div class="nofiscal">DOCUMENTO SIN VALOR FISCAL</div>
+      <strong>${STATE.emisor.nombre}</strong> — RFC ${STATE.emisor.rfc} · Régimen ${STATE.emisor.regimen}<br>
+      Documento <strong>${docNum}</strong> · trazable. Esta prefactura es un documento previo de control comercial.<br>
+      <strong>No sustituye al CFDI</strong>; el comprobante fiscal se emite tras confirmar la operación. Generado el ${fechaHoy}.
+    </div>
+  `;
+}
+
+/* ============================================================
+   HISTORIAL
+   ============================================================ */
+function renderHistory() {
+  document.getElementById('numbersDisplay').textContent =
+    `${STATE.docNumbers.cot} · ${STATE.docNumbers.pre}`;
+  const list = document.getElementById('historyList');
+  if (!STATE.history || STATE.history.length === 0) {
+    list.innerHTML = '<div class="empty" style="border:none;">Sin emisiones registradas. Cada vez que imprimas se registra aquí.</div>';
+    return;
+  }
+  list.innerHTML = '';
+  const sorted = [...STATE.history].sort((a,b) => b.timestamp - a.timestamp);
+  sorted.forEach(h => {
+    const row = document.createElement('div');
+    row.className = 'history-row';
+    row.innerHTML = `
+      <div class="docnum">${h.docNumber}</div>
+      <div class="type ${h.type}">${h.type}</div>
+      <div>${h.cliente || '(s/cliente)'} · ${h.obra || ''}</div>
+      <div class="total">${fmtMoney(h.total)}</div>
+      <div class="ts">${fmtDateTime(h.timestamp)}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+
+function logEmission(type) {
+  const f = computeFinancials();
+  const entry = {
+    id: Date.now(), type,
+    docNumber: type === 'cot' ? STATE.docNumbers.cot : STATE.docNumbers.pre,
+    timestamp: Date.now(),
+    cliente: STATE.cliente.nombre, rfc: STATE.cliente.rfc,
+    obra: STATE.cliente.obra,
+    total: f.total, iva: f.iva, utilidadPct: f.utilidadPct,
+  };
+  STATE.history = STATE.history || [];
+  STATE.history.push(entry);
+  if (STATE.history.length > 100) STATE.history = STATE.history.slice(-100);
+  persistLocal(); markDirty();
+  renderHistory();
+}
+
+document.getElementById('btnRegenNumbers').addEventListener('click', () => {
+  if (!confirm('¿Generar nueva numeración? Los documentos previos quedan en el historial.')) return;
+  STATE.docNumbers = newDocNumbers();
+  persistLocal(); markDirty();
+  renderHistory(); renderCotizacion(); renderPrefactura(); renderNovidesa();
+  showToast('Nueva numeración: ' + STATE.docNumbers.cot, 'success');
+});
+document.getElementById('btnClearHistory').addEventListener('click', () => {
+  if (!confirm('¿Limpiar historial?')) return;
+  STATE.history = [];
+  persistLocal(); markDirty(); renderHistory();
+});
+
+document.getElementById('printCot').addEventListener('click', () => {
+  logEmission('cot');
+  setTimeout(() => window.print(), 200);
+});
+document.getElementById('printPre').addEventListener('click', () => {
+  logEmission('pre');
+  setTimeout(() => window.print(), 200);
+});
+
+/* ============================================================
+   TOGGLE VISTA COMPACTA
+   ============================================================ */
+document.getElementById('btnToggleView').addEventListener('click', () => {
+  STATE.config.compactView = !STATE.config.compactView;
+  document.getElementById('btnToggleView').textContent = STATE.config.compactView ? 'Vista detallada' : 'Vista compacta';
+  persistLocal(); markDirty();
+  renderQuant();
+});
+
+/* ============================================================
+   ORQUESTADOR
+   ============================================================ */
+function renderDocsOnly() {
+  renderCotizacion(); renderPrefactura(); renderNovidesa(); renderExecSummary();
+}
+function renderAll() {
+  renderPresets(); renderAreas(); renderCustomers();
+  renderQuant(); renderDiagrams(); renderMinimap(); renderExecSummary();
+  renderCotizacion(); renderPrefactura(); renderNovidesa();
+  renderHistory();
+}
+function hardRefreshUI() {
+  PANEL_TYPES.forEach(p => {
+    if (STATE.prices[p.code] === undefined) STATE.prices[p.code] = p.defaultPrice;
+  });
+  syncInputsFromState();
+  renderPrices(); renderExtras(); renderAll();
+  nextId = STATE.areas.length ? Math.max(...STATE.areas.map(a => a.id)) + 1 : 1;
+  extraNextId = STATE.extras.length ? Math.max(...STATE.extras.map(e => e.id)) + 1 : 1;
+  presetNextId = STATE.presets.length ? Math.max(...STATE.presets.map(p => p.id)) + 1 : 100;
+  customerNextId = STATE.customers.length ? Math.max(...STATE.customers.map(c => c.id)) + 1 : 1000;
+}
+
+/* ============================================================
+   BINDINGS
+   ============================================================ */
+function bindInput(id, target) {
+  const el = document.getElementById(id); if (!el) return;
+  el.addEventListener('input', () => {
+    const val = (el.type === 'number') ? Number(el.value) : el.value;
+    if (typeof target === 'function') target(val);
+    persistLocal(); markDirty(); renderDocsOnly();
+  });
+}
+bindInput('emisorNombre',    v => STATE.emisor.nombre = v);
+bindInput('emisorRFC',       v => STATE.emisor.rfc = v);
+bindInput('emisorRegimen',   v => STATE.emisor.regimen = v);
+bindInput('emisorDireccion', v => STATE.emisor.direccion = v);
+bindInput('emisorTel',       v => STATE.emisor.tel = v);
+bindInput('emisorMail',      v => STATE.emisor.mail = v);
+bindInput('clienteNombre',    v => STATE.cliente.nombre = v);
+bindInput('clienteRFC',       v => STATE.cliente.rfc = v);
+bindInput('clienteRegimen',   v => STATE.cliente.regimen = v);
+bindInput('clienteDireccion', v => STATE.cliente.direccion = v);
+bindInput('clienteTel',       v => STATE.cliente.tel = v);
+bindInput('clienteMail',      v => STATE.cliente.mail = v);
+bindInput('clienteObra',      v => STATE.cliente.obra = v);
+bindInput('utilidadPct',  v => { STATE.config.utilidadPct = v; STATE.activePresetId = null; renderPresets(); });
+bindInput('descuentoPct', v => STATE.config.descuentoPct = v);
+bindInput('laborCost',    v => STATE.config.laborCost = v);
+bindInput('anticipoPct',  v => STATE.config.anticipoPct = v);
+bindInput('vigenciaFecha',v => STATE.config.vigencia = v);
+
+document.getElementById('ivaToggle').addEventListener('click', () => {
+  STATE.config.iva = !(STATE.config.iva !== false);
+  document.getElementById('ivaToggle').classList.toggle('on', STATE.config.iva);
+  persistLocal(); markDirty(); renderDocsOnly();
+});
+
+function syncInputsFromState() {
+  document.getElementById('emisorNombre').value = STATE.emisor.nombre;
+  document.getElementById('emisorRFC').value = STATE.emisor.rfc;
+  document.getElementById('emisorRegimen').value = STATE.emisor.regimen;
+  document.getElementById('emisorDireccion').value = STATE.emisor.direccion;
+  document.getElementById('emisorTel').value = STATE.emisor.tel;
+  document.getElementById('emisorMail').value = STATE.emisor.mail;
+  syncClienteInputs();
+  document.getElementById('utilidadPct').value = STATE.config.utilidadPct;
+  document.getElementById('descuentoPct').value = STATE.config.descuentoPct;
+  document.getElementById('laborCost').value = STATE.config.laborCost;
+  document.getElementById('anticipoPct').value = STATE.config.anticipoPct;
+  document.getElementById('vigenciaFecha').value = STATE.config.vigencia;
+  document.getElementById('ivaToggle').classList.toggle('on', STATE.config.iva);
+  document.getElementById('btnToggleView').textContent = STATE.config.compactView ? 'Vista detallada' : 'Vista compacta';
+}
+function syncClienteInputs() {
+  document.getElementById('clienteNombre').value = STATE.cliente.nombre || '';
+  document.getElementById('clienteRFC').value = STATE.cliente.rfc || '';
+  document.getElementById('clienteRegimen').value = STATE.cliente.regimen || '';
+  document.getElementById('clienteDireccion').value = STATE.cliente.direccion || '';
+  document.getElementById('clienteTel').value = STATE.cliente.tel || '';
+  document.getElementById('clienteMail').value = STATE.cliente.mail || '';
+  document.getElementById('clienteObra').value = STATE.cliente.obra || '';
+}
+
+/* ============================================================
+   ÁREA · agregar
+   ============================================================ */
+function addAreaFromForm() {
+  const name = document.getElementById('areaName').value.trim();
+  const a = Number(document.getElementById('areaA').value);
+  const b = Number(document.getElementById('areaB').value);
+  if (!a || !b || a <= 0 || b <= 0) {
+    showToast('Captura ambas medidas (>0)', 'error'); return;
+  }
+  // Nombre por defecto: usa una letra si el array no supera 26, sino número
+  const defName = STATE.areas.length < 26
+    ? `Área ${String.fromCharCode(65 + STATE.areas.length)}`
+    : `Área ${STATE.areas.length + 1}`;
+  const nivel      = document.getElementById('areaNivel').value || 'Entrepiso 1';
+  const panelCode  = document.getElementById('areaPanelCode').value || 'auto';
+  const direccion  = document.getElementById('areaDireccion').value || 'corto';
+  STATE.areas.push({
+    id: nextId++,
+    name: name || defName,
+    a, b,
+    nivel,
+    panelCode,
+    direccion,
+    mallaPasta: false,
+  });
+  document.getElementById('areaName').value = '';
+  document.getElementById('areaA').value = '';
+  document.getElementById('areaB').value = '';
+  document.getElementById('areaName').focus();
+  persistLocal(); markDirty(); renderAll();
+}
+document.getElementById('addBtn').addEventListener('click', addAreaFromForm);
+['areaName','areaA','areaB'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); addAreaFromForm(); }
+  });
+});
+
+/* ============================================================
+   FILE BUTTONS
+   ============================================================ */
+document.getElementById('btnSave').addEventListener('click', () => saveProject(false));
+document.getElementById('btnSaveAs').addEventListener('click', () => saveProject(true));
+document.getElementById('btnOpen').addEventListener('click', openProject);
+
+window.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveProject(false);
+  }
+});
+window.addEventListener('beforeunload', e => {
+  if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ============================================================
+   INIT
+   ============================================================ */
+loadLocal();
+if (!STATE.config.vigencia) STATE.config.vigencia = getDefaultVigencia();
+if (!STATE.docNumbers || !STATE.docNumbers.cot) STATE.docNumbers = newDocNumbers();
+PANEL_TYPES.forEach(p => {
+  if (STATE.prices[p.code] === undefined) STATE.prices[p.code] = p.defaultPrice;
+});
+
+// Migración: ajustar utilidades de presets antiguos si existen
+const candPreset = STATE.presets.find(p => p.nombre === 'Arq. Candelaria');
+if (candPreset && (candPreset.utilidad === 30 || candPreset.utilidad === 25)) candPreset.utilidad = 44;
+const hadasPreset = STATE.presets.find(p => p.nombre === 'Residencial Las Hadas');
+if (hadasPreset && (hadasPreset.utilidad === 25 || hadasPreset.utilidad === 30)) hadasPreset.utilidad = 38;
+
+// Migración: ajustar M16 al precio real
+if (STATE.prices.M16 === 350.00 || STATE.prices.M16 === 220.00) STATE.prices.M16 = 214.94;
+
+nextId = STATE.areas.length ? Math.max(...STATE.areas.map(a => a.id)) + 1 : 1;
+extraNextId = STATE.extras.length ? Math.max(...STATE.extras.map(e => e.id)) + 1 : 1;
+presetNextId = STATE.presets.length ? Math.max(...STATE.presets.map(p => p.id)) + 1 : 100;
+customerNextId = STATE.customers.length ? Math.max(...STATE.customers.map(c => c.id)) + 1 : 1000;
+
+if (STATE.areas.length === 0) {
+  STATE.areas.push({ id: nextId++, name: 'Área de ejemplo (imagen N-2)', a: 4.82, b: 4.20 });
+  persistLocal();
+}
+
+renderPrices();
+renderLegend();
+syncInputsFromState();
+renderExtras();
+renderAll();
+markClean();
+
+if (!('showSaveFilePicker' in window)) {
+  document.getElementById('btnSave').textContent = '⬇ Exportar JSON'; // File System Access API no disponible en este navegador
+  document.getElementById('btnSaveAs').style.display = 'none';
+}
+
+
+
+</script>
+</body>
+</html>

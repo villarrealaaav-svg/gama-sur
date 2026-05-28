@@ -1,0 +1,1631 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Benchmark · Sistemas de Losa · GAMA SUR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   VARIABLES GLOBALES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+:root{
+  /* ── GamaSur Identity ── */
+  --b900:#1F2937; --b700:#1e4d8b; --b500:#2563EB;
+  --b300:#60A5FA; --b100:#DBEAFE; --b50:#EFF6FF;
+  --g50:#F9FAFB;  --g100:#F3F4F6; --g200:#E5E7EB;
+  --g400:#9CA3AF; --g600:#4B5563; --ink:#1A2535;
+  --green:#16A34A; --gbg:#DCFCE7;
+  --red:#DC2626;   --rbg:#FEE2E2;
+  --amber:#D97706; --abg:#FEF3C7;
+  --orange:#EA580C; --orange-bg:#FFEDD5;
+  --r:8px; --sh:0 4px 14px rgba(26,37,53,.09);
+  --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-body:'Inter','Segoe UI',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-body);background:#F0F4F9;color:var(--ink);min-height:100vh;}
+h1,h2,h3,.hdr h1,.kpi-name,.slbl,.tsec td{font-family:var(--font-display);}
+.shell{max-width:1140px;margin:0 auto;padding:28px 18px 60px;}
+
+/* ━━━━━ HEADER ━━━━━ */
+.hdr{background:linear-gradient(135deg,#1F2937 0%,#1e4d8b 60%,#2563EB 100%);border-radius:var(--r);padding:22px 28px 18px;margin-bottom:20px;position:relative;overflow:hidden;border-bottom:3px solid #EA580C;}
+.hdr::after{content:'';position:absolute;right:-50px;bottom:-50px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.05);}
+.hdr-label{font-size:9.5px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:4px;}
+.hdr h1{font-size:26px;font-weight:800;letter-spacing:.02em;color:#fff;position:relative;z-index:1;}
+.hdr h1 span{color:#FB923C;}
+.hdr-meta{margin-top:5px;font-size:11px;color:rgba(255,255,255,.6);font-weight:300;position:relative;z-index:1;}
+.hdr-actions{position:absolute;top:20px;right:26px;display:flex;gap:8px;z-index:2;}
+
+/* ━━━━━ BOTONES ━━━━━ */
+.btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;padding:7px 15px;font-family:var(--font-body);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s;}
+.btn-print{background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3);}
+.btn-print:hover{background:rgba(255,255,255,.28);}
+.btn-primary{background:var(--b500);color:#fff;box-shadow:0 3px 10px rgba(13,59,122,.2);}
+.btn-primary:hover{background:var(--b700);}
+.btn-ghost{background:var(--g100);color:var(--g600);border:none;}
+.btn-ghost:hover{background:var(--g200);}
+.btn-sm{padding:5px 10px;font-size:10.5px;}
+
+/* ━━━━━ PESTAÑAS ━━━━━ */
+.tabs{display:flex;gap:3px;background:rgba(255,255,255,.7);border-radius:11px;padding:5px;margin-bottom:18px;border:1px solid var(--g200);backdrop-filter:blur(8px);}
+.tab{flex:1;padding:9px 0;border:none;background:transparent;font-family:var(--font-body);font-size:12.5px;font-weight:500;color:var(--g600);cursor:pointer;border-radius:7px;transition:all .2s;}
+.tab.active{background:var(--b700);color:#fff;font-weight:600;box-shadow:0 2px 8px rgba(13,59,122,.2);}
+.tab:hover:not(.active){background:var(--b100);color:var(--b700);}
+
+/* ━━━━━ PANELES ━━━━━ */
+.panel{display:none;}
+.panel.active{display:block;}
+.ppr{display:flex;justify-content:flex-end;margin-bottom:12px;}/* panel-print-row */
+
+/* ━━━━━ UTILIDADES ━━━━━ */
+.slbl{font-size:9px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--b500);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b100);}
+.card{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);border:1px solid rgba(33,118,255,.10);border-radius:var(--r);padding:20px 22px;box-shadow:var(--sh);}
+.card+.card{margin-top:16px;}
+.toggle-btn{display:flex;border:1px solid var(--b300);border-radius:6px;overflow:hidden;}
+.toggle-btn button{border:none;background:transparent;padding:5px 12px;font-family:var(--font-body);font-size:11px;font-weight:500;cursor:pointer;color:var(--g600);transition:all .15s;}
+.toggle-btn button.active{background:var(--b500);color:#fff;}
+
+/* ━━━━━ KPI ROW ━━━━━ */
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px;margin-bottom:16px;}
+.kpi-cell{background:rgba(255,255,255,.92);border:1px solid var(--b100);border-radius:8px;padding:10px 8px;text-align:center;}
+.kpi-name{font-size:8.5px;font-weight:700;color:var(--b500);text-transform:uppercase;margin-bottom:2px;line-height:1.2;min-height:22px;}
+.kpi-val{font-size:18px;font-weight:700;color:var(--b700);}
+.kpi-val.best{color:var(--green);}
+.kpi-val.worst{color:var(--red);}
+.kpi-sub{font-size:8px;color:var(--g400);margin-top:1px;}
+
+/* ━━━━━ GRÁFICA (solo costos) ━━━━━ */
+.chart-card{background:rgba(255,255,255,.88);border:1px solid var(--b100);border-radius:var(--r);padding:16px 18px;margin-bottom:16px;}
+.chart-ttl{font-size:11px;font-weight:600;color:var(--b700);margin-bottom:12px;}
+.chart-wrap{position:relative;height:260px;}
+
+/* ━━━━━ TABLAS ━━━━━ */
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--g200);}
+table{width:100%;border-collapse:collapse;font-size:11.5px;}
+thead th{background:var(--b700);color:#fff;padding:8px 9px;text-align:center;font-weight:600;font-size:10.5px;white-space:nowrap;}
+thead th:first-child{text-align:left;background:var(--b900);}
+tbody tr:nth-child(even){background:var(--g50);}
+tbody tr:hover{background:var(--b50);}
+td{padding:6px 9px;border-bottom:1px solid var(--g100);color:var(--g600);text-align:center;vertical-align:middle;}
+td:first-child{text-align:left;font-weight:500;color:var(--ink);background:var(--g50)!important;}
+td.best{color:var(--green);font-weight:700;background:var(--gbg)!important;}
+td.worst{color:var(--red);font-weight:600;background:var(--rbg)!important;}
+td.ck{color:var(--green);}
+td.cx{color:var(--red);}
+.tsec td{background:var(--b900)!important;color:#fff!important;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;text-align:left!important;padding:5px 9px;}
+
+/* ━━━━━ COMPARAR 1 vs 1 ━━━━━ */
+.v1-sels{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:14px;}
+.v1-sel{background:rgba(255,255,255,.9);border:1.5px solid var(--b100);border-radius:8px;padding:9px 12px;font-family:var(--font-body);font-size:12.5px;font-weight:500;color:var(--ink);width:100%;cursor:pointer;}
+.v1-vs{font-size:16px;font-weight:800;color:var(--b500);text-align:center;}
+.v1-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.v1-col{background:rgba(255,255,255,.88);border:1px solid var(--b100);border-radius:var(--r);padding:16px;}
+.v1-col.win{border-color:var(--green);background:#f0fdf4;}
+.v1-ttl{font-size:9.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--b700);margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;}
+.v1-col.win .v1-ttl{color:var(--green);}
+.v1-total{font-size:26px;font-weight:800;color:var(--b700);margin-bottom:2px;}
+.v1-col.win .v1-total{color:var(--green);}
+.v1-tsub{font-size:10px;color:var(--g400);margin-bottom:12px;}
+.v1-bar{margin-bottom:5px;}
+.v1-bl{display:flex;justify-content:space-between;font-size:10px;margin-bottom:2px;color:var(--g600);}
+.v1-bt{height:8px;background:var(--g100);border-radius:20px;overflow:hidden;}
+.v1-bf{height:100%;border-radius:20px;transition:width .5s;}
+.v1-bf.mat{background:linear-gradient(90deg,var(--b500),var(--b300));}
+.v1-bf.mo{background:linear-gradient(90deg,#7c3aed,#a78bfa);}
+.v1-bf.eq{background:linear-gradient(90deg,#0891b2,#67e8f9);}
+.v1-props{margin-top:12px;border-top:1px solid var(--g100);padding-top:10px;}
+.v1-prop{display:flex;justify-content:space-between;padding:4px 0;font-size:10.5px;border-bottom:1px solid var(--g100);}
+.v1-prop:last-child{border:none;}
+.v1-prop span:first-child{color:var(--g600);}
+.v1-prop span:last-child{font-weight:600;color:var(--ink);}
+.v1-ql{display:grid;grid-template-columns:1fr 1fr;gap:1px;margin-top:10px;}
+.v1-qr{font-size:9.5px;display:flex;align-items:center;gap:4px;padding:2px 0;}
+.dpill{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;margin-left:5px;}
+.dg{background:var(--gbg);color:var(--green);}
+.dr{background:var(--rbg);color:var(--red);}
+/* Agresividad panel */
+.agg-panel{background:linear-gradient(135deg,#fffbeb,#fff7d6);border:1px solid #fde68a;border-radius:10px;padding:14px 18px;margin-bottom:14px;}
+.agg-top{display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.agg-badge{background:var(--amber);color:#fff;border-radius:8px;padding:8px 14px;text-align:center;flex-shrink:0;}
+.agg-badge-pct{font-size:24px;font-weight:800;line-height:1.1;}
+.agg-badge-lbl{font-size:8.5px;font-weight:600;letter-spacing:1px;opacity:.85;text-transform:uppercase;}
+.agg-desc{flex:1;min-width:180px;}
+.agg-desc strong{font-size:12px;color:var(--b700);display:block;margin-bottom:4px;}
+.agg-desc p{font-size:10.5px;color:var(--g600);line-height:1.5;}
+.agg-stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px;width:100%;}
+.agg-stat{background:rgba(255,255,255,.7);border-radius:6px;padding:8px 10px;font-size:10px;}
+.agg-stat-name{font-weight:700;color:var(--b700);font-size:9px;text-transform:uppercase;margin-bottom:3px;}
+.agg-stat-row{display:flex;justify-content:space-between;font-size:10.5px;}
+.agg-stat-row span:last-child{font-weight:700;}
+
+/* ━━━━━ EDITOR DE PRECIOS ━━━━━ */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px;}
+.pcard{background:rgba(255,255,255,.92);border:1px solid var(--b100);border-radius:10px;overflow:hidden;box-shadow:var(--sh);}
+.pcard-hd{padding:10px 13px;color:#fff;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.pcard-hd-left{flex:1;min-width:0;}
+.pcard-nm{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;outline:none;}
+.pcard-sb{font-size:8.5px;opacity:.75;margin-top:1px;outline:none;}
+[contenteditable]:focus{outline:2px solid rgba(255,255,255,.6);border-radius:2px;}
+.pcard-hd-right{text-align:right;flex-shrink:0;}
+.pcard-hd-right span{font-size:8.5px;opacity:.7;display:block;}
+.pcard-hd-right strong{font-size:15px;font-weight:800;}
+.pcard-hd-acts{display:flex;gap:2px;flex-shrink:0;}
+.pcard-hd-acts button{background:rgba(255,255,255,.2);border:none;border-radius:4px;padding:3px 6px;cursor:pointer;font-size:10.5px;color:#fff;}
+.pcard-hd-acts button:hover{background:rgba(255,255,255,.35);}
+.pcard-bd{padding:10px 12px;}
+.psbl{font-size:7.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--b500);margin:7px 0 4px;padding-bottom:2px;border-bottom:1px solid var(--b100);}
+.psbl:first-child{margin-top:0;}
+.pf{margin-bottom:3px;display:flex;align-items:center;gap:5px;}
+.pf label{font-size:8.5px;color:var(--g600);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.pf input{width:78px;flex-shrink:0;border:1px solid var(--g200);border-radius:4px;padding:3px 5px;font-family:var(--font-body);font-size:10px;font-weight:500;color:var(--ink);background:#fff;text-align:right;}
+.pf input:focus{outline:none;border-color:var(--b300);}
+.p-sub{background:var(--b50);border-radius:4px;padding:4px 7px;font-size:10px;font-weight:700;color:var(--b700);display:flex;justify-content:space-between;margin:4px 0 3px;}
+.p-tot{background:var(--b900);border-radius:5px;padding:5px 8px;font-size:11px;font-weight:800;color:#fff;display:flex;justify-content:space-between;margin-top:4px;}
+.p-agg{background:var(--abg);border-radius:5px;padding:4px 8px;font-size:10px;color:var(--amber);display:flex;justify-content:space-between;align-items:center;margin-top:3px;border:1px solid rgba(230,81,0,.15);}
+.p-agg strong{font-weight:700;}
+.p-agg-diff{font-size:8.5px;color:var(--red);font-weight:600;}
+.p-note{font-size:8px;color:var(--g400);margin-top:3px;text-align:right;}
+.disc-row{display:flex;align-items:center;gap:12px;background:var(--abg);border-radius:8px;padding:10px 14px;margin-bottom:12px;border:1px solid rgba(230,81,0,.15);}
+.disc-row label{font-size:11px;font-weight:600;color:var(--amber);white-space:nowrap;}
+.disc-row input[type=range]{flex:1;accent-color:var(--amber);}
+.disc-val{font-size:12px;font-weight:700;color:var(--amber);min-width:34px;}
+.disc-hint{font-size:9.5px;color:var(--amber);opacity:.75;white-space:nowrap;}
+.add-bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;gap:8px;flex-wrap:wrap;}
+
+/* ━━━━━ FICHA TÉCNICA (INFO CARD) ━━━━━ */
+.ic-wrap{max-width:760px;margin:0 auto;}
+.ic-top{background:rgba(255,255,255,.88);border:1px solid var(--b100);border-radius:var(--r);padding:13px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.info-card{background:#fff;border:1px solid var(--g200);border-radius:13px;overflow:hidden;box-shadow:0 8px 36px rgba(10,45,110,.13);}
+.ic-ban{padding:20px 26px;color:#fff;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.ic-name{font-size:20px;font-weight:800;margin-bottom:2px;}
+.ic-sub{font-size:11.5px;opacity:.75;font-weight:300;}
+.ic-badge-lbl{font-size:8.5px;opacity:.75;letter-spacing:1.5px;text-transform:uppercase;font-weight:600;margin-bottom:2px;}
+.ic-badge-val{font-size:27px;font-weight:800;line-height:1.1;}
+.ic-badge-mode{font-size:9px;opacity:.65;margin-top:2px;}
+.ic-body{padding:18px 24px;}
+.ic-cost-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;}
+.ic-tile{border-radius:7px;padding:10px 8px;text-align:center;}
+.ic-tile.mat{background:var(--b50);border:1px solid var(--b100);}
+.ic-tile.mo{background:#faf5ff;border:1px solid #e9d5ff;}
+.ic-tile.eq{background:#ecfeff;border:1px solid #a5f3fc;}
+.ic-tile.tot{background:var(--b700);}
+.ic-tlbl{font-size:8px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--b500);margin-bottom:3px;}
+.ic-tile.mo .ic-tlbl{color:#7c3aed;}
+.ic-tile.eq .ic-tlbl{color:#0891b2;}
+.ic-tile.tot .ic-tlbl{color:rgba(255,255,255,.7);}
+.ic-tval{font-size:16px;font-weight:800;color:var(--b700);}
+.ic-tile.mo .ic-tval{color:#7c3aed;}
+.ic-tile.eq .ic-tval{color:#0891b2;}
+.ic-tile.tot .ic-tval{color:#fff;font-size:18px;}
+.ic-2c{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+.ic-sl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--b500);margin-bottom:7px;padding-bottom:3px;border-bottom:1px solid var(--b100);}
+.ic-pr{display:flex;justify-content:space-between;padding:4px 0;font-size:10px;border-bottom:1px solid var(--g100);gap:8px;}
+.ic-pr:last-child{border:none;}
+.ic-pr span:first-child{color:var(--g600);}
+.ic-pr span:last-child{font-weight:600;color:var(--ink);text-align:right;}
+.ic-lst{list-style:none;}
+.ic-lst li{font-size:10px;padding:3px 0;display:flex;align-items:flex-start;gap:4px;line-height:1.4;border-bottom:1px solid var(--g100);}
+.ic-lst li:last-child{border:none;}
+.ic-obs{background:var(--b50);border-left:3px solid var(--b500);border-radius:0 5px 5px 0;padding:8px 12px;font-size:10.5px;color:var(--g600);line-height:1.5;margin-bottom:14px;}
+.ic-qg{display:grid;grid-template-columns:repeat(3,1fr);}
+.ic-qi{font-size:9px;display:flex;align-items:flex-start;gap:3px;padding:3px 0;line-height:1.3;border-bottom:1px solid var(--g100);}
+.ic-sbadge{display:inline-flex;align-items:center;gap:5px;color:#fff;border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;margin-top:8px;}
+
+/* ━━━━━ MODAL ━━━━━ */
+.mo-ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;display:flex;align-items:center;justify-content:center;padding:14px;backdrop-filter:blur(3px);}
+.mo-box{background:#fff;border-radius:13px;width:100%;max-width:540px;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.28);overflow:hidden;}
+.mo-hdr{padding:13px 16px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--g100);}
+.mo-hdr span{font-size:13px;font-weight:700;}
+.mo-cb{height:4px;transition:background .2s;}
+.mo-close{background:none;border:none;font-size:16px;cursor:pointer;color:var(--g400);padding:3px 6px;border-radius:4px;}
+.mo-close:hover{background:var(--g100);}
+.mo-tabs{display:flex;gap:2px;padding:6px 9px;background:var(--g50);border-bottom:1px solid var(--g100);flex-wrap:wrap;}
+.mo-tab{border:none;background:transparent;padding:5px 9px;font-family:var(--font-body);font-size:10.5px;font-weight:500;cursor:pointer;border-radius:5px;color:var(--g600);}
+.mo-tab.active{background:var(--b500);color:#fff;}
+.mo-body{flex:1;overflow-y:auto;}
+.mo-pn{display:none;padding:13px 15px;}
+.mo-pn.active{display:block;}
+.mo-sl{font-size:8px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--b500);margin:9px 0 5px;padding-bottom:2px;border-bottom:1px solid var(--b100);}
+.mo-sl:first-child{margin-top:0;}
+.mo-row{display:flex;align-items:center;gap:7px;margin-bottom:6px;}
+.mo-row label{font-size:10.5px;color:var(--g600);flex:1;min-width:100px;}
+.mo-row input,.mo-row textarea{border:1px solid var(--g200);border-radius:5px;padding:5px 7px;font-family:var(--font-body);font-size:11px;color:var(--ink);background:#fff;}
+.mo-row input{flex:1;max-width:190px;}
+.mo-row input[type=number]{max-width:95px;text-align:right;}
+.mo-row input[type=color]{flex:none;width:42px;height:30px;padding:2px;cursor:pointer;border-radius:4px;border:1px solid var(--g200);}
+.mo-row textarea{flex:1;resize:vertical;min-height:60px;}
+.mo-row input:focus,.mo-row textarea:focus{outline:none;border-color:var(--b300);}
+.mo-ck{display:flex;align-items:flex-start;gap:6px;padding:4px 0;font-size:10px;cursor:pointer;border-bottom:1px solid var(--g100);}
+.mo-ck:last-child{border:none;}
+.mo-ck input{margin-top:2px;accent-color:var(--b500);}
+.mo-ck span{color:var(--g600);line-height:1.4;}
+.mo-ftr{padding:10px 15px;display:flex;justify-content:flex-end;gap:8px;border-top:1px solid var(--g100);}
+.btn-mc{background:var(--g100);color:var(--g600);border:none;border-radius:6px;padding:6px 13px;font-family:var(--font-body);font-size:11px;font-weight:600;cursor:pointer;}
+.btn-mc:hover{background:var(--g200);}
+.btn-ms{background:var(--b500);color:#fff;border:none;border-radius:6px;padding:6px 13px;font-family:var(--font-body);font-size:11px;font-weight:600;cursor:pointer;}
+.btn-ms:hover{background:var(--b700);}
+
+/* ━━━━━ IMPORTACIÓN EXCEL ━━━━━ */
+.imp-zone{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:2px dashed var(--b300);border-radius:10px;padding:14px 18px;margin-bottom:12px;transition:all .2s;cursor:pointer;}
+.imp-zone:hover,.imp-zone.drag{background:linear-gradient(135deg,#e0f2fe,#bae6fd);border-color:var(--b500);border-style:solid;}
+.imp-zone-inner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.imp-zone-icon{font-size:28px;flex-shrink:0;}
+.imp-zone-text{flex:1;min-width:140px;}
+.imp-zone-text strong{display:block;font-size:12px;color:var(--b700);}
+.imp-zone-text span{font-size:10px;color:var(--g400);}
+.imp-btns{display:flex;gap:7px;flex-wrap:wrap;flex-shrink:0;}
+.imp-preset{background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:7px;padding:7px 12px;font-family:var(--font-body);font-size:10.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;}
+.imp-preset:hover{filter:brightness(1.1);}
+.imp-file{background:var(--b500);color:#fff;border:none;border-radius:7px;padding:7px 12px;font-family:var(--font-body);font-size:10.5px;font-weight:600;cursor:pointer;}
+.imp-file:hover{background:var(--b700);}
+/* Import preview modal */
+.imp-list{max-height:340px;overflow-y:auto;}
+.imp-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:7px;border:1px solid var(--g200);margin-bottom:6px;cursor:pointer;transition:background .15s;}
+.imp-item:hover{background:var(--b50);}
+.imp-item.selected{background:var(--b50);border-color:var(--b300);}
+.imp-item-cb{flex-shrink:0;accent-color:var(--b500);}
+.imp-item-color{width:12px;height:36px;border-radius:4px;flex-shrink:0;}
+.imp-item-info{flex:1;min-width:0;}
+.imp-item-name{font-size:11.5px;font-weight:600;color:var(--ink);}
+.imp-item-sub{font-size:9.5px;color:var(--g600);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.imp-item-costs{text-align:right;flex-shrink:0;}
+.imp-item-total{font-size:13px;font-weight:700;color:var(--b700);}
+.imp-item-break{font-size:9px;color:var(--g400);}
+.imp-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px;}
+.imp-header-btns{display:flex;gap:6px;}
+.imp-warn{background:var(--abg);border:1px solid rgba(230,81,0,.2);border-radius:7px;padding:8px 12px;font-size:10.5px;color:var(--amber);margin-bottom:10px;}
+.dup-badge{background:var(--abg);color:var(--amber);font-size:8.5px;padding:1px 6px;border-radius:10px;margin-left:5px;font-weight:600;}
+/* ━━━━━ SCROLLBAR ━━━━━ */
+::-webkit-scrollbar{height:4px;width:4px;}
+::-webkit-scrollbar-thumb{background:var(--b100);border-radius:10px;}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   IMPRESIÓN — Carta Vertical sin páginas en blanco
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media print{
+  @page{size:Letter portrait;margin:13mm 11mm;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  html,body{background:#fff!important;margin:0;padding:0;}
+  .shell{max-width:100%;padding:0;}
+  
+  /* Ocultar UI */
+  .tabs,.hdr-actions,.ppr,.no-print,.slbl-bar,
+  .v1-sels,.disc-row,.add-bar,.pcard-hd-acts,
+  .ic-top,.agg-panel,.mode-bar,.recalc-btn,
+  .mo-ov,#sysModal{display:none!important;}
+
+  .hdr{border-radius:0;padding:12px 16px;margin-bottom:8px;break-after:avoid;}
+  
+  /* Todos los paneles ocultos por defecto */
+  .panel{display:none!important;height:0!important;overflow:hidden!important;}
+  
+  /* Sin data-print-tab → mostrar el panel activo */
+  body:not([data-print-tab]) .panel.active{
+    display:block!important;height:auto!important;overflow:visible!important;
+    break-before:avoid;
+  }
+  
+  /* Con data-print-tab → mostrar solo el panel especificado */
+  body[data-print-tab] .panel.active{display:none!important;height:0!important;}
+  body[data-print-tab="panelAll"]   #panelAll{display:block!important;height:auto!important;break-before:avoid;}
+  body[data-print-tab="panel1v1"]   #panel1v1{display:block!important;height:auto!important;break-before:avoid;}
+  body[data-print-tab="panelPrice"] #panelPrice{display:block!important;height:auto!important;break-before:avoid;}
+  body[data-print-tab="panelCard"]  #panelCard{display:block!important;height:auto!important;break-before:avoid;}
+
+  /* Ocultar gráfica (canvas no imprime bien) */
+  .chart-card,.chart-wrap,canvas{display:none!important;}
+  
+  /* Tablas compactas */
+  table{font-size:9px!important;}
+  thead th{font-size:8.5px!important;padding:4px 6px!important;}
+  td{padding:4px 6px!important;font-size:9px!important;}
+  tr,td,th{page-break-inside:avoid;}
+  
+  /* Elementos sin corte */
+  .card,.pcard,.info-card,.v1-col,.ic-body{page-break-inside:avoid;}
+  
+  /* Precios: 2 columnas en impresión */
+  .price-grid{grid-template-columns:repeat(2,1fr)!important;}
+  
+  /* 1v1: mantener 2 columnas */
+  .v1-grid{grid-template-columns:1fr 1fr!important;}
+  
+  /* Ficha técnica */
+  .info-card{box-shadow:none!important;}
+  .ic-wrap{max-width:100%!important;}
+  .ic-body{padding:12px 16px!important;}
+  .ic-ban{padding:14px 18px!important;}
+  
+  /* Remover espacio inferior del shell */
+  .shell,.card{padding-bottom:0!important;}
+}
+
+/* ━━━━━ RESPONSIVE ━━━━━ */
+@media(max-width:900px){.price-grid{grid-template-columns:repeat(2,1fr);}
+  .ic-cost-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:680px){.v1-grid{grid-template-columns:1fr;}.ic-2c{grid-template-columns:1fr;}
+  .ic-qg{grid-template-columns:1fr 1fr;}.agg-stats{grid-template-columns:1fr;}
+  .shell{padding:14px 10px 40px;}.hdr{padding:18px 16px 14px;}
+  .hdr h1{font-size:18px;}.hdr-actions{position:static;margin-top:8px;}
+  .tabs{flex-wrap:wrap;}.tab{font-size:11px;flex:1 1 45%;}}
+@media(max-width:480px){.price-grid{grid-template-columns:1fr;}
+  .v1-sels{grid-template-columns:1fr;gap:6px;}.v1-vs{display:none;}
+  .ic-cost-grid{grid-template-columns:repeat(2,1fr);}
+  .ic-qg{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ═══ HEADER ═══ -->
+<div class="hdr">
+  <div class="hdr-label">Herramienta de Análisis · Villahermosa, Tabasco</div>
+  <h1>Benchmark <span>Sistemas de Losa</span></h1>
+  <div class="hdr-meta" id="hdrMeta">— sistemas · APU 2026 · Comparación técnica y comercial · Precios editables</div>
+  <div class="hdr-actions">
+    <button class="btn btn-print" onclick="doPrint()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+        <polyline points="6 9 6 2 18 2 18 9"/>
+        <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/>
+        <rect x="6" y="14" width="12" height="8"/>
+      </svg>
+      Imprimir vista activa
+    </button>
+  </div>
+</div>
+
+<!-- ═══ PESTAÑAS ═══ -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('panelAll',this)">📊 Vista General</button>
+  <button class="tab" onclick="switchTab('panel1v1',this)">⚔️ Comparar 1 vs 1</button>
+  <button class="tab" onclick="switchTab('panelPrice',this)">✏️ Actualizar Precios</button>
+  <button class="tab" onclick="switchTab('panelCard',this)">💳 Ficha Técnica</button>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANEL 1 — VISTA GENERAL
+═══════════════════════════════════ -->
+<div id="panelAll" class="panel active">
+  <div class="ppr no-print">
+    <div class="toggle-btn" id="modeToggle">
+      <button class="active" onclick="setMode('p',this)">Parámetro</button>
+      <button onclick="setMode('a',this)">Agresividad</button>
+    </div>
+    &nbsp;
+    <button class="btn btn-sm btn-primary" onclick="doPrint()">🖨 Imprimir</button>
+  </div>
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="chart-card">
+    <div class="chart-ttl">Costo directo por m² — desglose Materiales / Mano de Obra / Equipo ($ MXN)</div>
+    <div class="chart-wrap"><canvas id="chartBar"></canvas></div>
+  </div>
+  <div class="card" style="padding:0;margin-bottom:16px;">
+    <div style="padding:13px 18px 9px"><div class="slbl" style="margin:0;border:none">Tabla Comparativa Completa</div></div>
+    <div class="tbl-wrap"><table id="tblGen"></table></div>
+  </div>
+  <div class="card" style="padding:0;">
+    <div style="padding:13px 18px 9px"><div class="slbl" style="margin:0;border:none">Comparativa Cualitativa · Normatividad y Ventajas</div></div>
+    <div class="tbl-wrap"><table id="tblQual"></table></div>
+  </div>
+  <p style="font-size:9.5px;color:#aaa;margin-top:10px;font-style:italic">* Precios editables en "Actualizar Precios". APU Villahermosa 2026. No incluyen indirectos ni utilidad.</p>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANEL 2 — COMPARAR 1 vs 1
+═══════════════════════════════════ -->
+<div id="panel1v1" class="panel">
+  <div class="ppr no-print">
+    <button class="btn btn-sm btn-primary" onclick="doPrint()">🖨 Imprimir</button>
+  </div>
+  <div class="v1-sels no-print">
+    <select class="v1-sel" id="sel1" onchange="render1v1()"></select>
+    <div class="v1-vs">VS</div>
+    <select class="v1-sel" id="sel2" onchange="render1v1()"></select>
+  </div>
+  <div class="ppr no-print" style="justify-content:flex-start;margin-bottom:12px;">
+    <div class="toggle-btn" id="modeToggle1v1">
+      <button class="active" onclick="setMode1v1('p',this)">Parámetro</button>
+      <button onclick="setMode1v1('a',this)">Agresividad de Mercado</button>
+    </div>
+  </div>
+  <!-- Agresividad explanation — shown only in 'a' mode -->
+  <div id="aggPanel" class="agg-panel" style="display:none"></div>
+  <div class="v1-grid" id="v1Grid"></div>
+  <div class="card" style="padding:0;margin-top:14px;">
+    <div style="padding:11px 18px 8px"><div class="slbl" style="margin:0;border:none">Detalle APU · Materiales y Mano de Obra</div></div>
+    <div class="tbl-wrap"><table id="tblAPU"></table></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANEL 3 — ACTUALIZAR PRECIOS
+═══════════════════════════════════ -->
+<div id="panelPrice" class="panel">
+  <div class="ppr no-print">
+    <button class="btn btn-sm btn-primary" onclick="doPrint()">🖨 Imprimir</button>
+  </div>
+  <div class="card" style="margin-bottom:12px;">
+    <div class="slbl">Gestión de sistemas y precios — APU Villahermosa, Tab. 2026</div>
+    <p style="font-size:11px;color:var(--g600);margin-bottom:10px">
+      Haz <strong>clic en el nombre o subtítulo</strong> del encabezado para editarlos. Usa <strong>✏️</strong> para editar todos los datos del sistema y <strong>🗑</strong> para eliminarlo. Los cambios se sincronizan en todas las vistas.
+    </p>
+    <div class="disc-row">
+      <label>⚡ Agresividad de mercado:</label>
+      <input type="range" min="60" max="95" value="78" id="discSlider" oninput="updateDiscount()"/>
+      <span class="disc-val" id="discVal">78%</span>
+      <span class="disc-hint no-print">del precio parámetro</span>
+    </div>
+    <div class="add-bar no-print">
+      <span style="font-size:10px;color:var(--g400)">🎨 Clic en el encabezado de color para editar nombre y color inline</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-sm btn-ghost" onclick="resetAll()">↩ Restaurar original</button>
+        <button class="btn btn-sm btn-primary" onclick="openModal(null)">➕ Agregar sistema</button>
+      </div>
+    </div>
+  </div>
+  <!-- Import zone -->
+  <div class="imp-zone no-print" id="impZone" onclick="$('xlsInput').click()"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="this.classList.remove('drag');handleDrop(event)">
+    <div class="imp-zone-inner" onclick="event.stopPropagation()">
+      <div class="imp-zone-icon">📊</div>
+      <div class="imp-zone-text">
+        <strong>Importar sistemas desde Excel (APU)</strong>
+        <span>Arrastra un archivo .xlsx/.xls o haz clic en los botones · Formato APU IMSS/INIFED compatible</span>
+      </div>
+      <div class="imp-btns">
+        <button class="imp-preset" onclick="loadPreset()" title="Importar los 11 sistemas del archivo SISTEMAS_DE_ENTREPISO.xlsx">
+          📋 Cargar SISTEMAS_ENTREPISO<br><small style="font-weight:400;opacity:.8">11 sistemas listos para importar</small>
+        </button>
+        <button class="imp-file" onclick="$('xlsInput').click()">📁 Importar Excel</button>
+        <input type="file" id="xlsInput" accept=".xlsx,.xls" style="display:none" onchange="handleFileInput(event)"/>
+      </div>
+    </div>
+  </div>
+  <div class="price-grid" id="priceGrid"></div>
+  <div style="text-align:right;margin-top:8px" class="recalc-btn no-print">
+    <button class="btn btn-primary" onclick="applyPrices()">✓ Aplicar precios y recalcular</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════
+     PANEL 4 — FICHA TÉCNICA
+═══════════════════════════════════ -->
+<div id="panelCard" class="panel">
+  <div class="ic-top no-print">
+    <div style="flex:1;min-width:140px">
+      <div class="slbl" style="margin:0;border:none">Ficha Técnica · Costo por m²</div>
+      <p style="font-size:10px;color:var(--g600);margin-top:2px">Tarjeta individual optimizada para impresión carta.</p>
+    </div>
+    <select class="v1-sel" id="cardSel" onchange="renderCard()" style="max-width:250px;flex-shrink:0"></select>
+    <div class="toggle-btn" id="modeToggleCard" style="flex-shrink:0">
+      <button class="active" onclick="setModeCard('p',this)">Parámetro</button>
+      <button onclick="setModeCard('a',this)">Agresividad</button>
+    </div>
+    <button class="btn btn-primary btn-sm no-print" onclick="doPrint()">🖨 Imprimir Ficha</button>
+  </div>
+  <div class="ic-wrap"><div id="cardCnt"></div></div>
+</div>
+
+</div><!-- /shell -->
+
+<!-- ═══════════════════════════════════
+     MODAL — EDITOR DE SISTEMA
+═══════════════════════════════════ -->
+<div id="sysModal" class="mo-ov" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="mo-box">
+    <div class="mo-hdr">
+      <span id="moTitle">Sistema</span>
+      <button class="mo-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="mo-cb" id="moCB"></div>
+    <div class="mo-tabs" id="moTabs">
+      <button class="mo-tab active" onclick="switchMoTab('gen',this)">General</button>
+      <button class="mo-tab" onclick="switchMoTab('cos',this)">Costos</button>
+      <button class="mo-tab" onclick="switchMoTab('tec',this)">Técnico</button>
+      <button class="mo-tab" onclick="switchMoTab('des',this)">Descripción</button>
+      <button class="mo-tab" onclick="switchMoTab('nor',this)">Normatividad</button>
+    </div>
+    <div class="mo-body">
+      <div id="mopn-gen" class="mo-pn active"></div>
+      <div id="mopn-cos" class="mo-pn"></div>
+      <div id="mopn-tec" class="mo-pn"></div>
+      <div id="mopn-des" class="mo-pn"></div>
+      <div id="mopn-nor" class="mo-pn"></div>
+    </div>
+    <div class="mo-ftr">
+      <button class="btn-mc" onclick="closeModal()">Cancelar</button>
+      <button class="btn-ms" onclick="saveModal()">✓ Guardar cambios</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ IMPORT PREVIEW MODAL ═══ -->
+<div id="impModal" class="mo-ov" style="display:none" onclick="if(event.target===this)closeImport()">
+  <div class="mo-box" style="max-width:660px">
+    <div class="mo-hdr">
+      <span id="impTitle">📊 Importar sistemas desde Excel</span>
+      <button class="mo-close" onclick="closeImport()">✕</button>
+    </div>
+    <div class="mo-body" style="padding:14px 16px">
+      <div id="impContent"></div>
+    </div>
+    <div class="mo-ftr">
+      <span id="impCount" style="flex:1;font-size:11px;color:var(--g600)"></span>
+      <button class="btn-mc" onclick="closeImport()">Cancelar</button>
+      <button class="btn-ms" onclick="confirmImport()">✓ Importar seleccionados</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   DATOS BASE — 10 SISTEMAS (Celucreto/Estrutec excluidos)
+   Nota: Al editar, los campos son 100% personalizables
+   desde el modal ✏️ en "Actualizar Precios".
+═══════════════════════════════════════════════════════ */
+const BASE=[
+  {id:'m16',name:'m16 NOVIDESA',sub:'Claro 3.90 m',color:'#1a5fbf',
+   mat:847.06,mo:191.94,eq:23.03,
+   lm:'12 m',an:'60 cm',es:'15 cm',den:'16.12 kg/m³',pe:175.02,
+   ct:'0.0387 W/m·K',ar:'21.22 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel m16 NOVIDESA (15 cm)',ti:'1 Jornada / 100 m²',ap:'Cubiertas residenciales, comerciales e industriales',
+   apu:[{d:'Panel m16 NOVIDESA (15 cm)',u:'M',c:279.14,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.097},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.12},
+     {d:"Barrote pino 1.5\"x3.5\"",u:'PZA',c:65,q:0.097},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.0722},
+     {d:'Acero #2 (1/4") Fy=4200',u:'KG',c:20.66,q:0.609},{d:'Acero #3 (3/8") Fy=4200',u:'KG',c:20.26,q:2.452},
+     {d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:0.866}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0274},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0064}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:475.55,bv:0,co:230.52,ac:79.63,ci:21.74,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0.11},
+   pr:['NOM-018-ENER-2011 certificado','NMX-C-460 cumplimiento (R=21.22)','Sistema monolítico — sin juntas frías','100 m²/jornada — máxima productividad','Elimina cimbra horizontal de contacto','Corte exacto a la medida del proyecto','Menor acero de refuerzo','Reducción de cargas muertas','Compatible con todos los sistemas estructurales'],
+   co:['Costo de material superior a losa convencional','Requiere planificación de cortes en planta'],
+   ob:'Panel NOVIDESA ideal para clima cálido-húmedo. Valor R 21.22 = mejor opción térmica para Villahermosa, Tabasco.'},
+
+  {id:'mk18',name:'Makros 18',sub:'Claro 4.5 m · Est.',color:'#5b21b6',
+   mat:893.10,mo:246.31,eq:29.54,
+   lm:'12 m',an:'60 cm',es:'18 cm',den:'17.40 kg/m³',pe:182,
+   ct:'0.0360 W/m·K',ar:'26.8 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel Makros 18 NOVIDESA',ti:'1 Jornada / 100 m²',ap:'Cubiertas residenciales y comerciales medianas',
+   apu:[{d:'Panel Makros 18 NOVIDESA',u:'M',c:280.00,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.110},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.125},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.110},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.078},
+     {d:'Acero #2 (1/4")',u:'KG',c:20.66,q:1.200},{d:'Acero #3 (3/8") Fy=4200',u:'KG',c:20.26,q:1.800},
+     {d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:2.100}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0490},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0060}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:476.95,bv:0,co:249.03,ac:103.39,ci:24.22,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   pr:['NOM-018 y NMX-C-460 certificado','Claro hasta 4.5 m','Aislamiento R=26.8','100 m²/jornada','Sistema monolítico'],
+   co:['Datos estimados — actualizar con NOVIDESA','Menor claro que versiones superiores'],
+   ob:'DATOS ESTIMADOS. Panel 18 cm para claros medios. Editar con precios reales NOVIDESA usando el modal ✏️.'},
+
+  {id:'mk20',name:'Makros 20',sub:'Claro 5.0 m · Est.',color:'#6d28d9',
+   mat:978.90,mo:265.00,eq:31.50,
+   lm:'12 m',an:'60 cm',es:'20 cm',den:'17.90 kg/m³',pe:195,
+   ct:'0.0352 W/m·K',ar:'30.4 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel Makros 20 NOVIDESA',ti:'1 Jornada / 100 m²',ap:'Residencial y comercial con claros amplios',
+   apu:[{d:'Panel Makros 20 NOVIDESA',u:'M',c:310.00,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.112},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.128},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.112},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.083},
+     {d:'Acero #2 (1/4")',u:'KG',c:20.66,q:1.500},{d:'Acero #3 (3/8") Fy=4200',u:'KG',c:20.26,q:2.000},
+     {d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:2.500}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0545},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0066}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:528.05,bv:0,co:264.99,ac:121.66,ci:24.69,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   pr:['NOM-018 y NMX-C-460 certificado','Claro hasta 5.0 m','Aislamiento R=30.4','100 m²/jornada','Sistema monolítico'],
+   co:['Datos estimados — actualizar con NOVIDESA'],
+   ob:'DATOS ESTIMADOS. Panel 20 cm para claros amplios en residencias y naves ligeras. Editar con precios reales NOVIDESA.'},
+
+  {id:'mk25',name:'Makros 25',sub:'Claro 6.35 m',color:'#7c3aed',
+   mat:1332.69,mo:307.85,eq:36.94,
+   lm:'12 m',an:'60 cm',es:'18–32 cm',den:'19.05 kg/m³',pe:229,
+   ct:'0.0344 W/m·K',ar:'41.42 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel Makros 25 NOVIDESA',ti:'1 Jornada / 100 m²',ap:'Naves industriales, bodegas, grandes superficies',
+   apu:[{d:'Panel Makros 25 NOVIDESA',u:'M',c:424.44,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.1164},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.135},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.1164},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.0942},
+     {d:'Acero #2 (1/4")',u:'KG',c:20.66,q:1.859},{d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:3.476},
+     {d:'Acero #5 (5/8") Fy=4200',u:'KG',c:19.96,q:6.795}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0655},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0084}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:722.89,bv:0,co:300.76,ac:243.79,ci:25.74,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   pr:['NOM-018 y NMX-C-460 certificado','Mayor claro libre: 6.35 m','Valor R 41.42','100 m²/jornada','Sistema monolítico'],
+   co:['Mayor costo de material y acero','Mayor inversión inicial por m²'],
+   ob:'Panel Makros 25 para grandes claros sin apoyos intermedios con el mejor valor R de la línea estándar.'},
+
+  {id:'mk29',name:'Makros 29',sub:'Claro 7.5 m · Est.',color:'#8b5cf6',
+   mat:1514.00,mo:360.00,eq:43.00,
+   lm:'12 m',an:'60 cm',es:'29 cm',den:'20.10 kg/m³',pe:248,
+   ct:'0.0332 W/m·K',ar:'49.7 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel Makros 29 NOVIDESA',ti:'1 Jornada / 100 m²',ap:'Naves industriales de gran claro con alto aislamiento',
+   apu:[{d:'Panel Makros 29 NOVIDESA',u:'M',c:480.00,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.120},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.140},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.120},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.100},
+     {d:'Acero #3 (3/8") Fy=4200',u:'KG',c:20.26,q:3.500},{d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:5.000},
+     {d:'Acero #5 (5/8") Fy=4200',u:'KG',c:19.96,q:7.000}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0780},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0096}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:817.63,bv:0,co:319.27,ac:309.72,ci:27.87,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   pr:['NOM-018 y NMX-C-460 certificado','Claro hasta 7.5 m','Valor R 49.7','100 m²/jornada','Sistema monolítico'],
+   co:['Datos estimados — actualizar con NOVIDESA','Mayor costo que Makros 25'],
+   ob:'DATOS ESTIMADOS. Panel 29 cm para grandes naves con requisitos de alto aislamiento.'},
+
+  {id:'mk32',name:'Makros 32',sub:'Claro 8.0 m · Est.',color:'#9d6efc',
+   mat:1688.12,mo:390.00,eq:46.00,
+   lm:'12 m',an:'60 cm',es:'32 cm',den:'20.80 kg/m³',pe:264,
+   ct:'0.0325 W/m·K',ar:'56.8 Ft²°Fh/BTU',rd:'100 m²/Jor',
+   el:'Panel Makros 32 NOVIDESA',ti:'1 Jornada / 100 m²',ap:'Naves industriales máximo claro y aislamiento',
+   apu:[{d:'Panel Makros 32 NOVIDESA',u:'M',c:525.00,q:1.7034},{d:'Malla 6x6/6-6',u:'M²',c:35.92,q:1.10},
+     {d:"Polín pino 3.5\"x3.5\"",u:'PZA',c:109.74,q:0.123},{d:'Clavos 2 a 4"',u:'KG',c:40,q:0.145},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.123},{d:"Concreto f'c=250 bombeado",u:'M³',c:3192.74,q:0.108},
+     {d:'Acero #3 (3/8") Fy=4200',u:'KG',c:20.26,q:4.000},{d:'Acero #4 (1/2") Fy=4200',u:'KG',c:20.06,q:6.000},
+     {d:'Acero #5 (5/8") Fy=4200',u:'KG',c:19.96,q:8.500}],
+   apuMO:[{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.020},{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0067},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0855},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0104}],
+   q:[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+   ms:{el:894.29,bv:0,co:344.82,ac:379.99,ci:29.50,ml:39.51,ac2:0,bo:0,im:0,ab:0,de:0,ot:0.01},
+   pr:['NOM-018 y NMX-C-460 certificado','Mayor claro NOVIDESA: 8.0 m','Máximo valor R: 56.8','100 m²/jornada','Sistema monolítico'],
+   co:['Datos estimados — actualizar con NOVIDESA'],
+   ob:'DATOS ESTIMADOS. Panel 32 cm, mayor espesor de la línea Makros para claros amplios con máximo aislamiento.'},
+
+  {id:'losa',name:'Losacero Cal.22',sub:'Claro 3.5–5 m · Premezclado',color:'#0891b2',
+   mat:1452.61,mo:361.65,eq:58.43,
+   lm:'6.10 m',an:'95 cm',es:'≈5–12 cm',den:'—',pe:229,
+   ct:'0.273 W/m·K',ar:'0.28 Ft²°Fh/BTU',rd:'75 m²/Jor',
+   el:'Losacero Cal.22 (8 kg/m²)',ti:'1 Jornada / 75 m²',ap:'Naves industriales y estructuras de acero',
+   apu:[{d:'Losacero Cal.22',u:'M²',c:913.55,q:1.12},{d:'Malla 6x6/10-10',u:'M²',c:15,q:1.12},
+     {d:'Conector tipo Nelson',u:'PZA',c:17.86,q:3},{d:"Duela pino 3/4x4x8'",u:'PZA',c:72,q:0.114},
+     {d:'Barrote pino',u:'PZA',c:65,q:0.114},{d:'Clavos 2½"',u:'KG',c:40,q:0.017},
+     {d:'Soldadura electrodo 7018',u:'KG',c:103.4,q:0.201},{d:"Concreto f'c=250 bombeado",u:'M³',c:2779,q:0.097},
+     {d:'Alambre recocido cal.16',u:'KG',c:20.01,q:0.054}],
+   apuMO:[{d:'Cuadrilla 18 (Soldador+2 Ayud.)',u:'JOR',c:3805.56,q:0.0569},{d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0099},
+     {d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.0136},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.009},
+     {d:'Cuadrilla 4 (2 Ayudantes)',u:'JOR',c:3370.62,q:0.0045}],
+   q:[0,0,1,1,1,1,0,1,0,0,1,0,0,0,0,1,0],
+   ms:{el:1023.18,bv:0,co:269.56,ac:0,ci:16.30,ml:16.80,ac2:75.44,bo:0,im:0,ab:0,de:0,ot:51.33},
+   pr:['Uso estructural (NMX-C-405)','Construcción rápida y limpia','Elimina cimbra horizontal','Sistema monolítico'],
+   co:['Sin aislamiento térmico (No NOM-018)','Conductividad alta: 0.273 W/m·K','Requiere soldadura en obra'],
+   ob:'Losa con lámina colaborante de acero galvanizado. Alta resistencia estructural pero sin aislamiento térmico inherente.'},
+
+  {id:'vb',name:'Vigueta y Bovedilla',sub:'Cemento (VC)',color:'#d97706',
+   mat:761.62,mo:278.74,eq:27.55,
+   lm:'0.6 m',an:'70 cm',es:'15 cm',den:'—',pe:270,
+   ct:'1.11 W/m·K',ar:'—',rd:'36 m²/Jor',
+   el:'Vigueta pretensada P-13',ti:'1 Jornada / 36 m²',ap:'Vivienda social, residencial y comercial',
+   apu:[{d:'Vigueta pretensada P-13',u:'M',c:188.42,q:1.5},{d:'Bovedilla cemento-arena',u:'PZA',c:180.8,q:1.25},
+     {d:"Polín pino 3½x3½x8'",u:'PZA',c:109.74,q:0.10},{d:"Duela pino 3/4x4x8'",u:'PZA',c:72,q:0.20},
+     {d:'Clavos 2½" y 4"',u:'KG',c:40,q:0.10},{d:"Concreto f'c=250 bombeado",u:'M³',c:2779,q:0.0626},
+     {d:'Malla 6x6/10-10',u:'M²',c:15,q:1.10},{d:'Alambre recocido cal.16',u:'KG',c:20.01,q:0.025}],
+   apuMO:[{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.05},{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.0286},
+     {d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0111},{d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0048}],
+   q:[0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,0,0],
+   ms:{el:282.63,bv:226.00,co:173.96,ac:0,ci:29.37,ml:16.50,ac2:0.50,bo:0,im:0,ab:0,de:0,ot:32.66},
+   pr:['Sistema más disponible en mercado','Menor acero','Compatible con cualquier sistema','No requiere equipo especial'],
+   co:['No cumple NOM-018','Conductividad alta: 1.11 W/m·K','Peso: 270 kg/m²','36 m²/jornada','No es monolítico'],
+   ob:'Sistema más utilizado en vivienda en Tabasco. Económico y disponible, sin aislamiento térmico.'},
+
+  {id:'svb',name:'Semivigueta 15cm',sub:'Claro 3–4.5 m · Bovedilla EPS',color:'#059669',
+   mat:609.50,mo:232.82,eq:23.42,
+   lm:'3 m',an:'70 cm',es:'15 cm',den:'12 kg/m³',pe:225,
+   ct:'0.03967 W/m·K',ar:'11.20 Ft²°Fh/BTU',rd:'45 m²/Jor',
+   el:'Semivigueta patín 12x5 h=15',ti:'1 Jornada / 45 m²',ap:'Vivienda residencial con confort térmico',
+   apu:[{d:'Semivigueta patín 12x5',u:'M',c:132.13,q:1.5},{d:'Bovedilla poliestireno EPS',u:'PZA',c:110.49,q:1.25},
+     {d:"Polín pino 3½x3½x8'",u:'PZA',c:109.74,q:0.10},{d:"Duela pino 3/4x4x8'",u:'PZA',c:72,q:0.20},
+     {d:'Clavos 2½" y 4"',u:'KG',c:40,q:0.10},{d:"Concreto f'c=250 bombeado",u:'M³',c:2779,q:0.0695},
+     {d:'Malla 6x6/10-10',u:'M²',c:15,q:1.10},{d:'Alambre recocido cal.16',u:'KG',c:20.01,q:0.025}],
+   apuMO:[{d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0333},{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.0286},
+     {d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0048},{d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0111}],
+   q:[1,1,0,0,0,1,0,1,0,1,1,0,1,1,1,0,0],
+   ms:{el:198.20,bv:138.11,co:193.14,ac:0,ci:29.37,ml:16.50,ac2:0.50,bo:0,im:0,ab:0,de:0,ot:33.68},
+   pr:['NOM-018-ENER-2011 certificado','NMX-C-460 (R=11.20)','Bovedilla EPS — aislamiento mejorado','No requiere equipo especial'],
+   co:['No es monolítico (juntas frías)','Claro máximo: 3 m','45 m²/jornada'],
+   ob:'Versión mejorada de vigueta y bovedilla con EPS como aligerante térmico. Mejor desempeño térmico conservando facilidad de instalación.'},
+
+  {id:'cas',name:'Casetón Ligero 25+5',sub:'Claro 4–6 m · 30 cm total',color:'#dc2626',
+   mat:1109.79,mo:744.79,eq:92.58,
+   lm:'0.6 m',an:'60 cm',es:'25 cm',den:'8 kg/m³',pe:350,
+   ct:'0.0519 W/m·K',ar:'5.21 Ft²°Fh/BTU',rd:'25 m²/Jor',
+   el:'Casetón EPS alta densidad',ti:'1 Jornada / 25 m²',ap:'Edificios residenciales de media altura',
+   apu:[{d:'Alambrón #2 (1/4")',u:'KG',c:18,q:3.08},{d:'Varilla R-42 #3 (3/8")',u:'KG',c:18,q:7},
+     {d:'Alambre recocido cal.16',u:'KG',c:20.01,q:0.257},{d:"Duela pino 3/4x4x8'",u:'PZA',c:72,q:1.394},
+     {d:'Barrote pino',u:'PZA',c:65,q:1.343},{d:"Polín pino 3½x3½x8'",u:'PZA',c:109.74,q:0.5},
+     {d:'Clavos 2½"',u:'KG',c:40,q:0.116},{d:"Concreto f'c=250 bombeado",u:'M³',c:2779,q:0.153},
+     {d:'Casetón EPS alta densidad',u:'M³',c:837,q:0.171},{d:'Malla 6x6/10-10',u:'M²',c:15,q:1.10}],
+   apuMO:[{d:'Cuadrilla 6 (Fierrero+Ayud.)',u:'JOR',c:2650.83,q:0.0506},{d:'Cuadrilla 7 (Carp.+Ayud.)',u:'JOR',c:2660.28,q:0.1319},
+     {d:'Cuadrilla 22 (Alb.+5 Peones)',u:'JOR',c:7458.48,q:0.0145},{d:'Cuadrilla 4 (2 Ayudantes)',u:'JOR',c:3370.62,q:0.0081},
+     {d:'Cuadrilla 5 (Albañil+Peón)',u:'JOR',c:2755.27,q:0.0452}],
+   q:[1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,0],
+   ms:{el:143.13,bv:0,co:425.19,ac:186.58,ci:247.18,ml:16.50,ac2:0,bo:0,im:0,ab:0,de:0,ot:91.21},
+   pr:['NOM-018-ENER-2011 certificado','Compatible con todos los sistemas','Reducción de cargas muertas','Sistema monolítico'],
+   co:['MO más alta del comparativo','25 m²/jornada — menor rendimiento','Peso: 350 kg/m²','Alta inversión en cimbra'],
+   ob:'Losa aligerada con casetones EPS de alta densidad. Mayor inversión en cimbra y MO pero sistema monolítico robusto.'},
+  {id:'casInt',name:'Casetón Interm. 30+5',sub:'Claro 6–8 m · 35 cm total',color:'#c2410c',
+   mat:1310,mo:875,eq:108,lm:'—',an:'60–80 cm',es:'35 cm',den:'8 kg/m³',pe:390,
+   ct:'0.048 W/m·K',ar:'8.2 Ft²°Fh/BTU',rd:'~18 m²/Jor',
+   el:'Castón EPS 30x60x60 alta densidad',ti:'1 Jornada / 18 m²',ap:'Casas grandes, comercios y bodegas',
+   apu:[],apuMO:[],
+   q:[1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,1],
+   ms:{el:0,bv:175,co:510,ac:200,ci:290,ml:20,ac2:0,bo:35,im:0,ab:0,de:0,ot:80},
+   pr:['NOM-018 (EPS aligerante)','Sistema monolítico nervado','Reducción cargas muertas','Claros medianos hasta 8 m','Compatible con todos los sistemas'],
+   co:['Requiere cimbra y apuntalamiento','~18 m²/jornada','Mayor inversión que castón ligero','MO intensiva'],
+   ob:'Losa nervada castón EPS 30 cm peralte + 5 cm capa compresión (35 cm total). Ideal para casas grandes, comercios y bodegas con cargas moderadas a medias. Claros 6 a 8 m.'},
+
+  {id:'casRef',name:'Casetón Reforzado 40+5',sub:'Claro 8–12 m · 45 cm total',color:'#7c2d12',
+   mat:1680,mo:1065,eq:132,lm:'—',an:'60–80 cm',es:'45 cm',den:'8 kg/m³',pe:450,
+   ct:'0.043 W/m·K',ar:'11.8 Ft²°Fh/BTU',rd:'~12 m²/Jor',
+   el:'Castón EPS 40x60x60 alta densidad',ti:'1 Jornada / 12 m²',ap:'Estacionamientos, plazas comerciales, edificios',
+   apu:[],apuMO:[],
+   q:[1,0,0,0,0,0,0,0,0,1,1,0,0,0,1,1,1],
+   ms:{el:0,bv:230,co:660,ac:280,ci:385,ml:25,ac2:0,bo:0,im:0,ab:0,de:0,ot:100},
+   pr:['NOM-018 (EPS aligerante)','Sistema monolítico','Grandes claros hasta 12 m','Alta capacidad de carga','Reducción cargas muertas','Disminuye vibración'],
+   co:['Mayor costo del grupo castón','~12 m²/jornada','Requiere cimbra robusta','Peso 450 kg/m²','Alta inversión en MO y acero'],
+   ob:'Losa nervada castón EPS 40 cm peralte + 5 cm capa compresión (45 cm total). Sistema para cargas pesadas: estacionamientos, plazas comerciales y edificios de media altura. Claros 8 a 12 m.'},
+
+  {id:'sv20n',name:'Semivigueta 20cm',sub:'Claro 4.5–6 m · Bovedilla EPS',color:'#047857',
+   mat:780,mo:295,eq:30,lm:'—',an:'70 cm',es:'20 cm',den:'12 kg/m³',pe:270,
+   ct:'0.038 W/m·K',ar:'14.5 Ft²°Fh/BTU',rd:'~40 m²/Jor',
+   el:'Semivigueta patín 20cm + bovedilla EPS',ti:'1 Jornada / 40 m²',ap:'Vivienda media y locales comerciales',
+   apu:[],apuMO:[],
+   q:[1,1,0,0,0,1,0,1,0,1,1,0,1,1,1,0,0],
+   ms:{el:240,bv:165,co:220,ac:0,ci:85,ml:30,ac2:0,bo:0,im:0,ab:0,de:0,ot:40},
+   pr:['NOM-018 y NMX-C-460 (R=14.5)','Bovedilla EPS — mejor aislamiento','Menor acero vs castón','No requiere equipo especial','Compatible con todos los sistemas'],
+   co:['No es sistema monolítico (juntas frías)','Claro máx. recomendado 6 m','~40 m²/jornada'],
+   ob:'Losa semivigueta 20 cm de peralte con bovedilla EPS 20 cm. Capa compresión 4 cm, malla 6x6-10/10. Vivienda media y locales con cargas moderadas. Mejor aislamiento que bovedilla de concreto.'},
+
+  {id:'sv25r',name:'Semivigueta 25cm Ref.',sub:'Claro 6–8 m · Acero adicional',color:'#065f46',
+   mat:1020,mo:380,eq:38,lm:'—',an:'70 cm',es:'25 cm',den:'12 kg/m³',pe:320,
+   ct:'0.036 W/m·K',ar:'18.1 Ft²°Fh/BTU',rd:'~30 m²/Jor',
+   el:'Semivigueta reforzada 25cm + bovedilla EPS',ti:'1 Jornada / 30 m²',ap:'Locales comerciales y cargas pesadas',
+   apu:[],apuMO:[],
+   q:[1,1,0,0,0,0,0,0,0,1,1,0,1,0,1,0,0],
+   ms:{el:310,bv:200,co:265,ac:50,ci:140,ml:35,ac2:0,bo:0,im:0,ab:0,de:0,ot:20},
+   pr:['NOM-018 y NMX-C-460 (R=18.1)','Bovedilla EPS alta calidad térmica','Acero adicional para cargas mayores','Claros hasta 8 m'],
+   co:['No es sistema monolítico','~30 m²/jornada','Mayor acero que versiones ligeras'],
+   ob:'Semivigueta reforzada 25 cm peralte con bovedilla EPS 25 cm y acero adicional en nervaduras. Capa compresión 5 cm, malla 6x6-10/10. Para cargas pesadas en locales y claros de 6 a 8 m.'},
+
+  {id:'la24',name:'Losacero Cal.24',sub:'Claro 2.5–3.5 m · Lámina ligera',color:'#0284c7',
+   mat:1000,mo:260,eq:42,lm:'3.66 m',an:'91.4 cm',es:'~7 cm',den:'—',pe:165,
+   ct:'0.273 W/m·K',ar:'0.18 Ft²°Fh/BTU',rd:'~90 m²/Jor',
+   el:'Losacero Cal.24 · Lámina galvanizada ligera',ti:'1 Jornada / 90 m²',ap:'Oficinas ligeras y entrepisos con cargas reducidas',
+   apu:[],apuMO:[],
+   q:[0,0,1,1,1,1,0,1,0,0,1,0,1,0,0,1,0],
+   ms:{el:720,bv:0,co:165,ac:0,ci:0,ml:12,ac2:60,bo:0,im:0,ab:0,de:0,ot:43},
+   pr:['NMX-C-405 (uso estructural)','Elimina cimbra horizontal','Construcción rápida','Menor peso del sistema','Sistema monolítico','~90 m²/jornada — mayor rendimiento'],
+   co:['Sin aislamiento térmico NOM-018','Claro máx. 3.5 m','Requiere soldadura en obra'],
+   ob:"Losa colaborante con lámina galvanizada calibre 24. Sistema más ligero del grupo Losacero. Concreto bombeado F'c=250, malla 6x6/10-10, conectores Nelson. Entrepisos ligeros, claros cortos hasta 3.5 m."},
+
+  {id:'la20r',name:'Losacero Cal.20+Ref.',sub:'Claro 5–7 m · Vigas metálicas',color:'#1e3a8a',
+   mat:1750,mo:435,eq:70,lm:'7.0 m',an:'91.4 cm',es:'~14 cm',den:'—',pe:245,
+   ct:'0.273 W/m·K',ar:'0.28 Ft²°Fh/BTU',rd:'~65 m²/Jor',
+   el:'Losacero Cal.20 + vigas metálicas de refuerzo',ti:'1 Jornada / 65 m²',ap:'Naves industriales, edificios y grandes claros',
+   apu:[],apuMO:[],
+   q:[0,0,1,1,1,0,0,1,0,0,1,0,0,0,0,1,0],
+   ms:{el:1200,bv:0,co:140,ac:300,ci:0,ml:20,ac2:90,bo:0,im:0,ab:0,de:0,ot:0},
+   pr:['NMX-C-405 (uso estructural)','Grandes claros hasta 7 m','Elimina cimbra horizontal','Sistema monolítico','Alta capacidad de carga'],
+   co:['Sin aislamiento térmico NOM-018','Requiere vigas metálicas de apoyo','Requiere soldadura especializada'],
+   ob:"Sistema colaborante lámina Cal.20 (mayor espesor) + vigas metálicas para claros 5–7 m. Concreto premezclado F'c=250 bombeado. Para naves industriales y edificios con cargas elevadas."}
+
+];
+
+/* Criterios cualitativos */
+const QI=[
+  'NOM-018-ENER-2011 (Aislante térmico)','NMX-C-460-ONNCCE-2009 (Valor R)',
+  'NMX-C-405-ONNCCE-2014 (Uso estructural)','Construcción rápida, sencilla y limpia',
+  'Eliminación cimbra horizontal de contacto','Menos cantidad de acero',
+  'Piezas cortadas a la medida','Ahorro en mano de obra','Versatilidad de acabados',
+  'Compatibilidad todos los sistemas','Reducción de cargas muertas',
+  'Facilidad para alojar instalaciones','No requiere equipo especial',
+  'Menores desperdicios','Uso más eficiente de concreto',
+  'Sistema monolítico (sin juntas frías)','Disminuye vibración de elementos'
+];
+
+/* Partidas de materiales */
+const MK=[
+  ['el','Elemento principal'],['bv','Bovedilla / Aligerante'],
+  ['co',"Concreto f'c=250"],['ac','Acero de refuerzo'],
+  ['ci','Cimbra y Madera'],['ml','Malla electrosoldada'],
+  ['ac2','Accesorios / Soldadura'],['bo','Bombeo de concreto'],
+  ['im','Impermeabilización'],['ab','Acabados'],
+  ['de','Desperdicios'],['ot','Otros materiales']
+];
+
+const EMSUB=()=>Object.fromEntries(MK.map(([k])=>[k,0]));
+const STORE='bmark_v4';
+
+/* ═══ ESTADO MUTABLE ═══ */
+let SYS=[];
+let mode='p', m1v1='p', mCard='p';
+let df=0.78;  /* discount factor */
+let eMat={},eMo={},eEq={},eMs={};
+let chartBar=null, modalId=null;
+
+/* ═══ UTILIDADES ═══ */
+const $=id=>document.getElementById(id);
+const fmt=n=>(+n).toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2});
+const darken=(h,p)=>'#'+[1,3,5].map(i=>Math.max(0,Math.round(parseInt(h.slice(i,i+2),16)*(1-p/100))).toString(16).padStart(2,'0')).join('');
+const totP=s=>eMat[s.id]+eMo[s.id]+eEq[s.id];
+const totA=s=>totP(s)*df;
+const getT=(s,m)=>m==='p'?totP(s):totA(s);
+
+/* ═══ PERSISTENCIA ═══ */
+function saveState(){
+  SYS.forEach(s=>{s.mat=eMat[s.id];s.mo=eMo[s.id];s.eq=eEq[s.id];s.ms={...eMs[s.id]};});
+  try{localStorage.setItem(STORE,JSON.stringify({sys:SYS,df}));}catch(e){}
+}
+function loadState(){
+  try{
+    const d=JSON.parse(localStorage.getItem(STORE)||'null');
+    if(d?.sys?.length){SYS=d.sys;if(d.df)df=d.df;return true;}
+  }catch(e){}
+  return false;
+}
+function resetAll(){
+  if(!confirm('¿Restaurar todos los sistemas a los valores originales?\nSe perderán todos los cambios.'))return;
+  localStorage.removeItem(STORE);location.reload();
+}
+function initData(){
+  if(!loadState())SYS=JSON.parse(JSON.stringify(BASE));
+  SYS.forEach(s=>{
+    if(eMat[s.id]===undefined)eMat[s.id]=s.mat;
+    if(eMo[s.id] ===undefined)eMo[s.id] =s.mo;
+    if(eEq[s.id] ===undefined)eEq[s.id] =s.eq;
+    if(!eMs[s.id])eMs[s.id]={...s.ms};
+  });
+}
+
+/* ═══ TABS ═══ */
+function switchTab(id,btn){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  $(id).classList.add('active');btn.classList.add('active');
+  if(id==='panel1v1')render1v1();
+  if(id==='panelPrice')renderPriceEditor();
+  if(id==='panelCard')renderCard();
+}
+function setMode(m,btn){mode=m;q('#modeToggle').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderAll();}
+function setMode1v1(m,btn){m1v1=m;q('#modeToggle1v1').forEach(b=>b.classList.remove('active'));btn.classList.add('active');render1v1();}
+function setModeCard(m,btn){mCard=m;q('#modeToggleCard').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderCard();}
+const q=sel=>document.querySelectorAll(sel);
+
+/* ═══ RENDER ALL ═══ */
+function renderAll(){
+  $('hdrMeta').textContent=`${SYS.length} sistemas · APU 2026 · Comparación técnica y comercial · Precios editables`;
+  renderKPI();renderChart();renderTables();
+}
+
+/* KPI */
+function renderKPI(){
+  const ts=SYS.map(s=>getT(s,mode));
+  const mn=Math.min(...ts),mx=Math.max(...ts);
+  $('kpiRow').innerHTML=SYS.map((s,i)=>{
+    const t=ts[i],c=t===mn?'best':t===mx?'worst':'';
+    return`<div class="kpi-cell"><div class="kpi-name">${s.name}</div>
+      <div class="kpi-val ${c}">$${fmt(t)}</div><div class="kpi-sub">por m²</div></div>`;
+  }).join('');
+}
+
+/* Gráfica de barras (solo costos) */
+function renderChart(){
+  const lbl=SYS.map(s=>s.name.length>13?s.name.slice(0,12)+'…':s.name);
+  const m=SYS.map(s=>mode==='p'?eMat[s.id]:eMat[s.id]*df);
+  const o=SYS.map(s=>mode==='p'?eMo[s.id] :eMo[s.id]*df);
+  const e=SYS.map(s=>mode==='p'?eEq[s.id] :eEq[s.id]*df);
+  if(chartBar)chartBar.destroy();
+  chartBar=new Chart($('chartBar'),{
+    type:'bar',
+    data:{labels:lbl,datasets:[
+      {label:'Materiales',data:m,backgroundColor:'#4d96e8',stack:'s'},
+      {label:'Mano de Obra',data:o,backgroundColor:'#a78bfa',stack:'s'},
+      {label:'Equipo',data:e,backgroundColor:'#67e8f9',stack:'s'}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'bottom',labels:{font:{family:'Outfit',size:9.5},boxWidth:9}}},
+      scales:{
+        x:{ticks:{font:{family:'Outfit',size:8.5},maxRotation:38}},
+        y:{ticks:{font:{family:'Outfit',size:9},callback:v=>'$'+v.toLocaleString()}}
+      }}
+  });
+}
+
+/* Tablas */
+function renderTables(){
+  /* Tabla general */
+  const ts=SYS.map(s=>getT(s,mode));
+  const mn=Math.min(...ts),mx=Math.max(...ts);
+  const th=`<thead><tr><th>Parámetro</th>${SYS.map(s=>`<th style="background:${s.color}">${s.name}<br><small style="opacity:.7;font-weight:300">${s.sub}</small></th>`).join('')}</tr></thead>`;
+  const rows=[
+    ['💰 COSTOS ($ MXN / m²)',null],
+    ['Materiales',s=>'$'+fmt(mode==='p'?eMat[s.id]:eMat[s.id]*df)],
+    ['Mano de Obra',s=>'$'+fmt(mode==='p'?eMo[s.id]:eMo[s.id]*df)],
+    ['Equipo y Herramienta',s=>'$'+fmt(mode==='p'?eEq[s.id]:eEq[s.id]*df)],
+    ['Total por m²',s=>{const t=getT(s,mode);return{v:'$'+fmt(t),c:t===mn?'best':t===mx?'worst':''};}],
+    ['📐 PROPIEDADES',null],
+    ['Longitud máx.',s=>s.lm],['Ancho',s=>s.an],['Espesor',s=>s.es],
+    ['Peso (kg/m²)',s=>{const p=s.pe,mn2=Math.min(...SYS.map(x=>x.pe)),mx2=Math.max(...SYS.map(x=>x.pe));return{v:p,c:p===mn2?'best':p===mx2?'worst':''};}],
+    ['🌡 AISLAMIENTO',null],
+    ['Conductividad',s=>s.ct],['Aislamiento R',s=>s.ar],
+    ['⚙ PRODUCTIVIDAD',null],['Rendimiento',s=>s.rd]
+  ];
+  let bd='<tbody>';
+  rows.forEach(([l,fn])=>{
+    if(!fn){bd+=`<tr class="tsec"><td colspan="${SYS.length+1}">${l}</td></tr>`;return;}
+    bd+='<tr><td>'+l+'</td>';
+    SYS.forEach(s=>{
+      const r=fn(s),v=typeof r==='object'?r.v:r,c=typeof r==='object'?r.c:'';
+      bd+=`<td class="${c}">${v}</td>`;
+    });
+    bd+='</tr>';
+  });
+  $('tblGen').innerHTML=th+bd+'</tbody>';
+
+  /* Tabla cualitativa */
+  const sc=SYS.map(s=>s.q.reduce((a,b)=>a+b,0));
+  const mxS=Math.max(...sc);
+  const th2=`<thead><tr><th>Criterio</th>${SYS.map(s=>`<th style="background:${s.color}">${s.name}</th>`).join('')}</tr></thead>`;
+  let bd2='<tbody>';
+  QI.forEach((qi,i)=>{
+    bd2+=`<tr><td>${qi}</td>${SYS.map(s=>s.q[i]?'<td class="ck">✓</td>':'<td class="cx">✗</td>').join('')}</tr>`;
+  });
+  bd2+=`<tr class="tsec"><td>PUNTUACIÓN</td>${SYS.map((s,i)=>`<td style="background:${sc[i]===mxS?'#e8f5e9':'transparent'}!important;color:${sc[i]===mxS?'#1b5e20':'#fff'};font-weight:800">${sc[i]}/${QI.length}</td>`).join('')}</tr>`;
+  $('tblQual').innerHTML=th2+bd2+'</tbody>';
+}
+
+/* ═══ 1 vs 1 ═══ */
+function refreshSels(){
+  ['sel1','sel2'].forEach((id,idx)=>{
+    const el=$(id),cur=el.value;el.innerHTML='';
+    SYS.forEach((s,i)=>{
+      const o=document.createElement('option');
+      o.value=s.id;o.textContent=s.name+' · '+s.sub;
+      if(s.id===cur||(!cur&&i===idx))o.selected=true;
+      el.appendChild(o);
+    });
+  });
+}
+function refreshCardSel(){
+  const el=$('cardSel'),cur=el.value;el.innerHTML='';
+  SYS.forEach(s=>{
+    const o=document.createElement('option');
+    o.value=s.id;o.textContent=s.name+' — '+s.sub;
+    if(s.id===cur)o.selected=true;el.appendChild(o);
+  });
+  if(!SYS.find(s=>s.id===cur)&&SYS.length>0){el.value=SYS[0].id;renderCard();}
+}
+
+function render1v1(){
+  const A=SYS.find(s=>s.id===$('sel1').value)||SYS[0];
+  const B=SYS.find(s=>s.id===$('sel2').value)||SYS[1];
+  const tA=getT(A,m1v1),tB=getT(B,m1v1);
+  const wA=tA<=tB,delta=Math.abs(tA-tB),pct=(delta/Math.max(tA,tB)*100).toFixed(1);
+
+  /* Agresividad explanation panel */
+  const ap=$('aggPanel');
+  if(m1v1==='a'){
+    const pA=totP(A),pB=totP(B);
+    ap.style.display='block';
+    ap.innerHTML=`<div class="agg-top">
+      <div class="agg-badge">
+        <div class="agg-badge-pct">${Math.round(df*100)}%</div>
+        <div class="agg-badge-lbl">Agresividad</div>
+      </div>
+      <div class="agg-desc">
+        <strong>Factor de Agresividad de Mercado — ¿Qué significa?</strong>
+        <p>Es el porcentaje del <em>precio parámetro</em> al que se oferta el sistema para competir activamente. 
+        A <strong>${Math.round(df*100)}%</strong> aplicas un descuento de <strong>${Math.round((1-df)*100)}%</strong> 
+        respecto al precio de mercado normal. Menor porcentaje = mayor agresividad y menor margen.</p>
+      </div>
+      <div class="agg-stats">
+        <div class="agg-stat">
+          <div class="agg-stat-name" style="color:${A.color}">${A.name}</div>
+          <div class="agg-stat-row"><span>Precio parámetro:</span><span>$${fmt(pA)}/m²</span></div>
+          <div class="agg-stat-row"><span>Precio agresivo:</span><span style="color:var(--amber);font-weight:700">$${fmt(pA*df)}/m²</span></div>
+          <div class="agg-stat-row"><span>Descuento aplicado:</span><span style="color:var(--red)">−$${fmt(pA-pA*df)}/m²</span></div>
+        </div>
+        <div class="agg-stat">
+          <div class="agg-stat-name" style="color:${B.color}">${B.name}</div>
+          <div class="agg-stat-row"><span>Precio parámetro:</span><span>$${fmt(pB)}/m²</span></div>
+          <div class="agg-stat-row"><span>Precio agresivo:</span><span style="color:var(--amber);font-weight:700">$${fmt(pB*df)}/m²</span></div>
+          <div class="agg-stat-row"><span>Descuento aplicado:</span><span style="color:var(--red)">−$${fmt(pB-pB*df)}/m²</span></div>
+        </div>
+      </div>
+    </div>`;
+  }else{ap.style.display='none';}
+
+  /* Columnas comparativas */
+  function col(s,t,win){
+    const mV=m1v1==='p'?eMat[s.id]:eMat[s.id]*df;
+    const oV=m1v1==='p'?eMo[s.id] :eMo[s.id]*df;
+    const eV=m1v1==='p'?eEq[s.id] :eEq[s.id]*df;
+    const mP=(mV/t*100).toFixed(0),oP=(oV/t*100).toFixed(0),eP=(eV/t*100).toFixed(0);
+    const qs=s.q.reduce((a,b)=>a+b,0);
+    return`<div class="v1-col ${win?'win':''}">
+      <div class="v1-ttl"><span style="color:${s.color}">${s.name}</span>${win?'<span style="background:var(--green);color:#fff;font-size:8.5px;padding:2px 6px;border-radius:20px">🏆 Más económico</span>':''}</div>
+      <div class="v1-total">$${fmt(t)}</div>
+      <div class="v1-tsub">por m² · ${m1v1==='p'?'Precio parámetro':'Precio agresivo '+Math.round(df*100)+'%'}</div>
+      ${[['Materiales','mat',mV,mP],['Mano de Obra','mo',oV,oP],['Equipo','eq',eV,eP]].map(([l,c,v,p])=>`
+        <div class="v1-bar"><div class="v1-bl"><span>${l}</span><span>$${fmt(v)} (${p}%)</span></div>
+          <div class="v1-bt"><div class="v1-bf ${c}" style="width:${p}%"></div></div></div>`).join('')}
+      <div class="v1-props">
+        ${[['Longitud máx.',s.lm],['Ancho',s.an],['Espesor',s.es],['Peso',s.pe+' kg/m²'],['Conductividad',s.ct],['Aislamiento R',s.ar],['Rendimiento',s.rd],['Score crit.',qs+'/'+QI.length]].map(([k,v])=>`<div class="v1-prop"><span>${k}</span><span>${v}</span></div>`).join('')}
+      </div>
+      <div style="margin-top:10px"><div class="slbl" style="margin-bottom:5px;border:none;font-size:8px">Normatividad</div>
+        <div class="v1-ql">${QI.map((qi,i)=>`<div class="v1-qr">${s.q[i]?'<span style="color:var(--green)">✓</span>':'<span style="color:var(--red)">✗</span>'}<span style="color:var(--g600)">${qi}</span></div>`).join('')}</div>
+      </div>
+    </div>`;
+  }
+
+  $('v1Grid').innerHTML=`
+    <div style="grid-column:1/-1;text-align:center;padding:9px 14px;background:var(--b50);border:1px solid var(--b100);border-radius:8px;margin-bottom:10px">
+      <span style="font-size:11px;color:var(--g600)">Diferencia: </span>
+      <span style="font-size:16px;font-weight:700;color:var(--b700)">$${fmt(delta)}/m²</span>
+      <span class="dpill dg">−${pct}%</span>
+      <span style="font-size:10px;color:var(--g400);margin-left:6px">a favor de ${wA?A.name:B.name}</span>
+    </div>
+    ${col(A,tA,wA)}${col(B,tB,!wA)}`;
+
+  renderAPU(A,B);
+}
+
+function renderAPU(A,B){
+  if(!A.apu?.length&&!B.apu?.length){
+    $('tblAPU').innerHTML='<tr><td colspan="8" style="text-align:center;padding:16px;color:#aaa;font-style:italic">APU detallado no disponible</td></tr>';return;
+  }
+  let h=`<thead><tr><th>Concepto</th><th>U</th><th style="background:${A.color}">Costo</th><th style="background:${A.color}">Cant.</th><th style="background:${A.color}">P.U.</th><th style="background:${B.color}">Costo</th><th style="background:${B.color}">Cant.</th><th style="background:${B.color}">P.U.</th></tr></thead><tbody>`;
+  h+=`<tr class="tsec"><td colspan="8">MATERIALES — ${A.name} vs ${B.name}</td></tr>`;
+  const mL=Math.max((A.apu||[]).length,(B.apu||[]).length);
+  for(let i=0;i<mL;i++){
+    const a=(A.apu||[])[i],b=(B.apu||[])[i];
+    h+=`<tr><td>${a?a.d:b?b.d:'—'}</td><td>${a?a.u:b?b.u:'—'}</td>
+      <td>${a?'$'+fmt(a.c):'—'}</td><td>${a?a.q:''}</td><td>${a?'$'+fmt(a.c*a.q):'—'}</td>
+      <td>${b?'$'+fmt(b.c):'—'}</td><td>${b?b.q:''}</td><td>${b?'$'+fmt(b.c*b.q):'—'}</td></tr>`;
+  }
+  h+=`<tr class="tsec"><td colspan="8">MANO DE OBRA</td></tr>`;
+  const mO=Math.max((A.apuMO||[]).length,(B.apuMO||[]).length);
+  for(let i=0;i<mO;i++){
+    const a=(A.apuMO||[])[i],b=(B.apuMO||[])[i];
+    h+=`<tr><td>${a?a.d:b?b.d:'—'}</td><td>${a?a.u:b?b.u:'—'}</td>
+      <td>${a?'$'+fmt(a.c):'—'}</td><td>${a?a.q:''}</td><td>${a?'$'+fmt(a.c*a.q):'—'}</td>
+      <td>${b?'$'+fmt(b.c):'—'}</td><td>${b?b.q:''}</td><td>${b?'$'+fmt(b.c*b.q):'—'}</td></tr>`;
+  }
+  const tA=eMat[A.id]+eMo[A.id]+eEq[A.id],tB=eMat[B.id]+eMo[B.id]+eEq[B.id];
+  [['Materiales',eMat],['Mano de Obra',eMo],['Equipo',eEq]].forEach(([l,o])=>{
+    const a=o[A.id],b=o[B.id];
+    h+=`<tr><td colspan="2"><strong>${l}</strong></td>
+      <td colspan="3" class="${a<b?'best':a>b?'worst':''}"><strong>$${fmt(a)}</strong></td>
+      <td colspan="3" class="${b<a?'best':b>a?'worst':''}"><strong>$${fmt(b)}</strong></td></tr>`;
+  });
+  h+=`<tr style="background:var(--b50)"><td colspan="2"><strong style="color:var(--b700)">COSTO TOTAL / m²</strong></td>
+    <td colspan="3" class="${tA<tB?'best':tA>tB?'worst':''}"><strong style="font-size:13px">$${fmt(tA)}</strong></td>
+    <td colspan="3" class="${tB<tA?'best':tB>tA?'worst':''}"><strong style="font-size:13px">$${fmt(tB)}</strong></td></tr>`;
+  $('tblAPU').innerHTML=h+'</tbody>';
+}
+
+/* ═══ EDITOR DE PRECIOS ═══ */
+function renderPriceEditor(){
+  $('priceGrid').innerHTML=SYS.map(s=>{
+    const ms=eMs[s.id]||{...s.ms};
+    const mat=Object.values(ms).reduce((a,b)=>a+b,0);
+    const tot=mat+eMo[s.id]+eEq[s.id];
+    const agg=tot*df;
+    const subF=MK.map(([k,l])=>`<div class="pf">
+      <label title="${k==='el'?(s.el||l):l}">${k==='el'?(s.el||l):l}</label>
+      <input type="number" step="0.01" id="e_${k}_${s.id}" value="${(+(ms[k]||0)).toFixed(2)}" oninput="recalcP('${s.id}')"/>
+    </div>`).join('');
+    return`<div class="pcard">
+      <div class="pcard-hd" data-sh="${s.id}" style="background:${s.color}">
+        <div class="pcard-hd-left">
+          <div class="pcard-nm" contenteditable="true" onblur="updateF('${s.id}','name',this.textContent)">${s.name}</div>
+          <div class="pcard-sb" contenteditable="true" onblur="updateF('${s.id}','sub',this.textContent)">${s.sub}</div>
+        </div>
+        <input type="color" value="${s.color}" title="Color" onchange="updateColor('${s.id}',this.value)"
+          style="width:20px;height:20px;padding:1px;border-radius:3px;border:2px solid rgba(255,255,255,.5);background:transparent;cursor:pointer"/>
+        <div class="pcard-hd-right"><span>Total/m²</span><strong id="et_${s.id}">$${fmt(tot)}</strong></div>
+        <div class="pcard-hd-acts">
+          <button title="Editar completo" onclick="openModal('${s.id}')">✏️</button>
+          <button title="Eliminar" onclick="delSys('${s.id}')">🗑</button>
+        </div>
+      </div>
+      <div class="pcard-bd">
+        <div class="psbl">Materiales — desglose por partida</div>
+        ${subF}
+        <div class="p-sub"><span>Subtotal Materiales</span><span id="esm_${s.id}">$${fmt(mat)}</span></div>
+        <div class="psbl" style="margin-top:6px">Mano de Obra y Equipo</div>
+        <div class="pf"><label>Mano de Obra</label>
+          <input type="number" step="0.01" id="emo_${s.id}" value="${eMo[s.id].toFixed(2)}" oninput="recalcP('${s.id}')"/></div>
+        <div class="pf"><label>Equipo y Herramienta</label>
+          <input type="number" step="0.01" id="eeq_${s.id}" value="${eEq[s.id].toFixed(2)}" oninput="recalcP('${s.id}')"/></div>
+        <div class="p-tot"><span>COSTO TOTAL / m²</span><span id="et2_${s.id}">$${fmt(tot)}</span></div>
+        <div class="p-agg" id="eagg_${s.id}">
+          <span>⚡ Precio agresivo (${Math.round(df*100)}%)</span>
+          <span><strong>$${fmt(agg)}/m²</strong> <span class="p-agg-diff">−$${fmt(tot-agg)}</span></span>
+        </div>
+        <div class="p-note">APU · ${new Date().toLocaleDateString('es-MX',{month:'short',year:'numeric'})}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function recalcP(id){
+  const ms=eMs[id]||{};
+  let mat=0;
+  MK.forEach(([k])=>{const v=parseFloat($(`e_${k}_${id}`)?.value)||0;ms[k]=v;mat+=v;});
+  eMs[id]=ms;
+  const mo=parseFloat($('emo_'+id)?.value)||0,eq=parseFloat($('eeq_'+id)?.value)||0,tot=mat+mo+eq,agg=tot*df;
+  const upd=(pid,txt)=>{const el=$(pid);if(el)el.textContent=txt;};
+  upd('esm_'+id,'$'+fmt(mat));upd('et_'+id,'$'+fmt(tot));upd('et2_'+id,'$'+fmt(tot));
+  const ae=$('eagg_'+id);
+  if(ae)ae.innerHTML=`<span>⚡ Precio agresivo (${Math.round(df*100)}%)</span><span><strong>$${fmt(agg)}/m²</strong> <span class="p-agg-diff">−$${fmt(tot-agg)}</span></span>`;
+}
+
+/* ── Factor de agresividad — actualización en tiempo real ── */
+function updateDiscount(){
+  df=+$('discSlider').value/100;
+  $('discVal').textContent=Math.round(df*100)+'%';
+  /* Actualizar preview de precio agresivo en cada tarjeta */
+  SYS.forEach(s=>{
+    const tot=eMat[s.id]+eMo[s.id]+eEq[s.id],agg=tot*df;
+    const ae=$('eagg_'+s.id);
+    if(ae)ae.innerHTML=`<span>⚡ Precio agresivo (${Math.round(df*100)}%)</span><span><strong>$${fmt(agg)}/m²</strong> <span class="p-agg-diff">−$${fmt(tot-agg)}</span></span>`;
+  });
+  /* Actualizar todas las vistas que dependen del factor */
+  renderAll();
+  if($('panel1v1').classList.contains('active'))render1v1();
+  if($('panelCard').classList.contains('active'))renderCard();
+}
+
+function applyPrices(){
+  SYS.forEach(s=>{
+    let mat=0;const ms={};
+    MK.forEach(([k])=>{const v=parseFloat($(`e_${k}_${s.id}`)?.value)||0;ms[k]=v;mat+=v;});
+    eMs[s.id]=ms;eMat[s.id]=mat;
+    eMo[s.id]=parseFloat($('emo_'+s.id)?.value)||s.mo;
+    eEq[s.id]=parseFloat($('eeq_'+s.id)?.value)||s.eq;
+  });
+  saveState();renderAll();
+  const btn=event.target;btn.textContent='✓ ¡Actualizado!';btn.style.background='#2e7d32';
+  setTimeout(()=>{btn.textContent='✓ Aplicar precios y recalcular';btn.style.background='';},2200);
+}
+
+function updateF(id,f,v){if(!v?.trim())return;const s=SYS.find(x=>x.id===id);if(s){s[f]=v.trim();saveState();renderAll();}}
+function updateColor(id,c){
+  const s=SYS.find(x=>x.id===id);if(!s)return;s.color=c;
+  const h=document.querySelector(`[data-sh="${id}"]`);if(h)h.style.background=c;
+  saveState();renderAll();
+}
+function delSys(id){
+  const s=SYS.find(x=>x.id===id);
+  if(!s||!confirm(`¿Eliminar "${s.name}"?\nEsta acción no se puede deshacer.`))return;
+  SYS.splice(SYS.findIndex(x=>x.id===id),1);
+  [eMat,eMo,eEq,eMs].forEach(o=>delete o[id]);
+  saveState();renderAll();renderPriceEditor();refreshSels();refreshCardSel();
+}
+
+/* ═══ FICHA TÉCNICA ═══ */
+function renderCard(){
+  const id=$('cardSel').value,s=SYS.find(x=>x.id===id);
+  if(!s){$('cardCnt').innerHTML='';return;}
+  const mV=mCard==='p'?eMat[s.id]:eMat[s.id]*df;
+  const oV=mCard==='p'?eMo[s.id] :eMo[s.id]*df;
+  const eV=mCard==='p'?eEq[s.id] :eEq[s.id]*df;
+  const tot=mV+oV+eV,qs=s.q.reduce((a,b)=>a+b,0);
+  const ml=mCard==='p'?'Precio parámetro de mercado':`Precio agresivo ${Math.round(df*100)}% — descuento $${fmt((mV+oV+eV)/(df)*(1-df))}/m²`;
+  $('cardCnt').innerHTML=`
+  <div class="info-card">
+    <div class="ic-ban" style="background:linear-gradient(135deg,${s.color} 0%,${darken(s.color,25)} 100%)">
+      <div><div class="ic-name">${s.name}</div><div class="ic-sub">${s.sub} · APU Villahermosa, Tab. 2026</div></div>
+      <div style="text-align:right">
+        <div class="ic-badge-lbl">Costo directo / m²</div>
+        <div class="ic-badge-val">$${fmt(tot)}</div>
+        <div class="ic-badge-mode">${ml}</div>
+      </div>
+    </div>
+    <div class="ic-body">
+      <div class="ic-cost-grid">
+        ${[['mat','Materiales',mV],['mo','Mano de Obra',oV],['eq','Equipo',eV],['tot','Total',tot]].map(([c,l,v])=>`<div class="ic-tile ${c}"><div class="ic-tlbl">${l}</div><div class="ic-tval">$${fmt(v)}</div></div>`).join('')}
+      </div>
+      <div class="ic-2c">
+        <div>
+          <div class="ic-sl">Datos Técnicos</div>
+          ${[['Longitud máx.',s.lm],['Ancho',s.an],['Espesor',s.es],['Peso sistema',s.pe+' kg/m²'],['Conductividad',s.ct],['Aislamiento R',s.ar],['Densidad',s.den]].map(([k,v])=>`<div class="ic-pr"><span>${k}</span><span>${v}</span></div>`).join('')}
+        </div>
+        <div>
+          <div class="ic-sl">Productividad</div>
+          ${[['Rendimiento',s.rd],['Tiempo est.',s.ti],['Aplicación',s.ap],['Score norm.',qs+'/'+QI.length+' crit.']].map(([k,v])=>`<div class="ic-pr"><span>${k}</span><span>${v}</span></div>`).join('')}
+        </div>
+      </div>
+      <div class="ic-obs">${s.ob}</div>
+      <div class="ic-2c">
+        <div><div class="ic-sl">Ventajas</div>
+          <ul class="ic-lst">${(s.pr||[]).map(p=>`<li><span style="color:var(--green);flex-shrink:0">✓</span><span>${p}</span></li>`).join('')}</ul></div>
+        <div><div class="ic-sl">Limitaciones</div>
+          <ul class="ic-lst">${(s.co||[]).map(c=>`<li><span style="color:var(--red);flex-shrink:0">✗</span><span>${c}</span></li>`).join('')}</ul></div>
+      </div>
+      <div class="ic-sl" style="margin-top:14px">Cumplimiento normativo</div>
+      <div class="ic-qg">${QI.map((qi,i)=>`<div class="ic-qi"><span style="color:${s.q[i]?'var(--green)':'var(--red)'};flex-shrink:0">${s.q[i]?'✓':'✗'}</span><span style="color:var(--g600)">${qi}</span></div>`).join('')}</div>
+      <span class="ic-sbadge" style="background:${s.color}">★ ${qs} de ${QI.length} criterios</span>
+    </div>
+  </div>`;
+}
+
+/* ═══ MODAL — EDITOR DE SISTEMA ═══ */
+function openModal(id){
+  modalId=id;
+  const s=id?SYS.find(x=>x.id===id):{
+    id:'',name:'Nuevo Sistema',sub:'Descripción corta',color:'#1a5fbf',el:'Elemento principal',
+    mat:0,mo:0,eq:0,lm:'—',an:'—',es:'—',den:'—',pe:0,ct:'—',ar:'—',rd:'100 m²/Jor',
+    ti:'1 Jornada / 100 m²',ap:'',ob:'',pr:[''],co:[''],q:new Array(17).fill(0),ms:EMSUB()
+  };
+  const ms=id?(eMs[id]||{...s.ms}):{...s.ms};
+  $('moTitle').textContent=id?`✏️ Editar: ${s.name}`:'➕ Agregar nuevo sistema';
+  $('moCB').style.background=s.color;
+
+  $('mopn-gen').innerHTML=`
+    <div class="mo-sl">Identificación</div>
+    ${mr('Nombre',          'mf-nm', s.name)}
+    ${mr('Subtítulo',       'mf-sb', s.sub)}
+    <div class="mo-row"><label>Color</label><input type="color" id="mf-cl" value="${s.color}" oninput="$('moCB').style.background=this.value"/></div>
+    ${mr('Etiqueta elemento principal','mf-el',s.el||'')}`;
+
+  $('mopn-cos').innerHTML=`
+    <div class="mo-sl">Desglose de Materiales ($/m²)</div>
+    ${MK.map(([k,l])=>mr(k==='el'?(s.el||l):l,'mf-ms-'+k,(+(ms[k]||0)).toFixed(2),'number')).join('')}
+    <div class="mo-sl" style="margin-top:8px">Mano de Obra y Equipo</div>
+    ${mr('Mano de Obra ($/m²)','mf-mo',(id?eMo[id]:s.mo).toFixed(2),'number')}
+    ${mr('Equipo y Herramienta ($/m²)','mf-eq',(id?eEq[id]:s.eq).toFixed(2),'number')}`;
+
+  $('mopn-tec').innerHTML=`
+    <div class="mo-sl">Especificaciones</div>
+    ${mr('Longitud máx.','mf-lm',s.lm)}${mr('Ancho','mf-an',s.an)}
+    ${mr('Espesor','mf-es',s.es)}${mr('Densidad','mf-den',s.den)}
+    ${mr('Peso sistema (kg/m²)','mf-pe',s.pe,'number')}
+    ${mr('Conductividad térmica','mf-ct',s.ct)}${mr('Aislamiento R','mf-ar',s.ar)}
+    ${mr('Rendimiento','mf-rd',s.rd)}${mr('Tiempo estimado','mf-ti',s.ti)}
+    ${mr('Aplicación típica','mf-ap',s.ap||'')}`;
+
+  $('mopn-des').innerHTML=`
+    <div class="mo-sl">Observaciones</div>
+    <div class="mo-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+      <label>Observaciones técnicas</label><textarea id="mf-ob" rows="3" style="width:100%">${s.ob||''}</textarea></div>
+    <div class="mo-sl" style="margin-top:8px">Ventajas <small style="font-weight:400">(una por línea)</small></div>
+    <div class="mo-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+      <textarea id="mf-pr" rows="5" style="width:100%">${(s.pr||[]).join('\n')}</textarea></div>
+    <div class="mo-sl" style="margin-top:8px">Limitaciones <small style="font-weight:400">(una por línea)</small></div>
+    <div class="mo-row" style="flex-direction:column;align-items:flex-start;gap:3px">
+      <textarea id="mf-co" rows="4" style="width:100%">${(s.co||[]).join('\n')}</textarea></div>`;
+
+  $('mopn-nor').innerHTML=QI.map((qi,i)=>`<label class="mo-ck">
+    <input type="checkbox" id="mf-q${i}" ${(s.q||[])[i]?'checked':''}/>
+    <span>${qi}</span></label>`).join('');
+
+  switchMoTab('gen',document.querySelector('#moTabs .mo-tab'));
+  $('sysModal').style.display='flex';
+}
+function mr(l,id,v,t='text'){return`<div class="mo-row"><label>${l}</label><input type="${t}" id="${id}" value="${v}"/></div>`;}
+function switchMoTab(t,btn){
+  document.querySelectorAll('.mo-pn').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.mo-tab').forEach(b=>b.classList.remove('active'));
+  $('mopn-'+t).classList.add('active');btn.classList.add('active');
+}
+function closeModal(){$('sysModal').style.display='none';}
+function saveModal(){
+  const name=($('mf-nm').value||'').trim();
+  if(!name){alert('El nombre del sistema es requerido.');return;}
+  const ms={};let mat=0;
+  MK.forEach(([k])=>{const v=parseFloat($('mf-ms-'+k)?.value)||0;ms[k]=v;mat+=v;});
+  const mo=parseFloat($('mf-mo').value)||0,eq=parseFloat($('mf-eq').value)||0;
+  const data={name,sub:($('mf-sb').value||'').trim(),color:$('mf-cl').value,el:($('mf-el').value||'').trim(),
+    mat,mo,eq,ms,lm:$('mf-lm').value.trim(),an:$('mf-an').value.trim(),es:$('mf-es').value.trim(),
+    den:$('mf-den').value.trim(),pe:parseFloat($('mf-pe').value)||0,ct:$('mf-ct').value.trim(),
+    ar:$('mf-ar').value.trim(),rd:$('mf-rd').value.trim(),ti:$('mf-ti').value.trim(),ap:$('mf-ap').value.trim(),
+    ob:$('mf-ob').value.trim(),
+    pr:$('mf-pr').value.split('\n').map(x=>x.trim()).filter(Boolean),
+    co:$('mf-co').value.split('\n').map(x=>x.trim()).filter(Boolean),
+    q:QI.map((_,i)=>$('mf-q'+i)?.checked?1:0)};
+  if(modalId){
+    const idx=SYS.findIndex(x=>x.id===modalId);
+    if(idx>=0){Object.assign(SYS[idx],data);eMat[modalId]=mat;eMo[modalId]=mo;eEq[modalId]=eq;eMs[modalId]={...ms};}
+  }else{
+    const id='sys_'+Date.now();
+    SYS.push({...data,id,apu:[],apuMO:[]});
+    eMat[id]=mat;eMo[id]=mo;eEq[id]=eq;eMs[id]={...ms};
+  }
+  saveState();closeModal();renderAll();renderPriceEditor();refreshSels();refreshCardSel();
+  if($('panelCard').classList.contains('active'))renderCard();
+}
+
+/* ═══ IMPORTACIÓN EXCEL ═══ */
+
+/* Datos pre-parseados de SISTEMAS_DE_ENTREPISO.xlsx */
+const XLS_PRELOADED=[
+  {code:'LOS10315',name:'Losa Trad. 10cm #3@15',sub:'LOS10315 · ∅3/8"@15cm',color:'#7f1d1d',
+   mat:291.44,mo:204.60,eq:16.37,es:'10 cm',pe:370,ct:'—',ar:'—',rd:'~9 m²/Jor',
+   ms:{el:0,bv:0,co:105.42,ac:134.20,ci:49.36,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:2.46},
+   ob:"Losa 10 cm concreto F'c=250, varilla No.3 @ 15cm ambos sentidos. Incluye cimbrado común, armado, colado, MO, equipo.",
+   pr:['Refuerzo denso — alta resistencia','Compatible con cualquier sistema estructural'],
+   co:['Mayor consumo acero','Requiere cimbra completa','Sin aislamiento térmico NOM-018'],
+   q:[0,0,1,1,0,0,0,0,0,1,1,0,0,1,1,0,0]},
+  {code:'LOS10320',name:'Losa Trad. 10cm #3@20',sub:'LOS10320 · ∅3/8"@20cm',color:'#991b1b',
+   mat:258.25,mo:200.43,eq:16.03,es:'10 cm',pe:370,ct:'—',ar:'—',rd:'~9 m²/Jor',
+   ms:{el:0,bv:0,co:105.42,ac:101.00,ci:49.36,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:2.47},
+   ob:"Losa 10 cm concreto F'c=250, varilla No.3 @ 20cm ambos sentidos. Menor acero que @15cm.",
+   pr:['Menor consumo acero vs @15cm','Compatible con cualquier sistema'],
+   co:['Sin aislamiento térmico','Requiere cimbra completa','Menor resistencia vs @15cm'],
+   q:[0,0,1,1,0,1,0,0,0,1,1,0,0,1,1,0,0]},
+  {code:'LOS12415',name:'Losa Trad. 12cm #4@15',sub:'LOS12415 · ∅1/2"@15cm',color:'#b91c1c',
+   mat:412.63,mo:238.24,eq:19.06,es:'12 cm',pe:400,ct:'—',ar:'—',rd:'~9 m²/Jor',
+   ms:{el:0,bv:0,co:126.51,ac:234.30,ci:49.36,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:2.46},
+   ob:"Losa 12 cm concreto F'c=250, varilla No.4 @ 15cm ambos sentidos. Mayor resistencia. Incluye cimbrado, armado, colado.",
+   pr:['Mayor resistencia estructural','Ideal para cargas concentradas','NMX-C-405'],
+   co:['Mayor costo por acero #4','Sin aislamiento térmico','Requiere cimbra completa'],
+   q:[0,0,1,1,0,0,0,0,0,1,1,0,0,1,1,0,0]},
+  {code:'LOSACERO18',name:'Losacero Cal.18',sub:'LOSACERO18 · Premezclado bombeado',color:'#374151',
+   mat:503.65,mo:30.24,eq:3.18,es:'~10 cm',pe:220,ct:'0.273 W/m·K',ar:'0.28 Ft²°Fh/BTU',rd:'~75 m²/Jor',
+   ms:{el:291.58,bv:0,co:155.50,ac:0,ci:0,ml:13.94,ac2:14.94,bo:24.18,im:0,ab:0,de:0,ot:3.51},
+   ob:"Losacero cal.18, malla 6x6/10-10, concreto premezclado F'c=250 bombeado. Incluye conectores soldados, acarreos, cortes, desperdicios.",
+   pr:['NMX-C-405 (uso estructural)','Elimina cimbra horizontal','Construcción rápida','Sistema monolítico'],
+   co:['Sin aislamiento térmico NOM-018','Requiere soldadura en obra'],
+   q:[0,0,1,1,1,1,0,1,0,0,1,0,0,0,0,1,0]},
+  {code:'LOSACERO20',name:'Losacero Cal.20',sub:'LOSACERO20 · Premezclado bombeado',color:'#4b5563',
+   mat:461.26,mo:30.24,eq:3.18,es:'~12 cm',pe:215,ct:'0.273 W/m·K',ar:'0.28 Ft²°Fh/BTU',rd:'~75 m²/Jor',
+   ms:{el:249.17,bv:0,co:155.50,ac:0,ci:0,ml:13.94,ac2:14.93,bo:24.18,im:0,ab:0,de:0,ot:3.54},
+   ob:"Losacero cal.20, malla 6x6/10-10, concreto premezclado F'c=250 bombeado. Conectores soldados, acarreos, cortes.",
+   pr:['NMX-C-405 (uso estructural)','Elimina cimbra horizontal','Sistema monolítico'],
+   co:['Sin aislamiento térmico','Requiere soldadura en obra'],
+   q:[0,0,1,1,1,1,0,1,0,0,1,0,0,0,0,1,0]},
+  {code:'LOSVB20E45',name:'V+B 20cm · Claro 4.75m',sub:'LOSVB20-E45 · Malla 6x6/10-10',color:'#065f46',
+   mat:399.78,mo:77.00,eq:4.58,es:'20 cm',pe:285,ct:'—',ar:'—',rd:'~36 m²/Jor',
+   ms:{el:187.03,bv:96.01,co:80.00,ac:0,ci:12.48,ml:16.54,ac2:0,bo:0,im:0,ab:0,de:0,ot:7.72},
+   ob:"Losa 20 cm, vigueta+bovedilla concreto 16x20x63cm, claro máx. 4.75m, viguetas @75cm, capa compresión 4cm, malla 6x6-10/10, acabado pulido.",
+   pr:['Amplia disponibilidad','Claro hasta 4.75m','No requiere equipo especial'],
+   co:['Sin aislamiento térmico NOM-018','No es monolítico (juntas frías)'],
+   q:[0,0,0,0,0,1,0,1,0,1,1,0,1,1,1,0,0]},
+  {code:'LOSAN01',name:'Losa Nervada 30cm EPS',sub:'LOSAN01 · Casetón EPS 60x60x25cm',color:'#92400e',
+   mat:917.60,mo:320.27,eq:11.88,es:'30 cm',pe:340,ct:'0.052 W/m·K',ar:'5.2 Ft²°Fh/BTU',rd:'~25 m²/Jor',
+   ms:{el:0,bv:280.00,co:350.00,ac:0,ci:200.00,ml:50.00,ac2:0,bo:37.60,im:0,ab:0,de:0,ot:0},
+   ob:"Losa nervada 30 cm, concreto premezclado F'c=250, acero Fy=4200 #3 y #4, aligerada con casetón EPS 60x60x25cm, capa compresión 5cm malla 6x6-10/10.",
+   pr:['NOM-018 (aislamiento EPS)','Sistema monolítico','Reducción cargas muertas'],
+   co:['Mayor costo total','Requiere cimbra completa','Mano de obra intensiva'],
+   q:[1,0,0,0,0,0,0,0,0,1,1,0,1,0,1,1,0]},
+  {code:'QUALYLOSA4',name:'COVINTEC QualyLosa 4"',sub:'QUALYLOSA4 · Panel prefabricado 8cm',color:'#1e3a5f',
+   mat:768.96,mo:0,eq:0,es:'~10 cm',pe:180,ct:'0.039 W/m·K',ar:'11.0 Ft²°Fh/BTU',rd:'~80 m²/Jor',
+   ms:{el:500.00,bv:0,co:200.00,ac:0,ci:50.00,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:18.96},
+   ob:"Losa aligerada 8 cm, paneles QUALYLOSA COVINTEC 4\" 1.22x4.06m, capa compresión concreto F'c=250, aplanado simple cemento-arena 1:5.",
+   pr:['NOM-018 (aislamiento EPS)','Construcción rápida','Sistema prefabricado','Reducción cargas muertas','Facilita instalaciones'],
+   co:['MO incluida en precio de panel','Costo total elevado','Claro limitado'],
+   q:[1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0]},
+  {code:'LOSAPW',name:'Panel W Estructural 12cm',sub:'LOSAPW · Panel W 3" + ∅5/16"',color:'#312e81',
+   mat:306.95,mo:153.27,eq:6.87,es:'12 cm',pe:200,ct:'0.039 W/m·K',ar:'10.0 Ft²°Fh/BTU',rd:'~60 m²/Jor',
+   ms:{el:150.00,bv:0,co:120.00,ac:30.00,ci:6.95,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   ob:"Losa 12 cm panel W estructural 3\" con varilla 5/16\" inferior. Aplanado inferior 2cm, capa superior 4cm concreto F'c=250. Claros hasta 3.50m.",
+   pr:['NOM-018 (aislamiento)','Sistema prefabricado','Construcción rápida','Compatible con todos los sistemas'],
+   co:['Claro máximo 3.50m','Requiere apuntalamiento durante proceso'],
+   q:[1,0,0,1,1,0,1,1,0,1,1,1,1,0,1,1,0]},
+  {code:'LOSAFACIL1',name:'LosaFacil H20-16',sub:'LOSAFACIL1 · Sistema nervado 20cm',color:'#78350f',
+   mat:1094.50,mo:0,eq:0,es:'20 cm',pe:260,ct:'—',ar:'—',rd:'~40 m²/Jor',
+   ms:{el:800.00,bv:0,co:200.00,ac:85.91,ci:0,ml:0,ac2:0,bo:0,im:0,ab:0,de:0,ot:8.59},
+   ob:"Losa nervada 20cm sistema LOSAFACIL H20-16, concreto premezclado fc=200, nervaduras varilla No.3, capa compresión malla 6x6 10/10. Hasta 2.10m altura.",
+   pr:['Sistema nervado prefabricado','Reducción de cargas muertas','Facilita instalaciones'],
+   co:['Mayor costo total','MO incluida en precio del sistema'],
+   q:[0,0,0,1,1,0,0,1,0,1,1,1,1,1,1,1,0]},
+  {code:'VIGUETA75',name:'Vigueta+Bov. EPS @75cm',sub:'VIGUETA-75 · Bovedilla poliestireno',color:'#14532d',
+   mat:311.07,mo:80.40,eq:0,es:'~20 cm',pe:240,ct:'0.040 W/m·K',ar:'11.2 Ft²°Fh/BTU',rd:'~40 m²/Jor',
+   ms:{el:132.00,bv:110.00,co:50.00,ac:0,ci:8.00,ml:11.07,ac2:0,bo:0,im:0,ab:0,de:0,ot:0},
+   ob:"Losa vigueta+bovedilla EPS @75cm, capa compresión 4cm, malla 6x6-10/10, acabado pulido integral. Incluye cimbrado, descimbrado, bombeo.",
+   pr:['NOM-018 / NMX-C-460 (bovedilla EPS)','Menor peso vs bovedilla concreto','No requiere equipo especial'],
+   co:['Sin refuerzo estructural continuo','No es monolítico'],
+   q:[1,1,0,0,0,1,0,1,0,1,1,0,1,1,1,0,0]}
+];
+
+/* Paleta de colores para sistemas auto-importados */
+const AUTO_COLORS=['#1d4ed8','#0f766e','#b91c1c','#92400e','#4c1d95','#065f46','#0c4a6e','#881337','#431407','#134e4a','#1e3a5f','#3b0764','#422006','#052e16','#162032'];
+let _autoColorIdx=0;
+function nextColor(code){
+  // Try to pick a color based on category hint from code
+  if(/TRAD|LOS\d/i.test(code))return['#7f1d1d','#991b1b','#b91c1c'][Math.floor(Math.random()*3)];
+  if(/ACERO/i.test(code))return['#374151','#4b5563','#1f2937'][Math.floor(Math.random()*3)];
+  if(/VB|VIGUETA|BOVED/i.test(code))return['#065f46','#047857','#14532d'][Math.floor(Math.random()*3)];
+  if(/NERV|CASET/i.test(code))return['#92400e','#78350f','#451a03'][Math.floor(Math.random()*3)];
+  if(/PANEL|PANEL|COV|PW/i.test(code))return['#312e81','#1e3a5f','#1e1b4b'][Math.floor(Math.random()*3)];
+  return AUTO_COLORS[_autoColorIdx++%AUTO_COLORS.length];
+}
+
+/* Construir objeto sistema desde datos XLS */
+function xlsToSys(xd){
+  const id='xls_'+xd.code.replace(/\W/g,'_').toLowerCase()+'_'+Date.now();
+  const ms=xd.ms||EMSUB();
+  const mat=xd.mat||Object.values(ms).reduce((a,b)=>a+b,0);
+  return{
+    id,name:xd.name||xd.code,sub:xd.sub||xd.code,
+    color:xd.color||nextColor(xd.code),
+    mat,mo:xd.mo||0,eq:xd.eq||0,ms,
+    lm:'—',an:'—',es:xd.es||'—',den:'—',pe:xd.pe||0,
+    ct:xd.ct||'—',ar:xd.ar||'—',rd:xd.rd||'—',
+    el:xd.name||xd.code,ti:'—',ap:'—',
+    apu:[],apuMO:[],
+    q:xd.q||new Array(17).fill(0),
+    pr:xd.pr||[],co:xd.co||[],
+    ob:xd.ob||''
+  };
+}
+
+/* Verificar si un código ya existe en SYS */
+function isDuplicate(code){
+  return SYS.some(s=>s.sub&&s.sub.toUpperCase().includes(code.toUpperCase()));
+}
+
+/* Abrir modal de previsualización de importación */
+let impPending=[];
+function openImportPreview(detected,sourceLabel){
+  impPending=detected;
+  $('impTitle').textContent=`📊 ${sourceLabel||'Importar desde Excel'}`;
+  
+  const dups=detected.filter(x=>isDuplicate(x.code));
+  let html='';
+  if(dups.length){
+    html+=`<div class="imp-warn">⚠️ ${dups.length} sistema(s) pueden ser duplicados. Desmarca los que no quieras importar.</div>`;
+  }
+  html+=`<div class="imp-header">
+    <span style="font-size:11px;font-weight:600;color:var(--b700)">${detected.length} sistemas detectados</span>
+    <div class="imp-header-btns">
+      <button class="btn-mc btn-sm" onclick="toggleAllImp(true)">✓ Todos</button>
+      <button class="btn-mc btn-sm" onclick="toggleAllImp(false)">✗ Ninguno</button>
+    </div>
+  </div>
+  <div class="imp-list">
+    ${detected.map((x,i)=>{
+      const tot=x.mat+x.mo+x.eq;
+      const dup=isDuplicate(x.code);
+      return`<label class="imp-item ${!dup?'selected':''}" id="impitem_${i}" onclick="toggleImpItem(${i},this)">
+        <input type="checkbox" class="imp-item-cb" id="impcb_${i}" ${!dup?'checked':''} onclick="event.stopPropagation();updateImpCount()"/>
+        <div class="imp-item-color" style="background:${x.color||nextColor(x.code||'')}"></div>
+        <div class="imp-item-info">
+          <div class="imp-item-name">${x.name||x.code}${dup?'<span class="dup-badge">Duplicado</span>':''}</div>
+          <div class="imp-item-sub">${x.ob?x.ob.slice(0,80)+'…':x.code}</div>
+        </div>
+        <div class="imp-item-costs">
+          <div class="imp-item-total">$${fmt(tot)}/m²</div>
+          <div class="imp-item-break">Mat $${fmt(x.mat)} · MO $${fmt(x.mo)}</div>
+        </div>
+      </label>`;
+    }).join('')}
+  </div>`;
+  $('impContent').innerHTML=html;
+  updateImpCount();
+  $('impModal').style.display='flex';
+}
+
+function toggleImpItem(i,el){
+  const cb=$('impcb_'+i);if(cb){cb.checked=!cb.checked;}
+  el.classList.toggle('selected',cb?.checked);
+  updateImpCount();
+}
+function toggleAllImp(v){
+  impPending.forEach((_,i)=>{
+    const cb=$('impcb_'+i);if(cb){cb.checked=v;}
+    const el=$('impitem_'+i);if(el){el.classList.toggle('selected',v);}
+  });
+  updateImpCount();
+}
+function updateImpCount(){
+  const n=impPending.filter((_,i)=>$('impcb_'+i)?.checked).length;
+  $('impCount').textContent=`${n} de ${impPending.length} sistemas seleccionados`;
+}
+function closeImport(){$('impModal').style.display='none';impPending=[];}
+
+function confirmImport(){
+  const toAdd=impPending.filter((_,i)=>$('impcb_'+i)?.checked);
+  let added=0;
+  toAdd.forEach(xd=>{
+    const s=xlsToSys(xd);
+    SYS.push(s);
+    eMat[s.id]=s.mat;eMo[s.id]=s.mo;eEq[s.id]=s.eq;eMs[s.id]={...s.ms};
+    added++;
+  });
+  saveState();closeImport();renderAll();renderPriceEditor();refreshSels();refreshCardSel();
+  if(added>0){
+    const msg=document.createElement('div');
+    msg.style.cssText='position:fixed;bottom:24px;right:24px;background:#065f46;color:#fff;padding:12px 20px;border-radius:8px;font-family:Outfit,sans-serif;font-size:13px;font-weight:600;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,.25)';
+    msg.textContent=`✓ ${added} sistema${added>1?'s':''} importado${added>1?'s':''}`;
+    document.body.appendChild(msg);
+    setTimeout(()=>msg.remove(),3000);
+  }
+}
+
+/* Cargar preset: 11 sistemas de SISTEMAS_DE_ENTREPISO.xlsx */
+function loadPreset(){
+  openImportPreview(XLS_PRELOADED,'Sistemas de SISTEMAS_DE_ENTREPISO.xlsx');
+}
+
+/* Manejar archivo seleccionado (input o drop) */
+function handleFileInput(e){parseXLSFile(e.target.files[0]);e.target.value='';}
+function handleDrop(e){
+  e.preventDefault();
+  const f=e.dataTransfer.files[0];
+  if(f&&/\.xlsx?$/.test(f.name))parseXLSFile(f);
+  else alert('Por favor selecciona un archivo .xlsx o .xls');
+}
+
+async function parseXLSFile(file){
+  if(!file)return;
+  if(typeof XLSX==='undefined'){alert('Cargando librería Excel…');return;}
+  try{
+    const buf=await file.arrayBuffer();
+    const wb=XLSX.read(buf,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    const detected=parseAPURows(rows);
+    if(!detected.length){alert('No se detectaron sistemas con formato APU en el archivo.');return;}
+    openImportPreview(detected,`Importar desde: ${file.name}`);
+  }catch(err){
+    alert('Error al leer el archivo Excel. Verifica que sea un archivo .xlsx o .xls válido.\n'+err.message);
+  }
+}
+
+/* Parser genérico para formato APU (IMSS/INIFED) */
+function parseAPURows(rows){
+  const found=[];let cur=null,mode=null;
+  for(const row of rows){
+    const r=row.map(c=>c===null||c===undefined?'':String(c).trim());
+    const v=i=>r[i]||'';
+    const n=i=>{try{return parseFloat(r[i])||0;}catch{return 0;}};
+    if(v(0).includes('Análisis:')){
+      const code=(v(1)||v(2)).replace(/\s+/g,' ').trim();
+      if(code){cur={code,name:formatCode(code),sub:code,color:nextColor(code),desc:'',mat:0,mo:0,eq:0,aca:0,pr:[],co:[]};found.push(cur);}
+      mode=null;
+    } else if(cur&&v(0)==='Descripción'){cur.ob=v(1).slice(0,200);}
+    else if(v(0)==='MATERIALES'){mode='mat';}
+    else if(v(0)==='MANO DE OBRA'){mode='mo';}
+    else if(v(0).startsWith('EQUIPO')){mode='eq';}
+    else if(v(0).includes('ACABADOS')){mode='aca';}
+    else if(v(6)==='SUBTOTAL:'&&n(8)){
+      if(mode==='mat')cur.mat+=n(8);
+      else if(mode==='mo')cur.mo+=n(8);
+      else if(mode==='eq')cur.eq+=n(8);
+      else if(mode==='aca')cur.aca+=n(8);
+    } else if(v(0)==='IMPORTE TOTAL :'&&cur){cur.total=n(2);}
+  }
+  return found.filter(s=>s.code&&(s.mat>0||s.mo>0||s.total>0)).map(s=>{
+    // Derive espesor from code/description
+    const em=(s.code.match(/(\d+)(?:CM|cm|MM|mm)?/)||[]);
+    const es=em[1]?em[1]+' cm':'—';
+    const ms=EMSUB();
+    if(s.mat>0){
+      ms.co=+(s.mat*0.35).toFixed(2);ms.ac=+(s.mat*0.25).toFixed(2);
+      ms.ci=+(s.mat*0.15).toFixed(2);ms.ot=+(s.mat-ms.co-ms.ac-ms.ci).toFixed(2);
+    }
+    return{...s,es,ms};
+  });
+}
+
+function formatCode(code){
+  return code.replace(/([A-Z]{2,})(\d)/g,'$1 $2')
+    .replace(/^([A-Z]+)(\d)/,'$1 $2').slice(0,30);
+}
+
+/* ═══ IMPRESIÓN ═══ */
+function doPrint(){
+  const p=document.querySelector('.panel.active');
+  document.body.setAttribute('data-print-tab',p?p.id:'panelAll');
+  setTimeout(()=>{window.print();},80);
+}
+window.addEventListener('afterprint',()=>document.body.removeAttribute('data-print-tab'));
+
+/* ═══ INIT ═══ */
+initData();
+$('discSlider').value=Math.round(df*100);
+$('discVal').textContent=Math.round(df*100)+'%';
+refreshSels();refreshCardSel();
+renderAll();render1v1();renderPriceEditor();renderCard();
+</script>
+</body>
+</html>
