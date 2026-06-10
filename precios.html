@@ -282,10 +282,11 @@ tr:hover .row-actions{opacity:1}
 .cot-items .td-num{color:#94a3b8;font-size:11px}
 .cot-items .td-clave{font-family:monospace;font-size:11px;color:#475569}
 .cot-items .td-sub{text-align:right;font-weight:600;color:#0d6efd}
-.qty-cell input{width:56px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:center;background:#f8faff}
+.qty-cell input{width:78px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:center;background:#f8faff}
 .qty-cell input:focus{border-color:#2563eb;outline:none}
-.price-cell input{width:80px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:right;background:#f8faff}
+.price-cell input{width:92px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:right;background:#f8faff}
 .price-cell input:focus{border-color:#2563eb;outline:none}
+.cell-print{display:none}
 .del-cell button{background:none;border:none;color:#94a3b8;cursor:pointer;padding:3px 6px;border-radius:3px;font-size:13px;line-height:1}
 .del-cell button:hover{background:#fee2e2;color:#dc2626}
 .cot-empty-msg{padding:30px;text-align:center;color:#94a3b8;font-style:italic;background:#fafbfc}
@@ -449,11 +450,16 @@ tr:hover .row-actions{opacity:1}
   .cot-items tbody tr:nth-child(even) { background: #f8faff !important; }
   .cot-items tbody tr { page-break-inside: avoid; break-inside: avoid; }
 
-  /* Inputs en la tabla — limpiar apariencia */
-  .qty-cell input, .price-cell input {
-    border: none !important; background: transparent !important;
-    text-align: inherit !important; padding: 0 !important; width: auto !important;
-  }
+  /* Inputs en la tabla — ocultar inputs, mostrar valor formateado */
+  .qty-cell input, .price-cell input { display: none !important; }
+  .cell-print { display: inline !important; font-size: 9pt !important; color: #1e293b !important; }
+  .qty-cell   { text-align: center !important; }
+  .price-cell { text-align: right  !important; font-variant-numeric: tabular-nums !important; }
+  .cot-items .td-sub { text-align: right !important; font-variant-numeric: tabular-nums !important; }
+  /* Encabezados de columnas numéricas alineados con su contenido */
+  .cot-items thead th:nth-child(5) { text-align: center !important; }
+  .cot-items thead th:nth-child(6),
+  .cot-items thead th:nth-child(7) { text-align: right !important; }
 
   /* Totales + notas — grid 2 columnas igual que pantalla */
   .cot-totals-wrap {
@@ -487,14 +493,20 @@ tr:hover .row-actions{opacity:1}
   .cot-firma-name { font-size: 8.5pt !important; }
   .cot-firma-role, .cot-firma-contact { font-size: 7.5pt !important; }
   .cot-firma-disclaimer { font-size: 7pt !important; }
-  /* Footer barra oscura */
+  /* Footer barra oscura — ANCLADA al fondo de cada hoja */
   .cot-footer-bar {
     background: #1e3a5f !important; color: #fff !important;
-    border-radius: 0 !important; padding: 7px 18px !important;
+    border-radius: 0 !important; padding: 7px 15mm !important;
     -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    display: flex !important; align-items: center !important;
+    justify-content: space-between !important; flex-wrap: wrap !important; gap: 8px !important;
   }
   .cot-footer-contacts { font-size: 7.5pt !important; gap: 12px !important; opacity: .9 !important; }
   .cot-footer-slogan { font-size: 8pt !important; }
+  /* Reservar espacio inferior para que el contenido no quede tapado por el footer fijo */
+  #panel-cot .cot-doc { padding-bottom: 18mm !important; }
 }
 .print-header{display:none}
 /* ═══════════════════════════════════════════════
@@ -1492,8 +1504,8 @@ function renderCotTable(){
       <td class="td-clave">${esc(item.clave)}</td>
       <td>${esc(item.desc)}</td>
       <td style="font-size:11.5px;color:#64748b">${esc(item.unidad)}</td>
-      <td class="qty-cell"><input type="number" min="0.01" step="any" value="${item.qty}" onchange="setQty(${i},this.value)"></td>
-      <td class="price-cell"><input type="number" min="0" step="0.01" value="${item.precio.toFixed(2)}" onchange="setPrice(${i},this.value)" title="Editar precio"></td>
+      <td class="qty-cell"><input type="number" min="0.01" step="any" value="${item.qty}" onchange="setQty(${i},this.value)"><span class="cell-print">${item.qty.toLocaleString('es-MX')}</span></td>
+      <td class="price-cell"><input type="number" min="0" step="0.01" value="${item.precio.toFixed(2)}" onchange="setPrice(${i},this.value)" title="Editar precio"><span class="cell-print">$${item.precio.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</span></td>
       <td class="td-sub">$${sub.toLocaleString('es-MX',{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
       <td class="del-cell no-print"><button onclick="cotDel(${i})" title="Eliminar">✕</button></td>
     </tr>`;
@@ -1789,55 +1801,65 @@ function saveCotProject(){
       obra:   (document.getElementById('clObra')||{}).value||'',
       notas:  (document.getElementById('clNotas')||{}).value||''
     },
-    quoteNum: (document.getElementById('cotNumInput')||{}).value||''
+    quoteNum: (document.getElementById('cotNumInput')||{}).value||'',
+    ivaOn:     !!(document.getElementById('ivaToggle')||{}).checked,
+    entregaOn: !!(document.getElementById('entregaToggle')||{}).checked,
+    entrega:   (document.getElementById('entregaInput')||{}).value||'0'
   };
 
   // Inject FROZEN_COT constant right after the INITIAL_CFG block
   snap = snap.replace(
     /(\/\* ══ CFG_END ══ \*\/)/,
-    `$1\nconst FROZEN_COT = ${JSON.stringify(frozenPayload)};\n/* ══ FROZEN_COT_END ══ */`
+    `$1\nwindow.FROZEN_COT = ${JSON.stringify(frozenPayload)};\n/* ══ FROZEN_COT_END ══ */`
   );
 
-  // 3. Patch init() so it auto-loads the frozen cotización on open
-  // Insert loader right before `document.addEventListener('DOMContentLoaded'`
+  // 3. Append a loader script before </body>.
+  //    window 'load' fires AFTER init()'s DOMContentLoaded handler, so the app is
+  //    fully wired before we inject data. Snapshot stays EDITABLE for obra revision.
   const loader = `
-// ── Snapshot loader ──────────────────────────────
-(function loadFrozenCot(){
-  if(typeof FROZEN_COT === 'undefined') return;
-  document.addEventListener('DOMContentLoaded', function(){
-    try {
-      // Wait for init() to finish wiring DOM, then inject data
-      setTimeout(function(){
-        cotItems = FROZEN_COT.items || [];
-        const fields = ['nombre','tel','dir','obra','notas'];
-        fields.forEach(function(f){
-          const el = document.getElementById('cl'+f.charAt(0).toUpperCase()+f.slice(1));
-          if(el && FROZEN_COT.client && FROZEN_COT.client[f]) el.value = FROZEN_COT.client[f];
-        });
-        const numEl = document.getElementById('cotNumInput');
-        if(numEl && FROZEN_COT.quoteNum) numEl.value = FROZEN_COT.quoteNum;
-        syncClientName();
-        renderCotTable();
-        updateStats();
-        // Open cotizador tab
-        switchTab('cot');
-        // Disable editing to keep it frozen
-        document.querySelectorAll('.cot-actions button').forEach(function(b){ b.disabled=true; b.title='Snapshot — solo lectura'; });
-        const banner = document.createElement('div');
-        banner.style.cssText='background:#7c3aed;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.04em';
-        banner.textContent='📦 SNAPSHOT DE PROYECTO — Solo lectura · Usa la app principal para editar';
-        document.body.prepend(banner);
-      }, 300);
-    } catch(e){ console.error('loadFrozenCot error:', e); }
-  });
-})();
-// ─────────────────────────────────────────────────
+<script>
+window.addEventListener('load', function(){
+  if(!window.FROZEN_COT) return;
+  try {
+    var F = window.FROZEN_COT;
+    cotItems = (F.items||[]).map(function(x){
+      return { clave:x.clave, desc:x.desc, unidad:x.unidad,
+               precio:Number(x.precio)||0, qty:Number(x.qty)||0, dbIdx:x.dbIdx };
+    });
+    var fields = ['nombre','tel','dir','obra','notas'];
+    fields.forEach(function(f){
+      var el = document.getElementById('cl'+f.charAt(0).toUpperCase()+f.slice(1));
+      if(el && F.client && F.client[f]) el.value = F.client[f];
+    });
+    var numEl = document.getElementById('cotNumInput');
+    if(numEl && F.quoteNum) numEl.value = F.quoteNum;
+    // Restaurar estado de IVA y costo de entrega
+    var ivaT = document.getElementById('ivaToggle');
+    if(ivaT) ivaT.checked = (F.ivaOn !== false);
+    var entT = document.getElementById('entregaToggle');
+    if(entT) entT.checked = !!F.entregaOn;
+    var entI = document.getElementById('entregaInput');
+    if(entI && F.entrega != null) entI.value = F.entrega;
+    if(typeof syncClientName==='function') syncClientName();
+    renderCotTable();   // recalcula subtotales + updateTotals()
+    updateStats();
+    switchTab('cot');
+    // Banner: editable, para revisión en obra
+    var banner = document.createElement('div');
+    banner.style.cssText='background:#1e4d8b;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.03em';
+    banner.textContent='📋 PROYECTO: '+(F.quoteNum||'')+(F.client&&F.client.nombre?' · '+F.client.nombre:'')+' — Editable: ajusta cantidades y el total se recalcula solo.';
+    document.body.prepend(banner);
+  } catch(e){
+    console.error('Snapshot loader error:', e);
+    var err = document.createElement('div');
+    err.style.cssText='background:#dc2626;color:#fff;padding:10px;font-size:12px;text-align:center';
+    err.textContent='⚠️ Error al cargar el proyecto: '+e.message;
+    document.body.prepend(err);
+  }
+});
+<\/script>
 `;
-
-  snap = snap.replace(
-    /document\.addEventListener\('DOMContentLoaded'/,
-    loader + "document.addEventListener('DOMContentLoaded'"
-  );
+  snap = snap.replace(/<\/body>/i, loader + '</body>');
 
   // 4. Filename: COT-YYYY-NNN_Cliente.html
   const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
