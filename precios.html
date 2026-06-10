@@ -282,9 +282,13 @@ tr:hover .row-actions{opacity:1}
 .cot-items .td-num{color:#94a3b8;font-size:11px}
 .cot-items .td-clave{font-family:monospace;font-size:11px;color:#475569}
 .cot-items .td-sub{text-align:right;font-weight:600;color:#0d6efd}
-.qty-cell input{width:78px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:center;background:#f8faff}
+/* Quitar flechas spinner para que el número use todo el ancho */
+.qty-cell input::-webkit-outer-spin-button,.qty-cell input::-webkit-inner-spin-button,
+.price-cell input::-webkit-outer-spin-button,.price-cell input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.qty-cell input,.price-cell input{-moz-appearance:textfield;appearance:textfield}
+.qty-cell input{width:92px;padding:3px 8px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:center;background:#f8faff}
 .qty-cell input:focus{border-color:#2563eb;outline:none}
-.price-cell input{width:92px;padding:3px 6px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:right;background:#f8faff}
+.price-cell input{width:96px;padding:3px 8px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;text-align:right;background:#f8faff}
 .price-cell input:focus{border-color:#2563eb;outline:none}
 .cell-print{display:none}
 .del-cell button{background:none;border:none;color:#94a3b8;cursor:pointer;padding:3px 6px;border-radius:3px;font-size:13px;line-height:1}
