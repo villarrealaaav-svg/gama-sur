@@ -1756,37 +1756,23 @@ window.addEventListener('afterprint', ()=>{
 });
 
 /* ═════════════════════════════════════════════════
-   GUARDAR HTML (la función estrella)
+   SNAPSHOT — construir HTML self-contained
+   Inyecta db, cfg Y el estado completo de la cotización
+   (items + cliente + IVA + entrega) + loader que recalcula.
+   Usado por "Guardar HTML" Y "Guardar Proyecto" — cualquier
+   export resultante SUMA y es editable.
 ═════════════════════════════════════════════════ */
-function saveHTML(){
-  const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  const jsonStr = JSON.stringify(db);
-  const cfgStr = JSON.stringify(cfg);
-  // Actualizar bloque de datos
-  const regex = /(const INITIAL_DATA = )[\s\S]*?(;[\s\S]*?\/\* ══════════════════ JSON_DATA_END)/;
-  let newHTML = currentHTML.replace(regex, `const INITIAL_DATA = ${jsonStr};\n/* ══════════════════ JSON_DATA_END`);
-  // Actualizar bloque de cfg
-  const cfgRegex = /(const INITIAL_CFG = )[\s\S]*?(;[\s\S]*?\/\* ══ CFG_END)/;
-  newHTML = newHTML.replace(cfgRegex, `const INITIAL_CFG = ${cfgStr};\n/* ══ CFG_END`);
-  const now = new Date();
-  const fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
-  const blob = new Blob([newHTML],{type:'text/html;charset=utf-8'});
-  const a = document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-  toast(`✅ Guardado: ${fname}`,'success');
-}
+function buildSnapshotHTML(){
+  let currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
 
-/* ═════════════════════════════════════════════════
-   GUARDAR PROYECTO (snapshot cotización)
-═════════════════════════════════════════════════ */
-function saveCotProject(){
-  if(!cotItems.length){ toast('⚠️ Cotización vacía','info'); return; }
+  // Limpiar SOLO la inyección REAL previa (si se re-exporta un snapshot ya generado),
+  // sin tocar el código fuente de esta función. El FROZEN real empieza con "= {" (JSON);
+  // el template del código usa "= ${...}" → no colisiona.
+  currentHTML = currentHTML.replace(
+    /window\.FROZEN_COT = \{[\s\S]*?\};\n\/\* ══ FROZEN_COT_END ══ \*\/\n?/g, ''
+  );
 
-  // Build a frozen, self-contained snapshot of this cotización only
-  const currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-  // 1. Freeze INITIAL_DATA with current db (prices stay updated) + INITIAL_CFG with current cfg
+  // 1. Congelar INITIAL_DATA (precios actuales) + INITIAL_CFG (config actual)
   const jsonStr = JSON.stringify(db);
   const cfgStr  = JSON.stringify(cfg);
   const dataRegex = /(const INITIAL_DATA = )[\s\S]*?(;[\s\S]*?\/\* ══════════════════ JSON_DATA_END)/;
@@ -1795,7 +1781,7 @@ function saveCotProject(){
     .replace(dataRegex, `const INITIAL_DATA = ${jsonStr};\n/* ══════════════════ JSON_DATA_END`)
     .replace(cfgRegex,  `const INITIAL_CFG = ${cfgStr};\n/* ══ CFG_END`);
 
-  // 2. Inject a FROZEN_COT block — cotizador items + client data baked in
+  // 2. Estado completo de la cotización
   const frozenPayload = {
     items: cotItems,
     client: {
@@ -1811,16 +1797,16 @@ function saveCotProject(){
     entrega:   (document.getElementById('entregaInput')||{}).value||'0'
   };
 
-  // Inject FROZEN_COT constant right after the INITIAL_CFG block
+  // 3. Inyectar FROZEN_COT justo después del bloque INITIAL_CFG
   snap = snap.replace(
     /(\/\* ══ CFG_END ══ \*\/)/,
     `$1\nwindow.FROZEN_COT = ${JSON.stringify(frozenPayload)};\n/* ══ FROZEN_COT_END ══ */`
   );
 
-  // 3. Append a loader script before </body>.
-  //    window 'load' fires AFTER init()'s DOMContentLoaded handler, so the app is
-  //    fully wired before we inject data. Snapshot stays EDITABLE for obra revision.
+  // 4. Loader antes de </body>. window 'load' corre DESPUÉS del init() (DOMContentLoaded),
+  //    así la app ya está cableada. El snapshot queda EDITABLE para revisión en obra.
   const loader = `
+<!-- SNAPSHOT_LOADER_START -->
 <script>
 window.addEventListener('load', function(){
   if(!window.FROZEN_COT) return;
@@ -1833,11 +1819,10 @@ window.addEventListener('load', function(){
     var fields = ['nombre','tel','dir','obra','notas'];
     fields.forEach(function(f){
       var el = document.getElementById('cl'+f.charAt(0).toUpperCase()+f.slice(1));
-      if(el && F.client && F.client[f]) el.value = F.client[f];
+      if(el && F.client && F.client[f] != null) el.value = F.client[f];
     });
     var numEl = document.getElementById('cotNumInput');
     if(numEl && F.quoteNum) numEl.value = F.quoteNum;
-    // Restaurar estado de IVA y costo de entrega
     var ivaT = document.getElementById('ivaToggle');
     if(ivaT) ivaT.checked = (F.ivaOn !== false);
     var entT = document.getElementById('entregaToggle');
@@ -1847,12 +1832,13 @@ window.addEventListener('load', function(){
     if(typeof syncClientName==='function') syncClientName();
     renderCotTable();   // recalcula subtotales + updateTotals()
     updateStats();
-    switchTab('cot');
-    // Banner: editable, para revisión en obra
-    var banner = document.createElement('div');
-    banner.style.cssText='background:#1e4d8b;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.03em';
-    banner.textContent='📋 PROYECTO: '+(F.quoteNum||'')+(F.client&&F.client.nombre?' · '+F.client.nombre:'')+' — Editable: ajusta cantidades y el total se recalcula solo.';
-    document.body.prepend(banner);
+    if(cotItems.length){
+      switchTab('cot');
+      var banner = document.createElement('div');
+      banner.style.cssText='background:#1e4d8b;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.03em';
+      banner.textContent='📋 PROYECTO: '+(F.quoteNum||'')+(F.client&&F.client.nombre?' · '+F.client.nombre:'')+' — Editable: ajusta cantidades y el total se recalcula solo.';
+      document.body.prepend(banner);
+    }
   } catch(e){
     console.error('Snapshot loader error:', e);
     var err = document.createElement('div');
@@ -1862,21 +1848,50 @@ window.addEventListener('load', function(){
   }
 });
 <\/script>
+<!-- SNAPSHOT_LOADER_END -->
 `;
-  snap = snap.replace(/<\/body>/i, loader + '</body>');
+  // Insertar el loader antes del ÚLTIMO </body> (el real del documento).
+  // NO usar .replace(/<\/body>/) porque el PRIMER match sería el literal '</body>'
+  // que aparece dentro del código fuente de esta misma función → rompería el script.
+  const bodyClose = snap.lastIndexOf('</body>');
+  if(bodyClose !== -1){
+    snap = snap.slice(0, bodyClose) + loader + snap.slice(bodyClose);
+  } else {
+    snap += loader;
+  }
+  return snap;
+}
 
-  // 4. Filename: COT-YYYY-NNN_Cliente.html
-  const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
-  const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30);
-  const numEl = document.getElementById('cotNumInput');
-  const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
-  const fname = `${numSlug}_${clientSlug}.html`;
-
-  const blob = new Blob([snap],{type:'text/html;charset=utf-8'});
+function downloadHTML(html, fname){
+  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
   const a = document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   URL.revokeObjectURL(a.href);
-  toast(`📦 Proyecto guardado: ${fname}`,'success');
+}
+
+/* ═════════════════════════════════════════════════
+   GUARDAR HTML — copia completa (precios + cotización viva)
+═════════════════════════════════════════════════ */
+function saveHTML(){
+  const snap = buildSnapshotHTML();
+  const now = new Date();
+  const fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
+  downloadHTML(snap, fname);
+  toast(`✅ Guardado: ${fname}`,'success');
+}
+
+/* ═════════════════════════════════════════════════
+   GUARDAR PROYECTO — snapshot por cliente (nombre COT-xxx_Cliente)
+═════════════════════════════════════════════════ */
+function saveCotProject(){
+  if(!cotItems.length){ toast('⚠️ Cotización vacía','info'); return; }
+  const snap = buildSnapshotHTML();
+  const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
+  const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30) || 'Proyecto';
+  const numEl = document.getElementById('cotNumInput');
+  const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
+  downloadHTML(snap, `${numSlug}_${clientSlug}.html`);
+  toast(`📦 Proyecto guardado: ${numSlug}_${clientSlug}.html`,'success');
 }
 
 /* ═════════════════════════════════════════════════
