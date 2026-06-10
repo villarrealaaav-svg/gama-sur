@@ -801,10 +801,6 @@ tr:hover .row-actions{opacity:1}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Generar PDF
       </button>
-      <button class="btn btn-sm" style="background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-weight:600" onclick="saveCotProject()" title="Guardar snapshot de esta cotización como archivo HTML independiente">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-        Guardar Proyecto
-      </button>
     </div>
   </div>
 
@@ -1759,8 +1755,8 @@ window.addEventListener('afterprint', ()=>{
    SNAPSHOT — construir HTML self-contained
    Inyecta db, cfg Y el estado completo de la cotización
    (items + cliente + IVA + entrega) + loader que recalcula.
-   Usado por "Guardar HTML" Y "Guardar Proyecto" — cualquier
-   export resultante SUMA y es editable.
+   Usado por el botón ÚNICO "Guardar HTML": el archivo resultante
+   SUMA y es editable en obra.
 ═════════════════════════════════════════════════ */
 function buildSnapshotHTML(){
   let currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
@@ -1870,28 +1866,26 @@ function downloadHTML(html, fname){
 }
 
 /* ═════════════════════════════════════════════════
-   GUARDAR HTML — copia completa (precios + cotización viva)
+   GUARDAR HTML — botón ÚNICO de exportación.
+   Si hay cotización: nombra COT-xxx_Cliente.html
+   Si no: GamaSur_Precios_FECHA.html
+   El archivo SUMA y es editable en obra.
 ═════════════════════════════════════════════════ */
 function saveHTML(){
   const snap = buildSnapshotHTML();
-  const now = new Date();
-  const fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
+  let fname;
+  if(cotItems.length){
+    const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
+    const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30) || 'Proyecto';
+    const numEl = document.getElementById('cotNumInput');
+    const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
+    fname = `${numSlug}_${clientSlug}.html`;
+  } else {
+    const now = new Date();
+    fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
+  }
   downloadHTML(snap, fname);
   toast(`✅ Guardado: ${fname}`,'success');
-}
-
-/* ═════════════════════════════════════════════════
-   GUARDAR PROYECTO — snapshot por cliente (nombre COT-xxx_Cliente)
-═════════════════════════════════════════════════ */
-function saveCotProject(){
-  if(!cotItems.length){ toast('⚠️ Cotización vacía','info'); return; }
-  const snap = buildSnapshotHTML();
-  const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
-  const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30) || 'Proyecto';
-  const numEl = document.getElementById('cotNumInput');
-  const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
-  downloadHTML(snap, `${numSlug}_${clientSlug}.html`);
-  toast(`📦 Proyecto guardado: ${numSlug}_${clientSlug}.html`,'success');
 }
 
 /* ═════════════════════════════════════════════════
