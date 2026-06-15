@@ -71,11 +71,11 @@ a{color:var(--accent);text-decoration:none}
 .header-inner{display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
 .logo-area{display:flex;align-items:center;gap:10px;min-width:0}
 /* Logo editable */
-.logo-box{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent-dark));border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:16px;flex-shrink:0;cursor:pointer;overflow:hidden;position:relative}
+.logo-box{width:48px;height:48px;background:#fff;border:1px solid var(--border);border-radius:var(--radius);display:flex;align-items:center;justify-content:center;color:var(--accent);font-weight:800;font-size:16px;flex-shrink:0;cursor:pointer;overflow:hidden;position:relative;padding:3px}
 .logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;font-size:14px;border-radius:var(--radius)}
-.cot-logo-wrap{display:flex;align-items:center;gap:10px}
-.cot-logo-box{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative}
-.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:6px}
+.cot-logo-wrap{display:flex;align-items:center;gap:12px}
+.cot-logo-box{width:64px;height:64px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1e3a5f;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:8px}
 .logo-img,.cot-logo-img{width:100%;height:100%;object-fit:contain}
 .logo-text{min-width:0}
 .sys-name{font-size:15px;font-weight:700;color:var(--text);white-space:nowrap;cursor:pointer}
@@ -260,9 +260,9 @@ tr:hover .row-actions{opacity:1}
 .cot-editable:focus{background:rgba(255,255,255,.25);outline:none;border-style:solid}
 .cot-num-input{background:rgba(255,255,255,.15);border:1px dashed rgba(255,255,255,.5);border-radius:3px;padding:2px 8px;color:#fff;font:inherit;font-size:20px;font-weight:800;font-family:monospace;width:150px;text-align:right}
 .cot-num-input:focus{background:rgba(255,255,255,.25);outline:none;border-style:solid}
-.cot-logo-wrap{display:flex;align-items:center;gap:10px}
-.cot-logo-box{width:52px;height:52px;background:rgba(255,255,255,.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative}
-.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:6px}
+.cot-logo-wrap{display:flex;align-items:center;gap:12px}
+.cot-logo-box{width:64px;height:64px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1e3a5f;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;cursor:pointer;position:relative;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.cot-logo-box:hover::after{content:'📷';position:absolute;inset:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;font-size:16px;border-radius:8px}
 .cot-logo-img{width:100%;height:100%;object-fit:contain}
 .cot-client-strip{background:#f0f6ff;border-bottom:2px solid #2563eb;padding:14px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 @media screen and (max-width:600px){.cot-client-strip{grid-template-columns:1fr}}
@@ -510,7 +510,13 @@ tr:hover .row-actions{opacity:1}
   .cot-footer-contacts { font-size: 7.5pt !important; gap: 12px !important; opacity: .9 !important; }
   .cot-footer-slogan { font-size: 8pt !important; }
   /* Reservar espacio inferior para que el contenido no quede tapado por el footer fijo */
-  #panel-cot .cot-doc { padding-bottom: 18mm !important; }
+  #panel-cot .cot-doc { padding-bottom: 14mm !important; }
+  /* Evitar HOJA EXTRA en celular: nada de alturas mínimas ni overflow que generen
+     una segunda página casi en blanco. */
+  html, body, .app, #panel-cot, .cot-doc-outer, .cot-doc {
+    height: auto !important; min-height: 0 !important; overflow: visible !important;
+  }
+  .cot-doc-outer { overflow: visible !important; }
 }
 .print-header{display:none}
 /* ═══════════════════════════════════════════════
@@ -549,15 +555,19 @@ tr:hover .row-actions{opacity:1}
   .cot-co-meta{font-size:11px;gap:6px}
   .cot-num-input{width:120px;font-size:16px}
   .cot-client-strip{padding:10px 14px;grid-template-columns:1fr}
-  .cot-items table{font-size:11px}
-  .cot-items thead th{padding:6px 7px;font-size:9.5px}
-  .cot-items tbody td{padding:6px 7px;font-size:11px}
+  /* La tabla de cotización cabe completa, sin arrastrar a un lado */
+  .cot-table-wrap{overflow-x:visible}
+  .cot-items table{font-size:10.5px;min-width:0;width:100%;table-layout:auto}
+  .cot-items thead th{padding:5px 4px;font-size:9px}
+  .cot-items tbody td{padding:5px 4px;font-size:10.5px;white-space:normal;word-break:break-word}
+  .cot-items .td-clave{font-size:9px}
+  .cot-items .td-num{font-size:9px}
   .cot-totals-wrap{padding:12px 14px;grid-template-columns:1fr;gap:12px}
   .cot-totals-table{width:100%}
   .cot-notes-section textarea{height:60px}
   .cot-doc-footer{padding:8px 14px;font-size:10.5px}
-  .qty-cell input{width:46px}
-  .price-cell input{width:68px}
+  .qty-cell input{width:56px;padding:2px 3px}
+  .price-cell input{width:62px;padding:2px 3px}
   .modal-grid{grid-template-columns:1fr}
   .pager{flex-wrap:wrap;gap:4px;padding:8px 10px}
 }
@@ -650,10 +660,6 @@ tr:hover .row-actions{opacity:1}
         <span>Imprimir</span>
       </button>
       <button class="btn-icon" onclick="toggleTheme()" id="themeBtn" title="Cambiar tema">🌙</button>
-      <button class="btn btn-save" onclick="saveHTML()" title="Descargar HTML actualizado">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
-        <span>Guardar HTML</span>
-      </button>
     </div>
   </div>
 </header>
@@ -817,12 +823,12 @@ tr:hover .row-actions{opacity:1}
           </div>
           <div>
             <div class="cot-co-name">
-              <span class="cot-editable" id="cotCoName" contenteditable="true" title="Click para editar">GamaSur — Materiales de Construcción</span>
+              <span id="cotCoName">GamaSur — Materiales de Construcción</span>
             </div>
             <div class="cot-co-meta">
-              <span>📞 <span class="cot-editable" id="cotCoTel" contenteditable="true">Tel: (993) 000-0000</span></span>
-              <span>📍 <span class="cot-editable" id="cotCoCiudad" contenteditable="true">Villahermosa, Tabasco</span></span>
-              <span>✉️ <span class="cot-editable" id="cotCoEmail" contenteditable="true">ventas@gamasur.com</span></span>
+              <span>📞 <span id="cotCoTel">Tel: (993) 000-0000</span></span>
+              <span>📍 <span id="cotCoCiudad">Villahermosa, Tabasco</span></span>
+              <span>✉️ <span id="cotCoEmail">ventas@gamasur.com</span></span>
             </div>
           </div>
         </div>
@@ -892,7 +898,6 @@ tr:hover .row-actions{opacity:1}
           <table class="cot-totals-table">
             <tbody>
               <tr><td class="t-label">Subtotal s/IVA</td><td class="t-val" id="tSubtotal">$0.00</td></tr>
-              <tr id="rowIVA"><td class="t-label">IVA (16%)</td><td class="t-val" id="tIVA">$0.00</td></tr>
               <tr class="cot-entrega-row" id="cot-entrega-row">
                 <td class="t-label">
                   Costo de entrega
@@ -906,6 +911,8 @@ tr:hover .row-actions{opacity:1}
                   <span id="entregaDisplay" style="display:none;font-weight:600;color:#059669">$0.00</span>
                 </td>
               </tr>
+              <tr id="rowBase"><td class="t-label">Base gravable</td><td class="t-val" id="tBase">$0.00</td></tr>
+              <tr id="rowIVA"><td class="t-label">IVA (16%)</td><td class="t-val" id="tIVA">$0.00</td></tr>
               <tr class="t-total"><td class="t-label">TOTAL GENERAL</td><td class="t-val" id="tTotal">$0.00</td></tr>
             </tbody>
           </table>
@@ -1040,8 +1047,11 @@ const INITIAL_CFG = {"sysName":"GamaSur — Materiales de Construcción","ciudad
 ═════════════════════════════════════════════════ */
 const CFG_KEY = 'gamasur_cfg';
 const DATA_KEY = 'gamasur_data';
+const LOGO_KEY = 'gamasur_logo_global';   // compartido por TODAS las apps del mismo origen
 const IVA = 0.16;
 const PAGE_SIZE = 50;
+// Marcas registradas (se cuentan aunque no tengan productos aún)
+const BRANDS = ['IMPAC','FANOSA','NOVIDESA','KEMIX'];
 
 let db = [];
 let filtered = [];
@@ -1096,6 +1106,8 @@ function loadState(){
   }catch(e){
     try{ localStorage.removeItem(CFG_KEY); }catch(e2){}
   }
+  // Logo GLOBAL (compartido por todas las apps del mismo origen) tiene prioridad
+  try{ const gl = localStorage.getItem(LOGO_KEY); if(gl) cfg.logo = gl; }catch(e){}
   if(cfg.theme==='dark') document.documentElement.setAttribute('data-theme','dark');
 }
 
@@ -1132,7 +1144,7 @@ function updateMetaUpdate(){
 ═════════════════════════════════════════════════ */
 function updateStats(){
   document.getElementById('statTotal').textContent = db.length;
-  document.getElementById('statMarcas').textContent = new Set(db.map(x=>x.marca)).size;
+  document.getElementById('statMarcas').textContent = new Set([...BRANDS, ...db.map(x=>x.marca)]).size;
   document.getElementById('statCats').textContent = new Set(db.map(x=>x.categoria)).size;
   document.getElementById('dbCount').textContent = db.length;
   document.getElementById('cotCount').textContent = cotItems.length;
@@ -1531,17 +1543,24 @@ function updateTotals(){
   const sub = cotItems.reduce((s,x)=> s + (isNaN(x.qty)?0:x.qty) * (isNaN(x.precio)?0:x.precio), 0);
   const ivaEl = document.getElementById('ivaToggle');
   const ivaOn = ivaEl ? ivaEl.checked : true;
-  const iva = ivaOn ? sub * IVA : 0;
   const entEl = document.getElementById('entregaToggle');
   const entregaOn = entEl ? entEl.checked : false;
   const entRaw = parseFloat((document.getElementById('entregaInput')||{}).value);
   const entrega = entregaOn && !isNaN(entRaw) ? entRaw : 0;
-  const total = sub + iva + entrega;
+  // El IVA se aplica a (subtotal + costo de entrega). Total = base + IVA.
+  const base = sub + entrega;
+  const iva = ivaOn ? base * IVA : 0;
+  const total = base + iva;
 
   const setTxt = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
   setTxt('tSubtotal', fmtNum(sub));
+  setTxt('tBase', fmtNum(base));
   setTxt('tIVA', fmtNum(iva));
   setTxt('tTotal', fmtNum(total));
+
+  // Mostrar "Base gravable" solo cuando hay entrega (si no, subtotal == base, es redundante)
+  const rowBase = document.getElementById('rowBase');
+  if(rowBase) rowBase.style.display = (entregaOn && entrega>0) ? '' : 'none';
 
   const rowIVA = document.getElementById('rowIVA');
   if(rowIVA) rowIVA.style.opacity = ivaOn ? '1' : '0.35';
@@ -1646,6 +1665,8 @@ function resetData(){
   try{ localStorage.removeItem(DATA_KEY); localStorage.removeItem(CFG_KEY); }catch(e){}
   db = JSON.parse(JSON.stringify(INITIAL_DATA));
   cfg = JSON.parse(JSON.stringify(INITIAL_CFG));
+  // El logo de marca NO se borra al resetear datos (sobrevive en el key global)
+  try{ const gl = localStorage.getItem(LOGO_KEY); if(gl) cfg.logo = gl; }catch(e){}
   document.documentElement.setAttribute('data-theme','light');
   renderHeader();buildFilters();activeBrand='';updateBrandBanner();applyFilters();renderColHeaders();updateStats();
   toast('✅ Datos restaurados a versión original','success');
@@ -1712,9 +1733,10 @@ function handleLogoUpload(input){
   reader.onload = e => {
     const b64 = e.target.result;
     cfg.logo = b64;
+    try{ localStorage.setItem(LOGO_KEY, b64); }catch(err){ toast('Logo muy pesado para guardar. Usa una imagen más liviana.','error'); }
     applyLogo(b64);
     saveState();
-    toast('Logo actualizado','success');
+    toast('Logo actualizado (se usará en todas las apps)','success');
   };
   reader.readAsDataURL(file);
   input.value = ''; // reset so same file can be re-uploaded
@@ -1750,143 +1772,6 @@ window.addEventListener('beforeprint', ()=>{
 window.addEventListener('afterprint', ()=>{
   document.body.removeAttribute('data-printing');
 });
-
-/* ═════════════════════════════════════════════════
-   SNAPSHOT — construir HTML self-contained
-   Inyecta db, cfg Y el estado completo de la cotización
-   (items + cliente + IVA + entrega) + loader que recalcula.
-   Usado por el botón ÚNICO "Guardar HTML": el archivo resultante
-   SUMA y es editable en obra.
-═════════════════════════════════════════════════ */
-function buildSnapshotHTML(){
-  let currentHTML = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-
-  // Limpiar SOLO la inyección REAL previa (si se re-exporta un snapshot ya generado),
-  // sin tocar el código fuente de esta función. El FROZEN real empieza con "= {" (JSON);
-  // el template del código usa "= ${...}" → no colisiona.
-  currentHTML = currentHTML.replace(
-    /window\.FROZEN_COT = \{[\s\S]*?\};\n\/\* ══ FROZEN_COT_END ══ \*\/\n?/g, ''
-  );
-
-  // 1. Congelar INITIAL_DATA (precios actuales) + INITIAL_CFG (config actual)
-  const jsonStr = JSON.stringify(db);
-  const cfgStr  = JSON.stringify(cfg);
-  const dataRegex = /(const INITIAL_DATA = )[\s\S]*?(;[\s\S]*?\/\* ══════════════════ JSON_DATA_END)/;
-  const cfgRegex  = /(const INITIAL_CFG = )[\s\S]*?(;[\s\S]*?\/\* ══ CFG_END)/;
-  let snap = currentHTML
-    .replace(dataRegex, `const INITIAL_DATA = ${jsonStr};\n/* ══════════════════ JSON_DATA_END`)
-    .replace(cfgRegex,  `const INITIAL_CFG = ${cfgStr};\n/* ══ CFG_END`);
-
-  // 2. Estado completo de la cotización
-  const frozenPayload = {
-    items: cotItems,
-    client: {
-      nombre: (document.getElementById('clNombre')||{}).value||'',
-      tel:    (document.getElementById('clTel')||{}).value||'',
-      dir:    (document.getElementById('clDir')||{}).value||'',
-      obra:   (document.getElementById('clObra')||{}).value||'',
-      notas:  (document.getElementById('clNotas')||{}).value||''
-    },
-    quoteNum: (document.getElementById('cotNumInput')||{}).value||'',
-    ivaOn:     !!(document.getElementById('ivaToggle')||{}).checked,
-    entregaOn: !!(document.getElementById('entregaToggle')||{}).checked,
-    entrega:   (document.getElementById('entregaInput')||{}).value||'0'
-  };
-
-  // 3. Inyectar FROZEN_COT justo después del bloque INITIAL_CFG
-  snap = snap.replace(
-    /(\/\* ══ CFG_END ══ \*\/)/,
-    `$1\nwindow.FROZEN_COT = ${JSON.stringify(frozenPayload)};\n/* ══ FROZEN_COT_END ══ */`
-  );
-
-  // 4. Loader antes de </body>. window 'load' corre DESPUÉS del init() (DOMContentLoaded),
-  //    así la app ya está cableada. El snapshot queda EDITABLE para revisión en obra.
-  const loader = `
-<!-- SNAPSHOT_LOADER_START -->
-<script>
-window.addEventListener('load', function(){
-  if(!window.FROZEN_COT) return;
-  try {
-    var F = window.FROZEN_COT;
-    cotItems = (F.items||[]).map(function(x){
-      return { clave:x.clave, desc:x.desc, unidad:x.unidad,
-               precio:Number(x.precio)||0, qty:Number(x.qty)||0, dbIdx:x.dbIdx };
-    });
-    var fields = ['nombre','tel','dir','obra','notas'];
-    fields.forEach(function(f){
-      var el = document.getElementById('cl'+f.charAt(0).toUpperCase()+f.slice(1));
-      if(el && F.client && F.client[f] != null) el.value = F.client[f];
-    });
-    var numEl = document.getElementById('cotNumInput');
-    if(numEl && F.quoteNum) numEl.value = F.quoteNum;
-    var ivaT = document.getElementById('ivaToggle');
-    if(ivaT) ivaT.checked = (F.ivaOn !== false);
-    var entT = document.getElementById('entregaToggle');
-    if(entT) entT.checked = !!F.entregaOn;
-    var entI = document.getElementById('entregaInput');
-    if(entI && F.entrega != null) entI.value = F.entrega;
-    if(typeof syncClientName==='function') syncClientName();
-    renderCotTable();   // recalcula subtotales + updateTotals()
-    updateStats();
-    if(cotItems.length){
-      switchTab('cot');
-      var banner = document.createElement('div');
-      banner.style.cssText='background:#1e4d8b;color:#fff;text-align:center;padding:8px 16px;font-size:12px;font-weight:600;letter-spacing:.03em';
-      banner.textContent='📋 PROYECTO: '+(F.quoteNum||'')+(F.client&&F.client.nombre?' · '+F.client.nombre:'')+' — Editable: ajusta cantidades y el total se recalcula solo.';
-      document.body.prepend(banner);
-    }
-  } catch(e){
-    console.error('Snapshot loader error:', e);
-    var err = document.createElement('div');
-    err.style.cssText='background:#dc2626;color:#fff;padding:10px;font-size:12px;text-align:center';
-    err.textContent='⚠️ Error al cargar el proyecto: '+e.message;
-    document.body.prepend(err);
-  }
-});
-<\/script>
-<!-- SNAPSHOT_LOADER_END -->
-`;
-  // Insertar el loader antes del ÚLTIMO </body> (el real del documento).
-  // NO usar .replace(/<\/body>/) porque el PRIMER match sería el literal '</body>'
-  // que aparece dentro del código fuente de esta misma función → rompería el script.
-  const bodyClose = snap.lastIndexOf('</body>');
-  if(bodyClose !== -1){
-    snap = snap.slice(0, bodyClose) + loader + snap.slice(bodyClose);
-  } else {
-    snap += loader;
-  }
-  return snap;
-}
-
-function downloadHTML(html, fname){
-  const blob = new Blob([html],{type:'text/html;charset=utf-8'});
-  const a = document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  URL.revokeObjectURL(a.href);
-}
-
-/* ═════════════════════════════════════════════════
-   GUARDAR HTML — botón ÚNICO de exportación.
-   Si hay cotización: nombra COT-xxx_Cliente.html
-   Si no: GamaSur_Precios_FECHA.html
-   El archivo SUMA y es editable en obra.
-═════════════════════════════════════════════════ */
-function saveHTML(){
-  const snap = buildSnapshotHTML();
-  let fname;
-  if(cotItems.length){
-    const clientRaw = (document.getElementById('clNombre')||{}).value||'Proyecto';
-    const clientSlug = clientRaw.trim().replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_').substring(0,30) || 'Proyecto';
-    const numEl = document.getElementById('cotNumInput');
-    const numSlug = numEl ? numEl.value.replace(/[^a-zA-Z0-9\-]/g,'') : 'COT';
-    fname = `${numSlug}_${clientSlug}.html`;
-  } else {
-    const now = new Date();
-    fname = `GamaSur_Precios_${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}.html`;
-  }
-  downloadHTML(snap, fname);
-  toast(`✅ Guardado: ${fname}`,'success');
-}
 
 /* ═════════════════════════════════════════════════
    TOAST
