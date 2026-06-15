@@ -371,6 +371,18 @@ const INITIAL_APPS = [
     url: "cuantificador-amenidades.html",
     badge: "live",
     badgeLabel: "En vivo"
+  },
+  {
+    id: "clientes",
+    name: "Directorio de",
+    nameItalic: "Clientes",
+    desc: "Captura tus clientes una vez y se autocompletan en cotizaciones y cuantificadores.",
+    icon: "👥",
+    color: "#c2622a",
+    iconBg: "#f7ede5",
+    url: "clientes.html",
+    badge: "live",
+    badgeLabel: "En vivo"
   }
 ];
 const ROADMAP = [
@@ -382,17 +394,6 @@ const ROADMAP = [
     icon: "📐",
     color: "#0f7173",
     iconBg: "#e8f4f4",
-    badge: "soon",
-    badgeLabel: "Próximamente"
-  },
-  {
-    id: "rm-clientes",
-    name: "Directorio de",
-    nameItalic: "Clientes",
-    desc: "Contactos, historial de cotizaciones y seguimiento de proyectos.",
-    icon: "👥",
-    color: "#c2622a",
-    iconBg: "#f7ede5",
     badge: "soon",
     badgeLabel: "Próximamente"
   },
@@ -522,14 +523,15 @@ function delApp(id){
 /* ════════════════════════════════════════
    LOGO
 ════════════════════════════════════════ */
+const LOGO_KEY = 'gamasur_logo_global';   // mismo logo para TODAS las apps del origen
 function handleLogo(input){
   const file = input.files[0];
   if(!file) return;
   const r = new FileReader();
   r.onload = e => {
     setLogo(e.target.result);
-    try{ localStorage.setItem('gamasur_lobby_logo', e.target.result); }catch(err){}
-    toast('Logo actualizado','success');
+    try{ localStorage.setItem(LOGO_KEY, e.target.result); }catch(err){ toast('Logo muy pesado. Usa una imagen más liviana.','error'); }
+    toast('Logo actualizado (se usa en todas las apps)','success');
   };
   r.readAsDataURL(file);
   input.value='';
@@ -542,8 +544,8 @@ function setLogo(src){
 }
 function loadLogo(){
   try{
-    const src = localStorage.getItem('gamasur_lobby_logo');
-    if(src) setLogo(src);
+    const src = localStorage.getItem(LOGO_KEY) || localStorage.getItem('gamasur_lobby_logo');
+    if(src){ setLogo(src); try{ localStorage.setItem(LOGO_KEY, src); }catch(e){} }
   }catch(e){}
 }
 

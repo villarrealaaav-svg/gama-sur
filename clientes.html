@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Directorio de Clientes · GAMA SUR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F0F4F9; --surface:#fff; --border:#E5E7EB; --border2:#D1D5DB;
+  --ink:#1A2535; --ink2:#3D4F63; --ink3:#7A8FA6;
+  --blue:#2563EB; --blue-deep:#1e4d8b; --blue-bg:#EFF6FF; --blue-100:#DBEAFE;
+  --orange:#EA580C; --green:#16A34A; --red:#DC2626; --red-bg:#FEE2E2;
+  --radius:10px; --radius-sm:6px; --shadow:0 4px 14px rgba(26,37,53,.09);
+  --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
+  --font-body:'Inter','Segoe UI',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
+button{font-family:var(--font-body);cursor:pointer;border:none;transition:all .15s}
+input,textarea{font-family:var(--font-body);outline:none}
+.container{max-width:1100px;margin:0 auto;padding:0 16px;width:100%}
+
+/* HEADER */
+header{background:linear-gradient(135deg,#1F2937 0%,#1e4d8b 60%,#2563EB 100%);border-bottom:3px solid var(--orange);color:#fff}
+.head-inner{display:flex;align-items:center;gap:14px;padding:18px 16px;flex-wrap:wrap;max-width:1100px;margin:0 auto}
+.logo-box{width:54px;height:54px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--blue-deep);font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.logo-img{width:100%;height:100%;object-fit:contain}
+.head-titles{flex:1;min-width:0}
+.head-eyebrow{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.6)}
+.head-title{font-family:var(--font-display);font-size:26px;font-weight:800;letter-spacing:.02em;line-height:1.05}
+.head-title span{color:#FB923C}
+.head-sub{font-size:12px;color:rgba(255,255,255,.7);margin-top:2px}
+.head-actions{display:flex;gap:8px;flex-wrap:wrap}
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600}
+.btn-ghost-light{background:rgba(255,255,255,.14);color:#fff;border:1px solid rgba(255,255,255,.25)}
+.btn-ghost-light:hover{background:rgba(255,255,255,.24)}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 3px 10px rgba(37,99,235,.3)}
+.btn-primary:hover{background:var(--blue-deep)}
+.btn-ghost{background:var(--surface);color:var(--ink2);border:1px solid var(--border2)}
+.btn-ghost:hover{background:var(--blue-bg);color:var(--blue-deep);border-color:var(--blue)}
+.btn-sm{padding:6px 11px;font-size:12px}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;padding:16px 0;flex-wrap:wrap}
+.search{flex:1;min-width:200px;max-width:420px;position:relative}
+.search input{width:100%;padding:10px 12px 10px 36px;border:1px solid var(--border2);border-radius:8px;font-size:14px;background:#fff;color:var(--ink)}
+.search input:focus{border-color:var(--blue)}
+.search::before{content:'🔍';position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:14px;opacity:.5}
+.count-pill{font-size:12px;color:var(--ink3);font-weight:600;background:#fff;border:1px solid var(--border);border-radius:20px;padding:5px 12px}
+
+/* CARDS LIST */
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px;padding-bottom:60px}
+.card{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--blue);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);position:relative;transition:transform .12s,box-shadow .12s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(26,37,53,.13)}
+.card-empresa{font-family:var(--font-display);font-size:20px;font-weight:700;color:var(--ink);letter-spacing:.01em;line-height:1.1;padding-right:60px}
+.card-nombre{font-size:13px;color:var(--blue-deep);font-weight:600;margin-top:1px}
+.card-rows{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.card-row{font-size:12.5px;color:var(--ink2);display:flex;gap:7px;align-items:flex-start}
+.card-row .ic{width:15px;flex-shrink:0;opacity:.6}
+.card-rfc{font-family:monospace;font-size:11.5px;color:var(--ink3);margin-top:8px;letter-spacing:.04em}
+.card-acts{position:absolute;top:12px;right:12px;display:flex;gap:4px}
+.icon-btn{width:30px;height:30px;border-radius:6px;background:#f1f5f9;color:var(--ink3);display:flex;align-items:center;justify-content:center;font-size:14px}
+.icon-btn:hover{background:var(--blue-bg);color:var(--blue)}
+.icon-btn.del:hover{background:var(--red-bg);color:var(--red)}
+.empty{text-align:center;padding:70px 20px;color:var(--ink3)}
+.empty-icon{font-size:46px;margin-bottom:12px}
+.empty h3{font-family:var(--font-display);font-size:24px;color:var(--ink2);font-weight:700}
+.empty p{font-size:14px;margin:6px 0 18px}
+
+/* MODAL */
+.overlay{position:fixed;inset:0;background:rgba(15,23,41,.55);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:16px;z-index:100}
+.overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.3);overflow:hidden}
+.modal-head{padding:16px 20px;background:var(--blue-deep);color:#fff;display:flex;justify-content:space-between;align-items:center}
+.modal-head h2{font-family:var(--font-display);font-size:20px;font-weight:700;letter-spacing:.02em}
+.modal-close{background:rgba(255,255,255,.15);color:#fff;width:30px;height:30px;border-radius:6px;font-size:16px}
+.modal-close:hover{background:rgba(255,255,255,.28)}
+.modal-body{padding:18px 20px;overflow-y:auto}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink3);margin-bottom:5px}
+.field input,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:7px;font-size:14px;color:var(--ink);background:#fff}
+.field input:focus,.field textarea:focus{border-color:var(--blue)}
+.field textarea{resize:vertical;min-height:60px}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.modal-foot{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:8px}
+#toast{position:fixed;bottom:20px;right:20px;z-index:200;display:flex;flex-direction:column;gap:8px}
+.toast-item{background:var(--ink);color:#fff;padding:11px 16px;border-radius:8px;font-size:13px;font-weight:500;box-shadow:0 4px 14px rgba(0,0,0,.2)}
+.toast-item.success{background:var(--green)}
+.toast-item.error{background:var(--red)}
+@media(max-width:560px){
+  .head-title{font-size:22px}
+  .field-row{grid-template-columns:1fr}
+  .list{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="head-inner">
+    <div class="logo-box" id="logoBox"><img id="logoImg" class="logo-img" style="display:none" alt=""><span id="logoTxt">GS</span></div>
+    <div class="head-titles">
+      <div class="head-eyebrow">GAMA SUR · ARQ. CAB RUIZ</div>
+      <div class="head-title">Directorio de <span>Clientes</span></div>
+      <div class="head-sub">Captura una vez · se autocompleta en cotizaciones y cuantificadores</div>
+    </div>
+    <div class="head-actions">
+      <button class="btn btn-ghost-light" onclick="location.href='index.html'">← Inicio</button>
+      <button class="btn btn-ghost-light" onclick="exportJSON()">⬇ Exportar</button>
+      <button class="btn btn-ghost-light" onclick="document.getElementById('importFile').click()">⬆ Importar</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(this)">
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="toolbar">
+    <div class="search"><input id="search" type="text" placeholder="Buscar por empresa, contacto, RFC…" oninput="render()"></div>
+    <span class="count-pill" id="countPill">0 clientes</span>
+    <button class="btn btn-primary" style="margin-left:auto" onclick="openModal()">+ Nuevo cliente</button>
+  </div>
+  <div class="list" id="list"></div>
+</div>
+
+<!-- MODAL -->
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">Nuevo cliente</h2>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="f-id">
+      <div class="field"><label>Empresa / Razón social *</label><input id="f-empresa" placeholder="Ej. CONSTRUCCIONES RICBOR, S.A. DE C.V."></div>
+      <div class="field"><label>Contacto (persona)</label><input id="f-nombre" placeholder="Ej. Ing. Roberto Cordero"></div>
+      <div class="field-row">
+        <div class="field"><label>Teléfono</label><input id="f-tel" placeholder="993 000 0000"></div>
+        <div class="field"><label>Correo</label><input id="f-email" placeholder="correo@empresa.com"></div>
+      </div>
+      <div class="field"><label>RFC</label><input id="f-rfc" placeholder="XAXX010101000" style="text-transform:uppercase"></div>
+      <div class="field"><label>Dirección / Referencia</label><input id="f-dir" placeholder="Calle, número, colonia, ciudad"></div>
+      <div class="field"><label>Obra / Proyecto frecuente</label><input id="f-obra" placeholder="Ej. Fraccionamiento Las Lomas"></div>
+      <div class="field"><label>Notas</label><textarea id="f-notas" placeholder="Condiciones, crédito, observaciones…"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveClient()">Guardar cliente</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const CLIENTS_KEY = 'gamasur_clients_global';   // compartido por todas las apps del origen
+const LOGO_KEY = 'gamasur_logo_global';
+let clients = [];
+
+function load(){
+  try{ const raw=localStorage.getItem(CLIENTS_KEY); clients = raw?JSON.parse(raw):[]; if(!Array.isArray(clients)) clients=[]; }
+  catch(e){ clients=[]; }
+}
+function save(){
+  try{ localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients)); }
+  catch(e){ toast('No se pudo guardar (almacenamiento lleno)','error'); }
+}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+
+function render(){
+  const q = (document.getElementById('search').value||'').trim().toLowerCase();
+  const list = document.getElementById('list');
+  let arr = clients.slice().sort((a,b)=>(a.empresa||'').localeCompare(b.empresa||''));
+  if(q) arr = arr.filter(c => [c.empresa,c.nombre,c.rfc,c.email,c.tel,c.obra].some(v=>(v||'').toLowerCase().includes(q)));
+  document.getElementById('countPill').textContent = clients.length + (clients.length===1?' cliente':' clientes');
+  if(!arr.length){
+    list.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      <div class="empty-icon">👥</div>
+      <h3>${clients.length? 'Sin resultados' : 'Aún no hay clientes'}</h3>
+      <p>${clients.length? 'Prueba otra búsqueda.' : 'Agrega tu primer cliente para reutilizarlo en todas las apps.'}</p>
+      ${clients.length? '' : '<button class="btn btn-primary" onclick="openModal()">+ Nuevo cliente</button>'}
+    </div>`;
+    return;
+  }
+  list.innerHTML = arr.map(c=>`
+    <div class="card">
+      <div class="card-acts">
+        <button class="icon-btn" title="Editar" onclick="editClient('${c.id}')">✏️</button>
+        <button class="icon-btn del" title="Eliminar" onclick="delClient('${c.id}')">🗑️</button>
+      </div>
+      <div class="card-empresa">${esc(c.empresa)||'(sin nombre)'}</div>
+      ${c.nombre?`<div class="card-nombre">${esc(c.nombre)}</div>`:''}
+      <div class="card-rows">
+        ${c.tel?`<div class="card-row"><span class="ic">📞</span>${esc(c.tel)}</div>`:''}
+        ${c.email?`<div class="card-row"><span class="ic">✉️</span>${esc(c.email)}</div>`:''}
+        ${c.dir?`<div class="card-row"><span class="ic">📍</span>${esc(c.dir)}</div>`:''}
+        ${c.obra?`<div class="card-row"><span class="ic">🏗️</span>${esc(c.obra)}</div>`:''}
+      </div>
+      ${c.rfc?`<div class="card-rfc">RFC: ${esc(c.rfc)}</div>`:''}
+    </div>`).join('');
+}
+
+function openModal(){
+  document.getElementById('modalTitle').textContent='Nuevo cliente';
+  ['id','empresa','nombre','tel','email','rfc','dir','obra','notas'].forEach(f=>{const el=document.getElementById('f-'+f); if(el) el.value='';});
+  document.getElementById('overlay').classList.add('open');
+  setTimeout(()=>document.getElementById('f-empresa').focus(),50);
+}
+function closeModal(){ document.getElementById('overlay').classList.remove('open'); }
+
+function editClient(id){
+  const c = clients.find(x=>x.id===id); if(!c) return;
+  document.getElementById('modalTitle').textContent='Editar cliente';
+  ['id','empresa','nombre','tel','email','rfc','dir','obra','notas'].forEach(f=>{const el=document.getElementById('f-'+f); if(el) el.value=c[f]||'';});
+  document.getElementById('overlay').classList.add('open');
+}
+
+function saveClient(){
+  const empresa = document.getElementById('f-empresa').value.trim();
+  if(!empresa){ toast('La empresa / razón social es obligatoria','error'); document.getElementById('f-empresa').focus(); return; }
+  const data = {
+    id: document.getElementById('f-id').value || ('c'+Date.now()+Math.random().toString(36).slice(2,6)),
+    empresa,
+    nombre: document.getElementById('f-nombre').value.trim(),
+    tel: document.getElementById('f-tel').value.trim(),
+    email: document.getElementById('f-email').value.trim(),
+    rfc: document.getElementById('f-rfc').value.trim().toUpperCase(),
+    dir: document.getElementById('f-dir').value.trim(),
+    obra: document.getElementById('f-obra').value.trim(),
+    notas: document.getElementById('f-notas').value.trim()
+  };
+  const i = clients.findIndex(x=>x.id===data.id);
+  if(i>=0) clients[i]=data; else clients.push(data);
+  save(); render(); closeModal();
+  toast('Cliente guardado','success');
+}
+
+function delClient(id){
+  const c = clients.find(x=>x.id===id); if(!c) return;
+  if(!confirm(`¿Eliminar a "${c.empresa}"? No se puede deshacer.`)) return;
+  clients = clients.filter(x=>x.id!==id);
+  save(); render();
+  toast('Cliente eliminado','success');
+}
+
+function exportJSON(){
+  const blob = new Blob([JSON.stringify(clients,null,2)],{type:'application/json'});
+  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
+  a.download=`GamaSur_clientes_${new Date().toISOString().split('T')[0]}.json`;
+  a.click(); URL.revokeObjectURL(a.href);
+  toast('Clientes exportados','success');
+}
+function importJSON(input){
+  const file=input.files[0]; if(!file) return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!Array.isArray(data)) throw new Error('Formato inválido');
+      // Fusionar por id (sobreescribe iguales, agrega nuevos)
+      const map={}; clients.forEach(c=>map[c.id]=c); data.forEach(c=>{ if(c&&c.empresa){ c.id=c.id||('c'+Date.now()+Math.random().toString(36).slice(2,6)); map[c.id]=c; }});
+      clients=Object.values(map);
+      save(); render();
+      toast(`${data.length} clientes importados`,'success');
+    }catch(err){ toast('JSON inválido: '+err.message,'error'); }
+  };
+  r.readAsDataURL ? r.readAsText(file) : r.readAsText(file);
+  input.value='';
+}
+
+function loadLogo(){
+  try{ const src=localStorage.getItem(LOGO_KEY); if(src){ const img=document.getElementById('logoImg'); img.src=src; img.style.display=''; document.getElementById('logoTxt').style.display='none'; } }catch(e){}
+}
+
+function toast(msg,type=''){
+  const c=document.getElementById('toast');
+  const el=document.createElement('div'); el.className='toast-item '+type; el.textContent=msg;
+  c.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .3s';setTimeout(()=>el.remove(),300);},2800);
+}
+
+// init
+document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
+load(); loadLogo(); render();
+</script>
+</body>
+</html>
