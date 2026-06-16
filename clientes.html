@@ -172,7 +172,7 @@ function save(){
 }
 
 /* ── FIREBASE — sync de clientes + logo en todos los dispositivos ── */
-const FB = { apiKey:"AIzaSyAf1fCH3Fuk0Y0UcrLXjJWCmldu3Aktrmo", databaseURL:"https://mi-horario-3746e-default-rtdb.firebaseio.com" };
+const FB = { apiKey:"AIzaSyB0txTXmZEvYQX-uKvnJ6SVnP-yfeyhfBc", databaseURL:"https://launcher-gama-sur-default-rtdb.firebaseio.com" };
 let fireDb=null, applyingRemote=false;
 function setSync(s){ const p=document.getElementById('syncPill'); if(!p) return; p.textContent=(s==='on'?'● Sincronizado':s==='syncing'?'● Guardando…':'● Local'); p.style.color=(s==='on'?'#16A34A':s==='syncing'?'#D97706':'#7A8FA6'); }
 function initFirebase(){
