@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    VARIABLES GLOBALES
@@ -39,7 +41,10 @@ h1,h2,h3,.hdr h1,.kpi-name,.slbl,.tsec td{font-family:var(--font-display);}
 .hdr h1{font-size:26px;font-weight:800;letter-spacing:.02em;color:#fff;position:relative;z-index:1;}
 .hdr h1 span{color:#FB923C;}
 .hdr-meta{margin-top:5px;font-size:11px;color:rgba(255,255,255,.6);font-weight:300;position:relative;z-index:1;}
-.hdr-actions{position:absolute;top:20px;right:26px;display:flex;gap:8px;z-index:2;}
+.hdr-actions{position:absolute;top:20px;right:26px;display:flex;gap:8px;z-index:2;align-items:center;}
+.bm-head-row{display:flex;align-items:center;gap:14px}
+.bm-logo{width:56px;height:56px;background:#fff;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#1e4d8b;font-weight:800;font-size:18px;flex-shrink:0;overflow:hidden;padding:5px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+.bm-sync{font-size:11px;font-weight:600;color:rgba(255,255,255,.85);white-space:nowrap}
 
 /* ━━━━━ BOTONES ━━━━━ */
 .btn{display:inline-flex;align-items:center;gap:5px;border:none;border-radius:7px;padding:7px 15px;font-family:var(--font-body);font-size:11.5px;font-weight:600;cursor:pointer;transition:all .18s;}
@@ -364,10 +369,17 @@ td.cx{color:var(--red);}
 
 <!-- ═══ HEADER ═══ -->
 <div class="hdr">
-  <div class="hdr-label">Herramienta de Análisis · Villahermosa, Tabasco</div>
-  <h1>Benchmark <span>Sistemas de Losa</span></h1>
-  <div class="hdr-meta" id="hdrMeta">— sistemas · APU 2026 · Comparación técnica y comercial · Precios editables</div>
+  <div class="bm-head-row">
+    <div class="bm-logo" id="logoBox" title="Logo GamaSur"><img id="logoImg" style="display:none;width:100%;height:100%;object-fit:contain" alt=""><span id="logoTxt">GS</span></div>
+    <div style="flex:1;min-width:0">
+      <div class="hdr-label">Herramienta de Análisis · Villahermosa, Tabasco</div>
+      <h1>Benchmark <span>Sistemas de Losa</span></h1>
+      <div class="hdr-meta" id="hdrMeta">— sistemas · APU 2026 · Comparación técnica y comercial · Precios editables</div>
+    </div>
+  </div>
   <div class="hdr-actions">
+    <button class="btn btn-print" onclick="location.href='index.html'" style="background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.3)">← Inicio</button>
+    <span class="bm-sync" id="syncPill" title="Sincronización en la nube">● Local</span>
     <button class="btn btn-print" onclick="doPrint()">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
         <polyline points="6 9 6 2 18 2 18 9"/>
@@ -862,6 +874,7 @@ const getT=(s,m)=>m==='p'?totP(s):totA(s);
 function saveState(){
   SYS.forEach(s=>{s.mat=eMat[s.id];s.mo=eMo[s.id];s.eq=eEq[s.id];s.ms={...eMs[s.id]};});
   try{localStorage.setItem(STORE,JSON.stringify({sys:SYS,df}));}catch(e){}
+  pushCloud();
 }
 function loadState(){
   try{
@@ -1620,12 +1633,48 @@ function doPrint(){
 }
 window.addEventListener('afterprint',()=>document.body.removeAttribute('data-print-tab'));
 
+/* ═══ FIREBASE — sync (proyecto GamaSur) ═══ */
+const FB={apiKey:"AIzaSyB0txTXmZEvYQX-uKvnJ6SVnP-yfeyhfBc",databaseURL:"https://launcher-gama-sur-default-rtdb.firebaseio.com"};
+const LOGO_KEY='gamasur_logo_global';
+let fireDb=null,applyingRemote=false;
+function setSync(s){const p=document.getElementById('syncPill');if(!p)return;p.textContent=(s==='on'?'● Sincronizado':s==='syncing'?'● Guardando…':'● Local');}
+function loadLogoLocal(){try{const v=localStorage.getItem(LOGO_KEY);if(v){const i=document.getElementById('logoImg');i.src=v;i.style.display='';document.getElementById('logoTxt').style.display='none';}}catch(e){}}
+function initFirebase(){
+  if(typeof firebase==='undefined')return;
+  try{
+    if(!firebase.apps.length)firebase.initializeApp(FB);
+    fireDb=firebase.database();
+    fireDb.ref('.info/connected').on('value',s=>setSync(s.val()?'on':'off'));
+    fireDb.ref('gamasur/benchmark').on('value',snap=>{
+      const d=snap.val();
+      if(!d||!d.sys||!d.sys.length)return;
+      applyingRemote=true;
+      SYS=d.sys; if(d.df)df=d.df;
+      SYS.forEach(s=>{eMat[s.id]=s.mat;eMo[s.id]=s.mo;eEq[s.id]=s.eq;eMs[s.id]={...s.ms};});
+      try{localStorage.setItem(STORE,JSON.stringify({sys:SYS,df}));}catch(e){}
+      const ds=$('discSlider'); if(ds){ds.value=Math.round(df*100);$('discVal').textContent=Math.round(df*100)+'%';}
+      refreshSels();refreshCardSel();renderAll();render1v1();renderPriceEditor();renderCard();
+      applyingRemote=false;
+    });
+    fireDb.ref('gamasur/logo').on('value',snap=>{const v=snap.val();if(!v)return;try{localStorage.setItem(LOGO_KEY,v);}catch(e){}const i=document.getElementById('logoImg');if(i){i.src=v;i.style.display='';document.getElementById('logoTxt').style.display='none';}});
+    // Si la nube no tiene benchmark aún, sube lo local
+    fireDb.ref('gamasur/benchmark').once('value').then(s=>{ if(!s.val()) pushCloud(); });
+  }catch(e){console.warn('Firebase init:',e);}
+}
+function pushCloud(){
+  if(!fireDb||applyingRemote)return;
+  setSync('syncing');
+  fireDb.ref('gamasur/benchmark').set({sys:SYS,df}).then(()=>setSync('on')).catch(()=>setSync('off'));
+}
+
 /* ═══ INIT ═══ */
 initData();
 $('discSlider').value=Math.round(df*100);
 $('discVal').textContent=Math.round(df*100)+'%';
 refreshSels();refreshCardSel();
 renderAll();render1v1();renderPriceEditor();renderCard();
+loadLogoLocal();
+initFirebase();
 </script>
 </body>
 </html>

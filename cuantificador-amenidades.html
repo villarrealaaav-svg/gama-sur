@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cuantificador Makros · GAMA SUR · v8</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -842,8 +844,10 @@
       </h1>
     </div>
     <div class="meta">
+      <button onclick="location.href='index.html'" style="background:var(--blue-50);color:var(--blue-deep);border:1px solid var(--blue-300);padding:5px 11px;font-size:11px;border-radius:4px;cursor:pointer;margin-right:6px">← Inicio</button>
       <span class="saved-dot" id="savedDot" title="Estado de guardado"></span>
       <span id="savedLabel">guardado</span>
+      <span id="syncPill" title="Sincronización en la nube" style="margin-left:8px;font-size:11px;font-weight:600;color:#7A8FA6">● Local</span>
     </div>
   </header>
 
@@ -1193,6 +1197,7 @@ let isDirty = false;
    ============================================================ */
 function persistLocal() {
   try { localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); } catch(e){}
+  pushCloud();
 }
 function loadLocal() {
   try {
@@ -3336,6 +3341,45 @@ syncInputsFromState();
 renderExtras();
 renderAll();
 markClean();
+
+/* ============================================================
+   FIREBASE — sync STATE + logo (proyecto GamaSur)
+   ============================================================ */
+const FB = { apiKey:"AIzaSyB0txTXmZEvYQX-uKvnJ6SVnP-yfeyhfBc", databaseURL:"https://launcher-gama-sur-default-rtdb.firebaseio.com" };
+const LOGO_KEY = 'gamasur_logo_global';
+var fireDb=null, applyingRemote=false, _pushT=null;
+function setSync(s){ const p=document.getElementById('syncPill'); if(!p) return; p.textContent=(s==='on'?'● Sincronizado':s==='syncing'?'● Guardando…':'● Local'); p.style.color=(s==='on'?'#166534':s==='syncing'?'#92400e':'#7A8FA6'); }
+function pushCloud(){
+  if(!fireDb || applyingRemote) return;
+  setSync('syncing');
+  clearTimeout(_pushT);
+  _pushT=setTimeout(()=>{ fireDb.ref('gamasur/cuantificador').set(STATE).then(()=>setSync('on')).catch(()=>setSync('off')); }, 600);
+}
+function applyGlobalLogo(v){ if(!v) return; const img=document.getElementById('brandLogo'); if(img) img.src=v; }
+function initFirebase(){
+  if(typeof firebase==='undefined') return;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB);
+    fireDb=firebase.database();
+    fireDb.ref('.info/connected').on('value', s=> setSync(s.val()?'on':'off'));
+    fireDb.ref('gamasur/cuantificador').on('value', snap=>{
+      const v=snap.val();
+      if(!v || typeof v!=='object') return;
+      applyingRemote=true;
+      Object.assign(STATE, v);
+      try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(STATE)); }catch(e){}
+      try{ hardRefreshUI(); }catch(e){ try{ renderAll(); }catch(e2){} }
+      markClean();
+      applyingRemote=false;
+    });
+    fireDb.ref('gamasur/logo').on('value', snap=>{ const v=snap.val(); if(!v) return; try{ localStorage.setItem(LOGO_KEY,v); }catch(e){} applyGlobalLogo(v); });
+    // Sube lo local si la nube está vacía
+    fireDb.ref('gamasur/cuantificador').once('value').then(s=>{ if(!s.val()){ fireDb.ref('gamasur/cuantificador').set(STATE).catch(()=>{}); } });
+  }catch(e){ console.warn('Firebase init:', e); }
+}
+// Logo global tiene prioridad sobre el LOGO_B64 embebido
+try{ const _gl=localStorage.getItem(LOGO_KEY); if(_gl) applyGlobalLogo(_gl); }catch(e){}
+initFirebase();
 
 if (!('showSaveFilePicker' in window)) {
   document.getElementById('btnSave').textContent = '⬇ Exportar JSON'; // File System Access API no disponible en este navegador
