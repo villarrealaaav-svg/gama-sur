@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>GamaSur — Herramientas</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -524,6 +526,22 @@ function delApp(id){
    LOGO
 ════════════════════════════════════════ */
 const LOGO_KEY = 'gamasur_logo_global';   // mismo logo para TODAS las apps del origen
+const FB = { apiKey:"AIzaSyAf1fCH3Fuk0Y0UcrLXjJWCmldu3Aktrmo", databaseURL:"https://mi-horario-3746e-default-rtdb.firebaseio.com" };
+let fireDb=null;
+function initFirebase(){
+  if(typeof firebase==='undefined') return;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB);
+    fireDb=firebase.database();
+    fireDb.ref('gamasur/logo').on('value', snap=>{
+      const v=snap.val(); if(!v) return;
+      try{ localStorage.setItem(LOGO_KEY, v); }catch(e){}
+      setLogo(v);
+    });
+    const local=(function(){try{return localStorage.getItem(LOGO_KEY);}catch(e){return null;}})();
+    if(local) fireDb.ref('gamasur/logo').once('value').then(s=>{ if(!s.val()) fireDb.ref('gamasur/logo').set(local).catch(()=>{}); });
+  }catch(e){ console.warn('Firebase init:', e); }
+}
 function handleLogo(input){
   const file = input.files[0];
   if(!file) return;
@@ -531,6 +549,7 @@ function handleLogo(input){
   r.onload = e => {
     setLogo(e.target.result);
     try{ localStorage.setItem(LOGO_KEY, e.target.result); }catch(err){ toast('Logo muy pesado. Usa una imagen más liviana.','error'); }
+    if(fireDb){ try{ fireDb.ref('gamasur/logo').set(e.target.result); }catch(e2){} }
     toast('Logo actualizado (se usa en todas las apps)','success');
   };
   r.readAsDataURL(file);
@@ -569,6 +588,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   load();
   loadLogo();
   render();
+  initFirebase();
 });
 </script>
 </body>

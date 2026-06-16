@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
 <title>Directorio de Clientes · GAMA SUR</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -119,6 +121,7 @@ header{background:linear-gradient(135deg,#1F2937 0%,#1e4d8b 60%,#2563EB 100%);bo
   <div class="toolbar">
     <div class="search"><input id="search" type="text" placeholder="Buscar por empresa, contacto, RFC…" oninput="render()"></div>
     <span class="count-pill" id="countPill">0 clientes</span>
+    <span class="count-pill" id="syncPill" title="Sincronización en la nube">● Local</span>
     <button class="btn btn-primary" style="margin-left:auto" onclick="openModal()">+ Nuevo cliente</button>
   </div>
   <div class="list" id="list"></div>
@@ -165,6 +168,40 @@ function load(){
 function save(){
   try{ localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients)); }
   catch(e){ toast('No se pudo guardar (almacenamiento lleno)','error'); }
+  pushCloud();
+}
+
+/* ── FIREBASE — sync de clientes + logo en todos los dispositivos ── */
+const FB = { apiKey:"AIzaSyAf1fCH3Fuk0Y0UcrLXjJWCmldu3Aktrmo", databaseURL:"https://mi-horario-3746e-default-rtdb.firebaseio.com" };
+let fireDb=null, applyingRemote=false;
+function setSync(s){ const p=document.getElementById('syncPill'); if(!p) return; p.textContent=(s==='on'?'● Sincronizado':s==='syncing'?'● Guardando…':'● Local'); p.style.color=(s==='on'?'#16A34A':s==='syncing'?'#D97706':'#7A8FA6'); }
+function initFirebase(){
+  if(typeof firebase==='undefined') return;
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB);
+    fireDb=firebase.database();
+    fireDb.ref('.info/connected').on('value', s=> setSync(s.val()?'on':'off'));
+    fireDb.ref('gamasur/clients').on('value', snap=>{
+      const v=snap.val(); if(!Array.isArray(v)) return;
+      applyingRemote=true;
+      clients=v;
+      try{ localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients)); }catch(e){}
+      render();
+      applyingRemote=false;
+    });
+    fireDb.ref('gamasur/logo').on('value', snap=>{
+      const v=snap.val(); if(!v) return;
+      try{ localStorage.setItem(LOGO_KEY, v); }catch(e){}
+      const img=document.getElementById('logoImg'); if(img){ img.src=v; img.style.display=''; document.getElementById('logoTxt').style.display='none'; }
+    });
+    // Sube locales si la nube está vacía
+    fireDb.ref('gamasur/clients').once('value').then(s=>{ if((!s.val()) && clients.length) pushCloud(); });
+  }catch(e){ console.warn('Firebase init:', e); }
+}
+function pushCloud(){
+  if(!fireDb || applyingRemote) return;
+  setSync('syncing');
+  fireDb.ref('gamasur/clients').set(clients).then(()=>setSync('on')).catch(()=>setSync('off'));
 }
 function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
 
@@ -283,7 +320,7 @@ function toast(msg,type=''){
 // init
 document.getElementById('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
 document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeModal(); });
-load(); loadLogo(); render();
+load(); loadLogo(); render(); initFirebase();
 </script>
 </body>
 </html>

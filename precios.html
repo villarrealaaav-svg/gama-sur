@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>GamaSur — Gestor de Precios</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <style>
 /* ═══════════════════════════════════════════════
    VARIABLES Y RESET
@@ -304,6 +306,9 @@ tr:hover .row-actions{opacity:1}
 .cot-totals-table .t-total td{border-top:2px solid #1e3a5f;padding-top:10px;font-size:16px;font-weight:800}
 .cot-totals-table .t-total .t-label{color:#1e3a5f}
 .cot-totals-table .t-total .t-val{color:#2563eb;font-size:17px}
+.sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--text3);vertical-align:middle;transition:background .2s}
+.sync-dot.on{background:var(--green)}
+.sync-dot.syncing{background:var(--amber)}
 .cot-client-picker{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:#f0f6ff;border-bottom:1px solid #dbeafe;padding:8px 18px}
 .cot-client-picker .ccp-lbl{font-size:12px;font-weight:600;color:#1e4d8b}
 .cot-client-picker select{flex:1;min-width:160px;max-width:340px;padding:6px 10px;border:1px solid #cbd5e1;border-radius:6px;font:inherit;font-size:13px;color:#1e293b;background:#fff}
@@ -646,6 +651,8 @@ tr:hover .row-actions{opacity:1}
       <div class="meta-item">📅 Vigencia: <span id="metaVigencia" title="Click para editar">Mayo 2026</span></div>
       <div class="divider"></div>
       <div class="meta-item">⏰ <span id="metaUpdate"></span></div>
+      <div class="divider"></div>
+      <div class="meta-item" id="syncRow" title="Sincronización en la nube"><span id="syncDot" class="sync-dot"></span> <span id="syncLbl">Local</span></div>
     </div>
     <div class="header-actions">
       <button class="btn btn-ghost btn-sm" onclick="resetData()" title="Restablecer datos originales">
@@ -1098,6 +1105,69 @@ function init(){
     if(!e.target.closest('.col-panel')) closeColPanel();
     if(!e.target.closest('#cotSearchContainer')) closeCotSug();
   });
+  initFirebase();
+}
+
+/* ═════════════════════════════════════════════════
+   FIREBASE — sync en todos los dispositivos (proyecto compartido)
+   Estrategia: "último guardado real gana". localStorage queda
+   como caché offline; la nube es la fuente cuando hay conexión.
+═════════════════════════════════════════════════ */
+const FB = { apiKey:"AIzaSyAf1fCH3Fuk0Y0UcrLXjJWCmldu3Aktrmo", databaseURL:"https://mi-horario-3746e-default-rtdb.firebaseio.com" };
+let fireDb = null, applyingRemote = false;
+function setSync(state){
+  const dot=document.getElementById('syncDot'), lbl=document.getElementById('syncLbl');
+  if(!dot||!lbl) return;
+  dot.className='sync-dot'+(state==='on'?' on':state==='syncing'?' syncing':'');
+  lbl.textContent = state==='on'?'Sincronizado':state==='syncing'?'Guardando…':'Sin conexión';
+}
+function initFirebase(){
+  if(typeof firebase==='undefined'){ return; }
+  try{
+    if(!firebase.apps.length) firebase.initializeApp(FB);
+    fireDb = firebase.database();
+    fireDb.ref('.info/connected').on('value', s=> setSync(s.val()?'on':'off'));
+    // Precios (db)
+    fireDb.ref('gamasur/db').on('value', snap=>{
+      const v=snap.val();
+      if(!v || !Array.isArray(v) || !v.length) return;
+      applyingRemote=true;
+      db=v;
+      try{ localStorage.setItem(DATA_KEY, JSON.stringify(db)); }catch(e){}
+      buildFilters(); applyFilters(); updateStats();
+      applyingRemote=false;
+    });
+    // Config (sin logo)
+    fireDb.ref('gamasur/cfg').on('value', snap=>{
+      const v=snap.val();
+      if(!v || typeof v!=='object') return;
+      applyingRemote=true;
+      const keepLogo=cfg.logo; Object.assign(cfg, v); if(keepLogo&&!cfg.logo) cfg.logo=keepLogo;
+      try{ localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); }catch(e){}
+      renderHeader();
+      ['cotCoName','cotCoTel','cotCoCiudad','cotCoEmail','cotFooter'].forEach(id=>{ if(cfg[id]) setEditableVal(id,cfg[id]); });
+      applyingRemote=false;
+    });
+    // Logo global compartido
+    fireDb.ref('gamasur/logo').on('value', snap=>{
+      const v=snap.val(); if(!v) return;
+      applyingRemote=true;
+      cfg.logo=v; try{ localStorage.setItem(LOGO_KEY, v); }catch(e){}
+      applyLogo(v);
+      applyingRemote=false;
+    });
+    // Si la nube está vacía y este dispositivo tiene datos, súbelos
+    fireDb.ref('gamasur/db').once('value').then(s=>{ if((!s.val()) && db.length){ pushCloud(); } });
+    const localLogo = (function(){try{return localStorage.getItem(LOGO_KEY);}catch(e){return null;}})();
+    if(localLogo) fireDb.ref('gamasur/logo').once('value').then(s=>{ if(!s.val()) fireDb.ref('gamasur/logo').set(localLogo).catch(()=>{}); });
+  }catch(e){ console.warn('Firebase init:', e); }
+}
+function pushCloud(){
+  if(!fireDb || applyingRemote) return;
+  setSync('syncing');
+  const cfgClean = {...cfg}; delete cfgClean.logo;   // el logo va en su propio nodo (liviano)
+  fireDb.ref('gamasur/db').set(db).catch(()=>{});
+  fireDb.ref('gamasur/cfg').set(cfgClean).then(()=>setSync('on')).catch(()=>setSync('off'));
 }
 
 function loadState(){
@@ -1131,6 +1201,7 @@ function saveState(){
     localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
   }catch(e){/* localStorage not available in this context — silent fail */}
   updateMetaUpdate();
+  pushCloud();   // sincronizar a todos los dispositivos
 }
 
 function renderHeader(){
@@ -1776,6 +1847,7 @@ function handleLogoUpload(input){
     const b64 = e.target.result;
     cfg.logo = b64;
     try{ localStorage.setItem(LOGO_KEY, b64); }catch(err){ toast('Logo muy pesado para guardar. Usa una imagen más liviana.','error'); }
+    if(fireDb){ try{ fireDb.ref('gamasur/logo').set(b64); }catch(e){} }   // logo a todos los dispositivos
     applyLogo(b64);
     saveState();
     toast('Logo actualizado (se usará en todas las apps)','success');
