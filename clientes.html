@@ -18,6 +18,7 @@
   --radius:10px; --radius-sm:6px; --shadow:0 4px 14px rgba(26,37,53,.09);
   --font-display:'Barlow Condensed','Arial Narrow',sans-serif;
   --font-body:'Inter','Segoe UI',sans-serif;
+  --deep:#08234A;--navy:#0D2B5E;--main:#1560A8;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{font-family:var(--font-body);background:var(--bg);color:var(--ink);line-height:1.5;min-height:100vh}
@@ -102,7 +103,7 @@ header{background:linear-gradient(135deg,#1F2937 0%,#1e4d8b 60%,#2563EB 100%);bo
 <body>
 <header>
   <div class="head-inner">
-    <div class="logo-box" id="logoBox"><img id="logoImg" class="logo-img" style="display:none" alt=""><span id="logoTxt">GS</span></div>
+    <div class="logo-box" id="logoBox"><img id="globalLogoImg" class="logo-img" style="display:none" alt=""><span id="logoTxt">GS</span></div>
     <div class="head-titles">
       <div class="head-eyebrow">GAMA SUR · ARQ. CAB RUIZ</div>
       <div class="head-title">Directorio de <span>Clientes</span></div>
@@ -192,7 +193,7 @@ function initFirebase(){
     fireDb.ref('gamasur/logo').on('value', snap=>{
       const v=snap.val(); if(!v) return;
       try{ localStorage.setItem(LOGO_KEY, v); }catch(e){}
-      const img=document.getElementById('logoImg'); if(img){ img.src=v; img.style.display=''; document.getElementById('logoTxt').style.display='none'; }
+      const img=document.getElementById('globalLogoImg'); if(img){ img.src=v; img.style.display=''; document.getElementById('logoTxt').style.display='none'; }
     });
     // Sube locales si la nube está vacía
     fireDb.ref('gamasur/clients').once('value').then(s=>{ if((!s.val()) && clients.length) pushCloud(); });
@@ -307,7 +308,10 @@ function importJSON(input){
 }
 
 function loadLogo(){
-  try{ const src=localStorage.getItem(LOGO_KEY); if(src){ const img=document.getElementById('logoImg'); img.src=src; img.style.display=''; document.getElementById('logoTxt').style.display='none'; } }catch(e){}
+  try{ const src=localStorage.getItem(LOGO_KEY); if(src){ const img=document.getElementById('globalLogoImg'); img.src=src; img.style.display=''; document.getElementById('logoTxt').style.display='none'; } }catch(e){}
+}
+function loadLogoLocal(){
+  try{ var v=localStorage.getItem(LOGO_KEY); if(v){var i=document.getElementById('globalLogoImg');if(i){i.src=v;i.style.display='';}} }catch(e){}
 }
 
 function toast(msg,type=''){
