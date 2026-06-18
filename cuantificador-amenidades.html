@@ -483,41 +483,45 @@
 
   .doc-header {
     display: grid; grid-template-columns: auto 1fr auto;
-    gap: 18px; align-items: start;
-    border-bottom: 2px solid var(--blue-brand);
-    padding-bottom: 14px; margin-bottom: 14px;
+    gap: 18px; align-items: center;
+    background: linear-gradient(135deg,#1e3a5f 0%,#2563eb 100%);
+    color: #fff;
+    padding: 20px 24px; margin-bottom: 0;
+    border-radius: 8px 8px 0 0;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
   }
   .doc-header .logo-block {
     display: flex; flex-direction: column; align-items: center;
     text-align: center; padding-right: 14px;
-    border-right: 1px solid var(--blue-200);
+    border-right: 1px solid rgba(255,255,255,.3);
   }
-  .doc-header .logo-block img { width: 64px; height: auto; display: block; }
+  .doc-header .logo-block img { width: 60px; height: 60px; object-fit: contain; background:#fff; border-radius:8px; padding:4px; display: block; }
   .doc-header .logo-block .brand-text {
-    font-size: 11px; font-weight: 700; color: var(--blue-brand);
+    font-size: 10px; font-weight: 700; color: rgba(255,255,255,.7);
     letter-spacing: 0.04em; margin-top: 4px;
   }
-  .doc-header .emisor { font-size: 10px; line-height: 1.5; }
+  .doc-header .emisor { font-size: 10px; line-height: 1.6; color: rgba(255,255,255,.85); }
   .doc-header .emisor .name {
-    font-size: 13px; font-weight: 700; color: var(--blue-deep); margin-bottom: 3px;
+    font-size: 15px; font-weight: 700; color: #fff; margin-bottom: 3px;
   }
   .doc-header .emisor .role {
-    font-size: 9px; color: var(--ink-soft); text-transform: uppercase;
-    letter-spacing: 0.06em; margin-bottom: 6px;
+    font-size: 9px; color: rgba(255,255,255,.55); text-transform: uppercase;
+    letter-spacing: 0.06em; margin-bottom: 5px;
   }
-  .doc-header .doc-id { text-align: right; font-size: 10px; }
+  .doc-header .doc-id { text-align: right; font-size: 10px; color: rgba(255,255,255,.75); }
   .doc-header .doc-id .label {
     text-transform: uppercase; font-size: 8px; letter-spacing: 0.1em;
-    color: var(--ink-mute); margin-bottom: 4px;
+    color: rgba(255,255,255,.5); margin-bottom: 4px;
   }
   .doc-header .doc-id .docnum {
     font-size: 16px; font-weight: 700;
-    background: var(--blue-brand); color: #fff;
+    background: rgba(255,255,255,.15); color: #fff;
+    border: 1px dashed rgba(255,255,255,.5);
     padding: 6px 12px; display: inline-block; border-radius: 3px;
     font-family: 'JetBrains Mono', monospace; letter-spacing: 0.04em;
   }
   .doc-header .doc-id .meta-dates {
-    margin-top: 6px; font-size: 9px; color: var(--ink-soft);
+    margin-top: 6px; font-size: 9px; color: rgba(255,255,255,.55);
   }
 
   .doc-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
@@ -733,7 +737,7 @@
     .two-col { grid-template-columns: 1fr; }
     .doc-meta, .doc-conditions, .nv-meta { grid-template-columns: 1fr; }
     .doc-header { grid-template-columns: 1fr; text-align: center; }
-    .doc-header .logo-block { border-right: none; padding-right: 0; padding-bottom: 8px; border-bottom: 1px solid var(--blue-200); }
+    .doc-header .logo-block { border-right: none; padding-right: 0; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,.3); }
   }
 
   details summary { list-style: none; }
@@ -1117,6 +1121,7 @@
 <script id="logoScript">
 const LOGO_B64 = "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";
 const LOGO_DATA_URI = "data:image/png;base64," + LOGO_B64;
+function getLogoSrc(){try{var v=localStorage.getItem(LOGO_KEY||'gamasur_logo_global');return v||LOGO_DATA_URI;}catch(e){return LOGO_DATA_URI;}}
 document.getElementById('brandLogo').src = LOGO_DATA_URI;
 </script>
 <script id="appScript">/* ============================================================
@@ -2387,7 +2392,7 @@ function buildWatermark(text) {
     <svg class="watermark-bg" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 1600">
       <defs>
         <pattern id="wm" patternUnits="userSpaceOnUse" width="420" height="280" patternTransform="rotate(-25)">
-          <image href="${LOGO_DATA_URI}" x="0" y="0" width="120" height="118" opacity="0.05"/>
+          <image href="${getLogoSrc()}" x="0" y="0" width="120" height="118" opacity="0.05"/>
           <text x="130" y="60" font-family="JetBrains Mono, monospace" font-size="16" font-weight="700" fill="rgba(30,77,139,0.05)" letter-spacing="2">${safe}</text>
           <text x="130" y="88" font-family="Inter Tight, sans-serif" font-size="10" fill="rgba(30,77,139,0.04)" letter-spacing="3">DOCUMENTO TRAZABLE · GAMA SUR</text>
         </pattern>
@@ -2455,7 +2460,7 @@ function renderNovidesa() {
   document.getElementById('novidesaDoc').innerHTML = `
     ${buildWatermark(`PEDIDO ${docNum}`)}
     <div class="nv-header">
-      <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+      <img src="${getLogoSrc()}" alt="GAMA SUR">
       <div class="center">
         <div class="ttl">Pedido a Novidesa</div>
         <div class="sub">${STATE.emisor.nombre} · Arq. Cab Ruiz</div>
@@ -2878,7 +2883,7 @@ function renderCotizacion() {
     ${buildWatermark(docNum)}
     <div class="doc-header">
       <div class="logo-block">
-        <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+        <img src="${getLogoSrc()}" alt="GAMA SUR">
         <div class="brand-text">GAMA SUR</div>
       </div>
       <div class="emisor">
@@ -3012,7 +3017,7 @@ function renderPrefactura() {
     ${buildWatermark(docNum + ' · NO FISCAL')}
     <div class="doc-header">
       <div class="logo-block">
-        <img src="${LOGO_DATA_URI}" alt="GAMA SUR">
+        <img src="${getLogoSrc()}" alt="GAMA SUR">
         <div class="brand-text">GAMA SUR</div>
       </div>
       <div class="emisor">
