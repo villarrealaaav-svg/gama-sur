@@ -1267,45 +1267,49 @@ function getClients() {
 function saveClients(clients) {
   try { localStorage.setItem('gamasur_clients_global', JSON.stringify(clients)); } catch(e) {}
 }
+function _cLabel(c) { return c.empresa || c.name || '(sin nombre)'; }
+function _cId(c)    { return c.id || c.empresa || c.name || ''; }
 function saveCurrentClient() {
-  var name = document.getElementById('cliNombre').value.trim();
-  if (!name) { alert('Ingresa un nombre de cliente.'); return; }
+  var empresa = document.getElementById('cliNombre').value.trim();
+  if (!empresa) { alert('Ingresa un nombre de cliente.'); return; }
   var clients = getClients();
-  var idx = clients.findIndex(function(c) { return c.name === name; });
+  var idx = clients.findIndex(function(c) { return _cLabel(c) === empresa; });
+  var existing = idx >= 0 ? clients[idx] : {};
   var c = {
-    name: name,
-    rfc:  document.getElementById('cliRFC').value,
-    dir:  document.getElementById('cliDir').value,
-    contacto: document.getElementById('cliContacto').value,
-    tel:  document.getElementById('cliTel').value
+    id:      existing.id || String(Date.now()),
+    empresa: empresa,
+    rfc:     document.getElementById('cliRFC').value,
+    dir:     document.getElementById('cliDir').value,
+    nombre:  document.getElementById('cliContacto').value,
+    tel:     document.getElementById('cliTel').value
   };
   if (idx >= 0) clients[idx] = c; else clients.push(c);
   saveClients(clients);
   refreshClientSel();
   renderClientList();
-  document.getElementById('saveStatus').textContent = 'Cliente guardado: ' + name;
+  document.getElementById('saveStatus').textContent = 'Cliente guardado: ' + empresa;
 }
 function loadClientFromSel() {
-  var name = document.getElementById('clientSelect').value;
-  if (!name) return;
-  var clients = getClients();
-  var c = clients.find(function(c) { return c.name === name; });
+  var val = document.getElementById('clientSelect').value;
+  if (!val) return;
+  var c = getClients().find(function(c) { return _cId(c) === val; });
   if (c) {
-    document.getElementById('cliNombre').value = c.name || '';
-    document.getElementById('cliRFC').value = c.rfc || '';
-    document.getElementById('cliDir').value = c.dir || '';
-    document.getElementById('cliContacto').value = c.contacto || '';
-    document.getElementById('cliTel').value = c.tel || '';
+    document.getElementById('cliNombre').value   = c.empresa || c.name || '';
+    document.getElementById('cliRFC').value      = c.rfc || '';
+    document.getElementById('cliDir').value      = c.dir || '';
+    document.getElementById('cliContacto').value = c.nombre || c.contacto || '';
+    document.getElementById('cliTel').value      = c.tel || '';
   }
 }
 function refreshClientSel() {
   var sel = document.getElementById('clientSelect');
   var cur = sel.value;
   sel.innerHTML = '<option value="">— Clientes —</option>';
-  getClients().forEach(function(c) {
+  var list = getClients().slice().sort(function(a,b){ return _cLabel(a).localeCompare(_cLabel(b)); });
+  list.forEach(function(c) {
     var o = document.createElement('option');
-    o.value = c.name; o.textContent = c.name;
-    if (c.name === cur) o.selected = true;
+    o.value = _cId(c); o.textContent = _cLabel(c);
+    if (_cId(c) === cur) o.selected = true;
     sel.appendChild(o);
   });
 }
@@ -1325,21 +1329,19 @@ function renderClientList() {
   }
   container.innerHTML = clients.map(function(c, i) {
     return '<div class="client-list-item">' +
-      '<span class="cli-name">' + c.name + '</span>' +
+      '<span class="cli-name">' + _cLabel(c) + '</span>' +
       '<button class="modal-btn ghost" style="padding:3px 9px;font-size:10px" onclick="editClient(' + i + ')">Editar</button>' +
       '<button class="modal-btn" style="background:#fde8e8;color:#c0392b;padding:3px 9px;font-size:10px;border-radius:4px;cursor:pointer" onclick="deleteClient(' + i + ')">Eliminar</button>' +
       '</div>';
   }).join('');
 }
 function editClient(i) {
-  var clients = getClients();
-  var c = clients[i];
-  // Load into form and close modal
-  document.getElementById('cliNombre').value = c.name || '';
-  document.getElementById('cliRFC').value = c.rfc || '';
-  document.getElementById('cliDir').value = c.dir || '';
-  document.getElementById('cliContacto').value = c.contacto || '';
-  document.getElementById('cliTel').value = c.tel || '';
+  var c = getClients()[i];
+  document.getElementById('cliNombre').value   = c.empresa || c.name || '';
+  document.getElementById('cliRFC').value      = c.rfc || '';
+  document.getElementById('cliDir').value      = c.dir || '';
+  document.getElementById('cliContacto').value = c.nombre || c.contacto || '';
+  document.getElementById('cliTel').value      = c.tel || '';
   closeClientsModal();
 }
 function deleteClient(i) {
