@@ -565,21 +565,53 @@ function pack(itemsSorted, jaula, pesoMax, withCopete=false){
 
   const placed=[]; let pesoAcum=0;
 
+  // Buffers reutilizables para el máximo deslizante 2D (1 alloc por pack, no por pieza)
+  const Hbuf=new Float32Array(nx*nz);   // máx ventana horizontal (fdx) por fila
+  const Wbuf=new Float32Array(nx*nz);   // máx ventana 2D (fdx×fdz) por celda
+  const dqX=new Int32Array(nx);         // deque monótona (índices) eje X
+  const dqZ=new Int32Array(nz);         // deque monótona (índices) eje Z
+
+  /* Misma búsqueda que antes (base = altura ocupada bajo la huella, la más baja
+     que no pase el techo, en orden iz,ix), pero la altura bajo la huella se obtiene
+     con máximo deslizante en vez de recorrer la huella en cada celda. Resultado idéntico. */
   function findSpot(it){
     const fdx=Math.max(1,Math.ceil(it.dx/CELL - 1e-6));
     const fdz=Math.max(1,Math.ceil(it.dz/CELL - 1e-6));
     if(fdx>nx||fdz>nz) return null;
+    const lastX=nx-fdx, lastZ=nz-fdz;
+
+    // Paso 1 — máx deslizante horizontal (ventana fdx) por fila → Hbuf[z*nx+ix], ix∈[0..lastX]
+    for(let z=0;z<nz;z++){
+      const ro=z*nx; let head=0,tail=0;
+      for(let x=0;x<nx;x++){
+        const v=hmap[ro+x];
+        while(tail>head && hmap[ro+dqX[tail-1]]<=v) tail--;
+        dqX[tail++]=x;
+        while(dqX[head] <= x-fdx) head++;
+        if(x>=fdx-1) Hbuf[ro + (x-fdx+1)] = hmap[ro+dqX[head]];
+      }
+    }
+    // Paso 2 — máx deslizante vertical (ventana fdz) por columna → Wbuf[iz*nx+ix]
+    for(let ix=0; ix<=lastX; ix++){
+      let head=0,tail=0;
+      for(let z=0;z<nz;z++){
+        const v=Hbuf[z*nx+ix];
+        while(tail>head && Hbuf[dqZ[tail-1]*nx+ix]<=v) tail--;
+        dqZ[tail++]=z;
+        while(dqZ[head] <= z-fdz) head++;
+        if(z>=fdz-1) Wbuf[(z-fdz+1)*nx+ix] = Hbuf[dqZ[head]*nx+ix];
+      }
+    }
+    // Paso 3 — elegir la base mínima válida (mismo orden y desempate que el original)
+    const lim=H+EPS;
     let best=Infinity,bx=-1,bz=-1;
-    for(let iz=0;iz<=nz-fdz;iz++){
-      for(let ix=0;ix<=nx-fdx;ix++){
-        let base=0;
-        for(let zz=iz;zz<iz+fdz;zz++){
-          const ro=zz*nx;
-          for(let xx=ix;xx<ix+fdx;xx++){ const h=hmap[ro+xx]; if(h>base) base=h; }
-        }
-        if(base+it.dy<=H+EPS && base<best){
+    for(let iz=0; iz<=lastZ; iz++){
+      const wro=iz*nx;
+      for(let ix=0; ix<=lastX; ix++){
+        const base=Wbuf[wro+ix];
+        if(base+it.dy<=lim && base<best){
           best=base;bx=ix;bz=iz;
-          if(base<=1e-9){iz=nz;break;}     // nada mejor que el piso
+          if(base<=1e-9){iz=lastZ+1;break;}   // nada mejor que el piso
         }
       }
     }
@@ -587,10 +619,16 @@ function pack(itemsSorted, jaula, pesoMax, withCopete=false){
     return {base:best,bx,bz,fdx,fdz};
   }
 
+  // Salto por grupo idéntico: el heightmap solo SUBE, así que si una pieza de cierto
+  // tamaño ya no cabe en este vehículo, ninguna idéntica cabrá → se omiten sin re-escanear.
+  // (Exacto: no cambia qué piezas se colocan, solo evita escaneos inútiles.)
+  const failedSize=new Set();
   for(const it of itemsSorted){
     if(pesoAcum+it.peso>pesoMax+1e-6) continue;     // tope de peso del vehículo
+    const sig=it.dx+'|'+it.dy+'|'+it.dz;
+    if(failedSize.has(sig)) continue;               // tamaño ya descartado en este vehículo
     const s=findSpot(it);
-    if(!s) continue;
+    if(!s){ failedSize.add(sig); continue; }
     placed.push({it,x:s.bx*CELL,y:s.base,z:s.bz*CELL});
     const nt=s.base+it.dy;
     for(let zz=s.bz;zz<s.bz+s.fdz;zz++){const ro=zz*nx;for(let xx=s.bx;xx<s.bx+s.fdx;xx++)hmap[ro+xx]=nt;}
