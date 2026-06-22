@@ -1069,6 +1069,7 @@
       <div class="title">Despiece y cuantificación</div>
       <div style="display:flex;gap:6px;">
         <button class="ghost" id="btnToggleView">Vista compacta</button>
+        <button class="print" onclick="exportDespiece();location.href='logistica-3d.html'">🚚 Logística 3D</button>
         <button class="print" onclick="window.print()">🖨 Imprimir / PDF</button>
       </div>
     </div>
@@ -3182,6 +3183,7 @@ function renderAll() {
   renderQuant(); renderDiagrams(); renderMinimap(); renderExecSummary();
   renderCotizacion(); renderPrefactura(); renderNovidesa();
   renderHistory();
+  exportDespiece();
 }
 function hardRefreshUI() {
   PANEL_TYPES.forEach(p => {
@@ -3361,6 +3363,33 @@ function pushCloud(){
   setSync('syncing');
   clearTimeout(_pushT);
   _pushT=setTimeout(()=>{ fireDb.ref('gamasur/cuantificador').set(STATE).then(()=>setSync('on')).catch(()=>setSync('off')); }, 600);
+}
+/* Exporta el despiece (solo paneles M16–M32) para Logística 3D.
+   Clave compartida 'gamasur_despiece' (mismo origen) + nodo Firebase gamasur/despiece. */
+var _despT=null, _despPrev='';
+function exportDespiece(){
+  try{
+    const groups = aggregateAll();
+    const paneles = [];
+    PANEL_TYPES.forEach(p=>{
+      const g = groups[p.code]; if(!g || !g.lengths) return;
+      Array.from(g.lengths.values()).forEach(l=>{
+        const qty = Math.round(l.pzas)||0;
+        if(qty>0) paneles.push({ code:p.code, largo:+(+l.longitud).toFixed(2), qty });
+      });
+    });
+    const payload = { ts: Date.now(), source:'cuantificador', paneles };
+    const json = JSON.stringify(payload);
+    // Evita escrituras redundantes (mismo contenido) — ignora el ts al comparar
+    const sig = JSON.stringify(paneles);
+    if(sig === _despPrev) return;
+    _despPrev = sig;
+    try{ localStorage.setItem('gamasur_despiece', json); }catch(e){}
+    if(fireDb && !applyingRemote){
+      clearTimeout(_despT);
+      _despT=setTimeout(()=>{ fireDb.ref('gamasur/despiece').set(payload).catch(()=>{}); }, 700);
+    }
+  }catch(e){ console.warn('exportDespiece:', e); }
 }
 function applyGlobalLogo(v){ if(!v) return; const img=document.getElementById('brandLogo'); if(img) img.src=v; }
 function loadLogoLocal(){

@@ -56,6 +56,16 @@ const INITIAL_APPS = [
     tags: ["cuantificador","material","prefactura","pedido","novidesa","makros","amenidades"]
   },
   {
+    id: "logistica-3d",
+    name: "Logística", nameItalic: "3D",
+    desc: "Acomodo de carga y cálculo de viajes desde el despiece del cuantificador.",
+    icon: "🚚", color: "#1e4d8b", iconBg: "#EFF6FF",
+    url: "logistica-3d.html",
+    badge: "new", badgeLabel: "Nuevo",
+    cat: "operacion",
+    tags: ["logistica","carga","viajes","camion","remolque","despiece","3d","acomodo"]
+  },
+  {
     id: "clientes",
     name: "Directorio de", nameItalic: "Clientes",
     desc: "Guarda clientes una vez. Se autocompletan en todas las cotizaciones.",
