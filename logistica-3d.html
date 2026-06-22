@@ -10,17 +10,18 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
+/* Tema GAMA SUR — navy #1e3a5f · azul #2563eb · crema #f0ede6 */
 :root{
-  --bg:#0c1422;--panel:#101c30;--bdr:#1e4080;
-  --ink:#e8f0fe;--soft:#7aa2d4;--mute:#2d4a70;
-  --card:#152040;--row:#0f1a2e;
-  --blue:#60a5fa;--ok:#34d399;--warn:#fbbf24;--danger:#f87171;--ho:#fb923c;
+  --bg:#13203a;--panel:#1a2b49;--bdr:#33548a;
+  --ink:#eaf1fb;--soft:#9fbce4;--mute:#5f7ca8;
+  --card:#1f3457;--row:#172640;
+  --blue:#4f8cf0;--ok:#34d399;--warn:#fbbf24;--danger:#f87171;--ho:#fb923c;
 }
 body.light{
-  --bg:#eef4ff;--panel:#ffffff;--bdr:#93c5fd;
-  --ink:#0f172a;--soft:#3b6cc4;--mute:#94a3b8;
-  --card:#dbeafe;--row:#f0f6ff;
-  --blue:#2563eb;--ok:#059669;--warn:#d97706;--danger:#dc2626;--ho:#ea580c;
+  --bg:#f0ede6;--panel:#ffffff;--bdr:#ddd5c7;
+  --ink:#1c1916;--soft:#3a5e93;--mute:#a09c96;
+  --card:#faf7f0;--row:#f5f1e9;
+  --blue:#2563eb;--ok:#2d6a55;--warn:#c2622a;--danger:#c0392b;--ho:#c2622a;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:'Inter Tight',sans-serif;font-size:13px;
@@ -376,12 +377,12 @@ function toggleTheme(){
   dark=!dark;
   document.body.className=dark?'':'light';
   document.getElementById('thbtn').textContent=dark?'☀':'🌙';
-  if(ren) ren.setClearColor(dark?0x0c1422:0xeef4ff);
-  if(sc)  sc.fog=new THREE.Fog(dark?0x0c1422:0xeef4ff,70,170);
-  if(suelo) suelo.material.color.setHex(dark?0x080f1c:0xd4e0f0);
+  if(ren) ren.setClearColor(dark?0x13203a:0xf0ede6);
+  if(sc)  sc.fog=new THREE.Fog(dark?0x13203a:0xf0ede6,70,170);
+  if(suelo) suelo.material.color.setHex(dark?0x0e1930:0xe6e1d8);
   if(gridObj){
-    gridObj.material.color.setHex(dark?0x1e4080:0x93c5fd);
-    gridObj.material2&&(gridObj.material2.color.setHex(dark?0x1e4080:0x93c5fd));
+    gridObj.material.color.setHex(dark?0x33548a:0xc3ccd9);
+    gridObj.material2&&(gridObj.material2.color.setHex(dark?0x33548a:0xc3ccd9));
   }
 }
 function toggleSb(){
@@ -977,11 +978,11 @@ function initThree(){
   const cv=document.getElementById('cv');
   ren=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
   ren.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  ren.setClearColor(0x0c1422);
+  ren.setClearColor(0x13203a);
   ren.shadowMap.enabled=true;
   ren.shadowMap.type=THREE.PCFSoftShadowMap;
   sc=new THREE.Scene();
-  sc.fog=new THREE.Fog(0x0c1422,70,170);
+  sc.fog=new THREE.Fog(0x13203a,70,170);
   cam3=new THREE.PerspectiveCamera(40,1,.1,300);
   calcCam();
 
@@ -994,9 +995,9 @@ function initThree(){
   sol.shadow.camera.far=150;sc.add(sol);
   const fill=new THREE.DirectionalLight(0x5599cc,.3);fill.position.set(-10,6,-8);sc.add(fill);
 
-  suelo=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshPhongMaterial({color:0x080f1c}));
+  suelo=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshPhongMaterial({color:0x0e1930}));
   suelo.rotation.x=-Math.PI/2;suelo.receiveShadow=true;sc.add(suelo);
-  gridObj=new THREE.GridHelper(200,100,0x1e4080,0x1e4080);
+  gridObj=new THREE.GridHelper(200,100,0x33548a,0x33548a);
   gridObj.position.y=.002;sc.add(gridObj);
 
   ray3=new THREE.Raycaster();mu=new THREE.Vector2();
