@@ -371,18 +371,18 @@ CAT.forEach(p => { medidas[p.code] = [{largo: p.defL, qty: 0}]; });
 /* ============================================================
    TEMA Y SIDEBAR TOGGLE
    ============================================================ */
-let dark=true;
+let dark=false;          // arranca en CLARO (crema) = identidad GamaSur del launcher
 let suelo,gridObj;
 function toggleTheme(){
   dark=!dark;
   document.body.className=dark?'':'light';
   document.getElementById('thbtn').textContent=dark?'☀':'🌙';
-  if(ren) ren.setClearColor(dark?0x13203a:0xf0ede6);
-  if(sc)  sc.fog=new THREE.Fog(dark?0x13203a:0xf0ede6,70,170);
-  if(suelo) suelo.material.color.setHex(dark?0x0e1930:0xe6e1d8);
+  if(ren) ren.setClearColor(dark?0x1b2c4a:0xf0ede6);
+  if(sc)  sc.fog=new THREE.Fog(dark?0x1b2c4a:0xf0ede6,80,200);
+  if(suelo) suelo.material.color.setHex(dark?0x162540:0xe6e1d8);
   if(gridObj){
-    gridObj.material.color.setHex(dark?0x33548a:0xc3ccd9);
-    gridObj.material2&&(gridObj.material2.color.setHex(dark?0x33548a:0xc3ccd9));
+    gridObj.material.color.setHex(dark?0x3f639e:0xc3ccd9);
+    gridObj.material2&&(gridObj.material2.color.setHex(dark?0x3f639e:0xc3ccd9));
   }
 }
 function toggleSb(){
@@ -727,7 +727,7 @@ function mkMat(color,op=1,dbl=false){
     depthWrite:op>=.9,specular:0x223355,shininess:30
   });
 }
-function mkMesh(geo,mat){const m=new THREE.Mesh(geo,mat);m.castShadow=m.receiveShadow=true;return m;}
+function mkMesh(geo,mat){return new THREE.Mesh(geo,mat);}
 function mkBox(w,h,d,color,op=1){return mkMesh(new THREE.BoxGeometry(w,h,d),mkMat(color,op,op<.9));}
 function mkWire(geo,color,op=1){
   return new THREE.LineSegments(new THREE.EdgesGeometry(geo),
@@ -873,27 +873,40 @@ function addLDeco(mesh,dx,dy,dz){
   mesh.add(b);
 }
 
+/* Cachés: miles de paneles comparten pocas medidas/colores → 1 geometría/arista/material
+   por tipo en vez de uno por pieza. Es el mayor ahorro al cargar muchos camiones. */
+const _pGeo={}, _pEdge={}, _pMat={};
+let _edgeMat=null;
+function _pKey(dx,dy,dz){ return dx.toFixed(3)+'_'+dy.toFixed(3)+'_'+dz.toFixed(3); }
+function panelGeo(dx,dy,dz){
+  const k=_pKey(dx,dy,dz); let g=_pGeo[k];
+  if(!g){ g=new THREE.BoxGeometry(Math.max(.02,dx-.012),Math.max(.02,dy-.012*.4),Math.max(.02,dz-.012)); _pGeo[k]=g; }
+  return g;
+}
+function panelEdge(dx,dy,dz){
+  const k=_pKey(dx,dy,dz); let e=_pEdge[k];
+  if(!e){ e=new THREE.EdgesGeometry(panelGeo(dx,dy,dz)); _pEdge[k]=e; }
+  return e;
+}
+function panelMat(c3){
+  let m=_pMat[c3];
+  if(!m){ m=new THREE.MeshLambertMaterial({color:c3,transparent:true,opacity:xray?.35:.95,depthWrite:!xray}); _pMat[c3]=m; }
+  return m;
+}
+function edgeMat(){ if(!_edgeMat) _edgeMat=new THREE.LineBasicMaterial({color:0x0a1a2e,transparent:true,opacity:.5}); return _edgeMat; }
+
 function mkPanel3D(col_item,xOff,platY){
   const{it,x,y,z}=col_item;
   const dx=it.dx,dy=it.dy,dz=it.dz;
   const GAP=.012;
-  const geo=new THREE.BoxGeometry(Math.max(.02,dx-GAP),Math.max(.02,dy-GAP*.4),Math.max(.02,dz-GAP));
-  const mat=new THREE.MeshPhongMaterial({
-    color:it.c3,transparent:xray,opacity:xray?.35:.95,
-    specular:0x334466,shininess:50,depthWrite:!xray
-  });
-  const m=new THREE.Mesh(geo,mat);
-  m.castShadow=m.receiveShadow=true;
+  const m=new THREE.Mesh(panelGeo(dx,dy,dz), panelMat(it.c3));
 
   // x,y ya son globales (el heightmap incluye la repisa del copete)
   const xG = xOff + x + dx/2;
   const yG = platY + .06 + y + dy/2;
   m.position.set(xG, yG, z+dz/2);
 
-  m.add(new THREE.LineSegments(
-    new THREE.EdgesGeometry(geo),
-    new THREE.LineBasicMaterial({color:0x000000,transparent:true,opacity:.85})
-  ));
+  m.add(new THREE.LineSegments(panelEdge(dx,dy,dz), edgeMat()));
   if(it.deco==='L' && !xray) addLDeco(m,dx-GAP,dy-GAP*.4,dz-GAP);
 
   const enCopete = xOff===0 && (x+dx/2) > VEH.cam.L + .01;
@@ -946,6 +959,10 @@ function dibujar3D(viajes){
   viajes.forEach(v=>{if(!pares[v.id])pares[v.id]={};pares[v.id][v.tipo]=v;});
   const ids=Object.keys(pares).map(Number).sort((a,b)=>a-b);
 
+  // Con muchas piezas, la animación de bajada satura → colocar directo
+  const totalPlaced=viajes.reduce((s,v)=>s+v.placed.length,0);
+  const doAnim = totalPlaced<=250;
+
   ids.forEach((id,idx)=>{
     const par=pares[id];
     const gv=new THREE.Group();
@@ -967,13 +984,13 @@ function dibujar3D(viajes){
     if(par.cam){
       const antes=meshes.length;
       par.cam.placed.forEach(col=>{const pm=mkPanel3D(col,0,platY);gv.add(pm);meshes.push(pm);});
-      animBajar(meshes.slice(antes));
+      if(doAnim) animBajar(meshes.slice(antes));
     }
     if(par.rem){
       const antes=meshes.length;
       const xOff=-(LrJ+GAP);
       par.rem.placed.forEach(col=>{const pm=mkPanel3D(col,xOff,platY);gv.add(pm);meshes.push(pm);});
-      animBajar(meshes.slice(antes));
+      if(doAnim) animBajar(meshes.slice(antes));
     }
 
     sc.add(gv);grps.push(gv);
@@ -1016,26 +1033,23 @@ function initThree(){
   const cv=document.getElementById('cv');
   ren=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
   ren.setPixelRatio(Math.min(window.devicePixelRatio,2));
-  ren.setClearColor(0x13203a);
-  ren.shadowMap.enabled=true;
-  ren.shadowMap.type=THREE.PCFSoftShadowMap;
+  ren.setClearColor(dark?0x1b2c4a:0xf0ede6);
+  ren.shadowMap.enabled=false;               // sin sombras → mucho más ligero al mover/cargar
   sc=new THREE.Scene();
-  sc.fog=new THREE.Fog(0x13203a,70,170);
+  sc.fog=new THREE.Fog(dark?0x1b2c4a:0xf0ede6,80,200);
   cam3=new THREE.PerspectiveCamera(40,1,.1,300);
   calcCam();
 
-  sc.add(new THREE.AmbientLight(0x334466,.9));
-  const sol=new THREE.DirectionalLight(0xffffff,1.1);
-  sol.position.set(12,28,10);sol.castShadow=true;
-  sol.shadow.mapSize.set(1024,1024);
-  sol.shadow.camera.left=-50;sol.shadow.camera.right=50;
-  sol.shadow.camera.top=40;sol.shadow.camera.bottom=-40;
-  sol.shadow.camera.far=150;sc.add(sol);
-  const fill=new THREE.DirectionalLight(0x5599cc,.3);fill.position.set(-10,6,-8);sc.add(fill);
+  // Iluminación plana y clara (sin sombras): ambiente alto + 1 direccional + relleno
+  sc.add(new THREE.AmbientLight(0xcdd9ec,1.05));
+  const sol=new THREE.DirectionalLight(0xffffff,.8);
+  sol.position.set(12,28,10);sc.add(sol);
+  const fill=new THREE.DirectionalLight(0x88b0e0,.35);fill.position.set(-10,6,-8);sc.add(fill);
 
-  suelo=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshPhongMaterial({color:0x0e1930}));
-  suelo.rotation.x=-Math.PI/2;suelo.receiveShadow=true;sc.add(suelo);
-  gridObj=new THREE.GridHelper(200,100,0x33548a,0x33548a);
+  // Piso con MeshBasic (sin cálculo de luz) — más barato
+  suelo=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshBasicMaterial({color:dark?0x162540:0xe6e1d8}));
+  suelo.rotation.x=-Math.PI/2;sc.add(suelo);
+  gridObj=new THREE.GridHelper(200,100,dark?0x3f639e:0xc3ccd9,dark?0x3f639e:0xc3ccd9);
   gridObj.position.y=.002;sc.add(gridObj);
 
   ray3=new THREE.Raycaster();mu=new THREE.Vector2();
@@ -1306,6 +1320,8 @@ function initFirebaseLog(){
 }
 
 /* INIT */
+document.body.className = dark ? '' : 'light';
+(function(){ const tb=document.getElementById('thbtn'); if(tb) tb.textContent = dark ? '☀' : '🌙'; })();
 buildSB();
 initThree();
 loadLogoLocal();
