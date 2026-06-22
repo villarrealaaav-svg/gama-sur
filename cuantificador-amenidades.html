@@ -1102,7 +1102,17 @@
   <div class="tab-panel" id="panel-cotizacion">
     <div class="doc-toolbar">
       <div class="title">Cotización <span class="docnum-display" id="cotNumDisplay"></span></div>
-      <button class="print" id="printCot">🖨 Imprimir / PDF</button>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <span class="toggle-row" style="padding:0;gap:8px;">
+          <span class="toggle" id="descToggle" onclick="toggleDescuento()" title="Aplicar descuento %"></span>
+          <span class="toggle-label">Descuento</span>
+          <input type="number" id="descPctInline" step="0.5" min="0" max="100" value="0"
+                 oninput="setDescuentoPct(this.value)"
+                 style="width:60px;padding:4px 6px;border:1px solid var(--blue-200);border-radius:6px;font-family:'JetBrains Mono',monospace;font-size:12px;text-align:right;display:none;">
+          <span id="descPctSign" style="font-size:13px;font-weight:700;color:var(--ink-soft);display:none;">%</span>
+        </span>
+        <button class="print" id="printCot">🖨 Imprimir / PDF</button>
+      </div>
     </div>
     <div class="document" id="cotizacionDoc"></div>
   </div>
@@ -1170,7 +1180,7 @@ const STATE = {
   activePresetId: null,
   customers: [],
   config: {
-    utilidadPct: 0, descuentoPct: 0, laborCost: 36500,
+    utilidadPct: 0, descuentoPct: 0, descuentoOn: false, laborCost: 36500,
     anticipoPct: 100, iva: true, vigencia: null,
     compactView: false,
   },
@@ -1216,6 +1226,7 @@ function loadLocal() {
     // Normalizar booleanos que pudieron guardarse como strings en versiones viejas
     if (typeof STATE.config.iva === 'string') STATE.config.iva = STATE.config.iva !== 'false';
     if (typeof STATE.config.compactView === 'string') STATE.config.compactView = STATE.config.compactView === 'true';
+    if (STATE.config.descuentoOn === undefined) STATE.config.descuentoOn = (Number(STATE.config.descuentoPct)||0) > 0;
   } catch(e){}
 }
 function markDirty() {
@@ -1428,8 +1439,8 @@ function computeFinancials() {
   const utilidadPct = Number(STATE.config.utilidadPct) || 0;
   const utilidadMonto = subtotalMateriales * (utilidadPct / 100);
   const subtotalConUtilidad = subtotalMateriales + utilidadMonto;
-  // Descuento sobre subtotal con utilidad
-  const descuentoPct = Number(STATE.config.descuentoPct) || 0;
+  // Descuento sobre subtotal con utilidad (solo si el toggle está activo)
+  const descuentoPct = STATE.config.descuentoOn ? (Number(STATE.config.descuentoPct) || 0) : 0;
   const descuentoMonto = subtotalConUtilidad * (descuentoPct / 100);
   const subtotalCliente = subtotalConUtilidad - descuentoMonto;
   // Maniobra se suma DESPUÉS (desglose separado, cliente sí lo ve)
@@ -2872,7 +2883,7 @@ function renderCotizacion() {
 
   // Precio con utilidad embebida por panel (cliente ve precio final, sin desglose de margen)
   // La utilidad ya está en el P.U. mostrado → subtotalCliente = lo que el cliente paga en materiales
-  let totRows = `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL</strong></td><td class="right"><strong>${fmtMoney(f.subtotalCliente)}</strong></td></tr>`;
+  let totRows = `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL</strong></td><td class="right"><strong>${fmtMoney(f.subtotalConUtilidad)}</strong></td></tr>`;
   if (f.descuentoMonto > 0)
     totRows += `<tr class="totals"><td colspan="4" class="right">Descuento ${fmtNum(f.descuentoPct,2)}%</td><td class="right">- ${fmtMoney(f.descuentoMonto)}</td></tr>`;
   totRows += `<tr class="totals"><td colspan="4" class="right">COSTO MANIOBRA:</td><td class="right">${fmtMoney(f.labor)}</td></tr>`;
@@ -3006,7 +3017,7 @@ function renderPrefactura() {
   // Maniobra va en bloque de totales, no como línea
 
   let totRows = '';
-  totRows += `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL:</strong></td><td class="right"><strong>${fmtMoney(f.subtotalCliente)}</strong></td></tr>`;
+  totRows += `<tr class="totals"><td colspan="4" class="right"><strong>SUBTOTAL:</strong></td><td class="right"><strong>${fmtMoney(f.subtotalConUtilidad)}</strong></td></tr>`;
   if (f.descuentoMonto > 0)
     totRows += `<tr class="totals"><td colspan="4" class="right">Descuento ${fmtNum(f.descuentoPct,2)}%</td><td class="right">- ${fmtMoney(f.descuentoMonto)}</td></tr>`;
   totRows += `<tr class="totals"><td colspan="4" class="right">COSTO MANIOBRA:</td><td class="right">${fmtMoney(f.labor)}</td></tr>`;
@@ -3222,7 +3233,7 @@ bindInput('clienteTel',       v => STATE.cliente.tel = v);
 bindInput('clienteMail',      v => STATE.cliente.mail = v);
 bindInput('clienteObra',      v => STATE.cliente.obra = v);
 bindInput('utilidadPct',  v => { STATE.config.utilidadPct = v; STATE.activePresetId = null; renderPresets(); });
-bindInput('descuentoPct', v => STATE.config.descuentoPct = v);
+bindInput('descuentoPct', v => { STATE.config.descuentoPct = v; if ((Number(v)||0) > 0) STATE.config.descuentoOn = true; syncDescuentoUI(); });
 bindInput('laborCost',    v => STATE.config.laborCost = v);
 bindInput('anticipoPct',  v => STATE.config.anticipoPct = v);
 bindInput('vigenciaFecha',v => STATE.config.vigencia = v);
@@ -3232,6 +3243,28 @@ document.getElementById('ivaToggle').addEventListener('click', () => {
   document.getElementById('ivaToggle').classList.toggle('on', STATE.config.iva);
   persistLocal(); markDirty(); renderDocsOnly();
 });
+
+// ── Descuento (toggle visible en cotización) ──
+function syncDescuentoUI() {
+  const on = !!STATE.config.descuentoOn;
+  const t = document.getElementById('descToggle');
+  const inp = document.getElementById('descPctInline');
+  const sign = document.getElementById('descPctSign');
+  if (t) t.classList.toggle('on', on);
+  if (inp) { inp.style.display = on ? '' : 'none'; inp.value = Number(STATE.config.descuentoPct) || 0; }
+  if (sign) sign.style.display = on ? '' : 'none';
+  const det = document.getElementById('descuentoPct'); // input avanzado en pestaña General
+  if (det) det.value = Number(STATE.config.descuentoPct) || 0;
+}
+function toggleDescuento() {
+  STATE.config.descuentoOn = !STATE.config.descuentoOn;
+  syncDescuentoUI();
+  persistLocal(); markDirty(); renderDocsOnly();
+}
+function setDescuentoPct(v) {
+  STATE.config.descuentoPct = Math.max(0, Math.min(100, Number(v) || 0));
+  persistLocal(); markDirty(); renderDocsOnly();
+}
 
 function syncInputsFromState() {
   document.getElementById('emisorNombre').value = STATE.emisor.nombre;
@@ -3247,6 +3280,7 @@ function syncInputsFromState() {
   document.getElementById('anticipoPct').value = STATE.config.anticipoPct;
   document.getElementById('vigenciaFecha').value = STATE.config.vigencia;
   document.getElementById('ivaToggle').classList.toggle('on', STATE.config.iva);
+  syncDescuentoUI();
   document.getElementById('btnToggleView').textContent = STATE.config.compactView ? 'Vista detallada' : 'Vista compacta';
 }
 function syncClienteInputs() {
