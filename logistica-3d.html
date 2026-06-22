@@ -1327,6 +1327,17 @@ initThree();
 loadLogoLocal();
 initFirebaseLog();
 loadDespiece(true);
+
+// Sync instantáneo entre pestañas del MISMO navegador: cuando el cuantificador
+// reescribe el despiece en localStorage, esta pestaña lo aplica al instante
+// (sin esperar a Firebase). Firebase sigue cubriendo el sync entre dispositivos.
+window.addEventListener('storage', function(e){
+  if(e.key === DESP_KEY && e.newValue){
+    try{ applyDespiece(JSON.parse(e.newValue), true); }catch(err){}
+  } else if(e.key === LOGO_KEY && e.newValue){
+    try{ applyLogo(e.newValue); }catch(err){}
+  }
+});
 </script>
 </body>
 </html>
