@@ -355,9 +355,10 @@ function colorOf(code){
    - Su alto útil = H_COP (1.40m por defecto)
 */
 const VEH={
-  cam:{L:10.00,A:2.50,H:3.20,pesoMax:10000},
-  rem:{L:10.70,A:2.50,H:3.00,pesoMax:12000},
-  cop:{L:2.30,H:1.40},  // largo extensión + alto útil del copete
+  // ⛔ MEDIDAS REALES CONFIRMADAS por Alejandro 2026-06-23 — BLOQUEADAS, NO CAMBIAR.
+  cam:{L:8.40, A:2.50, H:3.00, pesoMax:10000},  // camion: 8.40 largo x 2.50 ancho x 3.00 alto
+  rem:{L:10.00,A:2.50, H:3.20, pesoMax:12000},  // remolque: 10.00 largo x 2.50 ancho x 3.20 alto
+  cop:{L:2.30, H:1.40},                          // copete: 2.30 largo x 1.40 alto (ancho = A = 2.50)
 };
 const RW={R:.52,G:.32};
 
@@ -970,11 +971,11 @@ function dibujar3D(viajes){
     gv.position.z=(idx-(ids.length-1)/2)*espacioZ;
 
     // Camión (con copete)
-    const jc=mkJaula({L:VEH.cam.L,A:VEH.cam.A,H:VEH.cam.H},0x60a5fa,[LcJ*.90,LcJ*.82],true);
+    const jc=mkJaula({L:VEH.cam.L,A:VEH.cam.A,H:VEH.cam.H},0x60a5fa,[LcJ*.16,LcJ*.86],true);
     jc.position.x=0; gv.add(jc);
 
     // Remolque (sin copete)
-    const jr=mkJaula({L:VEH.rem.L,A:VEH.rem.A,H:VEH.rem.H},0xfbbf24,[LrJ*.92,LrJ*.84],false);
+    const jr=mkJaula({L:VEH.rem.L,A:VEH.rem.A,H:VEH.rem.H},0xfbbf24,[LrJ*.14,LrJ*.82],false);
     jr.position.x=-(LrJ+GAP); gv.add(jr);
 
     // Enganche
@@ -1004,8 +1005,8 @@ function dibujarVacio(){
   const LcJ=VEH.cam.L,LrJ=VEH.rem.L,GAP=1.2,LCop=VEH.cop.L;
   const centX=-(LrJ+GAP+LcJ+LCop)/2;
   const g=new THREE.Group(); g.position.x=centX;
-  g.add(mkJaula({L:VEH.cam.L,A:VEH.cam.A,H:VEH.cam.H},0x60a5fa,[LcJ*.90,LcJ*.82],true));
-  const jr=mkJaula({L:VEH.rem.L,A:VEH.rem.A,H:VEH.rem.H},0xfbbf24,[LrJ*.92,LrJ*.84],false);
+  g.add(mkJaula({L:VEH.cam.L,A:VEH.cam.A,H:VEH.cam.H},0x60a5fa,[LcJ*.16,LcJ*.86],true));
+  const jr=mkJaula({L:VEH.rem.L,A:VEH.rem.A,H:VEH.rem.H},0xfbbf24,[LrJ*.14,LrJ*.82],false);
   jr.position.x=-(LrJ+GAP); g.add(jr);
   const platY=RW.R*2+.06;
   const eng=mkBox(GAP,.10,.10,0x778899);
