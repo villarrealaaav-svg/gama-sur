@@ -210,6 +210,7 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 <button class="rcbtn primary" onclick="rcOpenOpp()">＋ Oportunidad</button>
 <button class="rcbtn" onclick="rcOpenVend()">👤 Vendedores</button>
 <button class="rcbtn ghost" onclick="rcImport()">📥 Importar</button>
+<button class="rcbtn ghost" onclick="rcClear()">🗑️ Limpiar</button>
 </div>
 </div>
 <div class="rcrank" id="rcRank"></div>
@@ -337,8 +338,8 @@ function rcMoney(n){return '$'+Math.round(Number(n)||0).toLocaleString('es-MX');
 function rcUid(p){return p+Math.random().toString(36).slice(2,9);}
 function rcVend(id){return RC.vend.filter(function(v){return v.id===id;})[0]||null;}
 function rcCom(o){var pct=o.comisionPct;if(pct==null||pct===''){var v=rcVend(o.vendedorId);pct=v?v.comPct:RC_DEFCOM;}return (Number(o.monto)||0)*(Number(pct)||0)/100;}
-function rcSeed(){if(typeof DATA==='undefined')return [];return DATA.filter(function(p){return p.proyecto&&p.proyecto!=='(RAIZ)';}).map(function(p){return {id:rcUid('op'),obra:p.proyecto,ubic:(p.ubic&&p.ubic!=='Fecha:')?p.ubic:'',cliente:p.cliente||'',constructora:'',monto:Number(p.monto)||0,vendedorId:null,estado:'libre',novidesa:'sin',novFolio:'',novFecha:'',novObs:'',novResp:'',comisionPct:null,seguimiento:'',img:''};});}
-function rcLoad(){var o=null;try{o=JSON.parse(localStorage.getItem('rc_opps')||'null');}catch(e){}RC.opps=Array.isArray(o)?o:rcSeed();try{RC.vend=JSON.parse(localStorage.getItem('rc_vend')||'[]')||[];}catch(e){RC.vend=[];}if(!Array.isArray(o))rcSaveOpps();}
+function rcSeed(){return [];/* tablero arranca VACIO: sin auto-seed de obras */}
+function rcLoad(){var o=null;try{o=JSON.parse(localStorage.getItem('rc_opps')||'null');}catch(e){}try{RC.vend=JSON.parse(localStorage.getItem('rc_vend')||'[]')||[];}catch(e){RC.vend=[];}if(localStorage.getItem('rc_clean')!=='1'){RC.opps=[];rcSaveOpps();localStorage.setItem('rc_clean','1');/* migracion 1 vez: descarta el seed viejo de 89 obras. NO toca rc_vend */}else{RC.opps=Array.isArray(o)?o:[];}}
 function rcSaveOpps(){try{localStorage.setItem('rc_opps',JSON.stringify(RC.opps));}catch(e){}}
 function rcSaveVend(){try{localStorage.setItem('rc_vend',JSON.stringify(RC.vend));}catch(e){}}
 function rcInit(){if(rcReady){rcRender();return;}rcReady=true;rcLoad();rcFiltersUI();var q=document.getElementById('rcQ');if(q)q.oninput=function(){RC.q=this.value.toLowerCase();rcRender();};rcRender();}
@@ -353,7 +354,7 @@ function rcRender(){
  document.getElementById('rcKpis').innerHTML=kp.map(function(k){return '<div class="rckpi"><div class="rckv" style="color:'+k[2]+'">'+k[1]+'</div><div class="rckl">'+k[0]+'</div></div>';}).join('');
  rcRankUI();
  var g=document.getElementById('rcGrid'),emp=document.getElementById('rcEmpty');
- if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML='<div style="font-size:40px">🎯</div><div>Sin oportunidades en este filtro.</div>';}
+ if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML=A.length?'<div style="font-size:40px">🎯</div><div>Sin oportunidades en este filtro.</div>':'<div style="font-size:40px">🎯</div><div>Tablero vacío. Agrega tu primera oportunidad con <b>＋ Oportunidad</b>.</div>';}
  else{emp.style.display='none';g.innerHTML=list.map(rcCard).join('');}
 }
 function rcRankUI(){
@@ -417,4 +418,5 @@ function rcVListUI(){var el=document.getElementById('rcVList');if(!el)return;el.
 function rcAddVend(){var $=function(x){return document.getElementById(x);};var n=$('v_nombre').value.trim();if(!n){alert('Nombre requerido');return;}RC.vend.push({id:rcUid('v'),nombre:n,tel:$('v_tel').value.trim(),mail:$('v_mail').value.trim(),comPct:Number($('v_com').value)||0,meta:Number($('v_meta').value)||0,color:$('v_color').value});rcSaveVend();$('v_nombre').value='';$('v_tel').value='';$('v_mail').value='';$('v_meta').value='0';rcVListUI();rcRender();}
 function rcDelVend(id){RC.vend=RC.vend.filter(function(v){return v.id!==id;});RC.opps.forEach(function(o){if(o.vendedorId===id)o.vendedorId=null;});rcSaveVend();rcSaveOpps();rcVListUI();rcRender();}
 function rcImport(){alert('Importación por OCR / IA (capturas de Notion → tarjetas): preparado para una próxima versión.');}
+function rcClear(){if(!RC.opps.length){alert('El tablero ya está vacío.');return;}if(!confirm('¿Vaciar todas las tarjetas del tablero? Los vendedores NO se tocan.'))return;RC.opps=[];rcSaveOpps();rcRender();}
 </script></body></html>
