@@ -147,6 +147,8 @@ td.num{text-align:right;font-variant-numeric:tabular-nums}
 .rcvlist{padding:8px 20px;max-height:240px;overflow:auto}
 .rcvrow{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid #1e2840;font-size:13px}
 .rcvmeta{opacity:.6;font-size:12px}
+.rcimgprev{height:130px;border-radius:8px;background-size:cover;background-position:center;border:1px solid #2a3a55;margin-top:4px}
+.rcform input[type=file]{padding:6px;font-size:12px}
 @media(max-width:560px){.rcform{grid-template-columns:1fr}.rcactions{margin-left:0;width:100%}}
 </style></head>
 <body>
@@ -339,7 +341,21 @@ function rcUid(p){return p+Math.random().toString(36).slice(2,9);}
 function rcVend(id){return RC.vend.filter(function(v){return v.id===id;})[0]||null;}
 function rcCom(o){var pct=o.comisionPct;if(pct==null||pct===''){var v=rcVend(o.vendedorId);pct=v?v.comPct:RC_DEFCOM;}return (Number(o.monto)||0)*(Number(pct)||0)/100;}
 function rcSeed(){return [];/* tablero arranca VACIO: sin auto-seed de obras */}
-function rcLoad(){var o=null;try{o=JSON.parse(localStorage.getItem('rc_opps')||'null');}catch(e){}try{RC.vend=JSON.parse(localStorage.getItem('rc_vend')||'[]')||[];}catch(e){RC.vend=[];}if(localStorage.getItem('rc_clean')!=='1'){RC.opps=[];rcSaveOpps();localStorage.setItem('rc_clean','1');/* migracion 1 vez: descarta el seed viejo de 89 obras. NO toca rc_vend */}else{RC.opps=Array.isArray(o)?o:[];}}
+/* Prospectos cargados de las capturas (Notion · Prospeccion de Clientes). estado: libre=Prospecto, asignada=Seguimiento, cotizada=Cotizado */
+var RC_NOTION=[
+ ['Residencial Brisas del Mar','asignada',78000],['Proyectos 253','cotizada',0],['Grupo Depec','asignada',0],
+ ['Fracc. Lomas de Ixtacomitán','libre',0],['Quintas Santuarios','libre',0],['Fraccionamiento Sauco','libre',0],
+ ['Carrizal de Campestre','libre',0],['CW Desarrolladora','libre',0],['Fraccionamiento Kaoba','libre',0],
+ ['JRD','libre',0],['Residencial Jardines del Cedro','libre',0],['Marzul Lotes en la playa','libre',0],
+ ['Privada Boutique Palmas Miramar','libre',0],['NARIO Construcciones','libre',0],['Real Campestre','libre',0],
+ ['Real de Palmas','libre',0],['Valle 4 Altozano','libre',0],['Compostela Villahermosa','libre',0],
+ ['Asia Fraccionamiento','libre',0],['Fraccionamiento Europa','libre',0],['Residencial Privanza Montecristo','libre',0],
+ ['Fraccionamiento Los Sauces','libre',0],['Cristian Ocaña','libre',0],['Nuevo Country Tabasco','libre',0],
+ ['Tulumcito Pueblo','libre',0],['Plaza Palmarenas','libre',0],['Këkëw fraccionamiento','libre',0],
+ ['Montezza residencial','libre',0],['Icot constructora Altozano','libre',0]
+];
+function rcSeedNotion(){return RC_NOTION.map(function(a){return {id:rcUid('op'),obra:a[0],ubic:'',cliente:'',constructora:'',monto:Number(a[2])||0,vendedorId:null,estado:a[1],novidesa:'sin',novFolio:'',novFecha:'',novObs:'',novResp:'',comisionPct:null,seguimiento:'',img:''};});}
+function rcLoad(){var o=null;try{o=JSON.parse(localStorage.getItem('rc_opps')||'null');}catch(e){}try{RC.vend=JSON.parse(localStorage.getItem('rc_vend')||'[]')||[];}catch(e){RC.vend=[];}if(localStorage.getItem('rc_clean')!=='1'){RC.opps=[];rcSaveOpps();localStorage.setItem('rc_clean','1');/* migracion 1 vez: descarta el seed viejo de 89 obras. NO toca rc_vend */}else{RC.opps=Array.isArray(o)?o:[];}if(localStorage.getItem('rc_seed_notion')!=='1'){RC.opps=RC.opps.concat(rcSeedNotion());rcSaveOpps();localStorage.setItem('rc_seed_notion','1');/* alta 1 vez de los prospectos de las capturas. NO toca rc_vend */}}
 function rcSaveOpps(){try{localStorage.setItem('rc_opps',JSON.stringify(RC.opps));}catch(e){}}
 function rcSaveVend(){try{localStorage.setItem('rc_vend',JSON.stringify(RC.vend));}catch(e){}}
 function rcInit(){if(rcReady){rcRender();return;}rcReady=true;rcLoad();rcFiltersUI();var q=document.getElementById('rcQ');if(q)q.oninput=function(){RC.q=this.value.toLowerCase();rcRender();};rcRender();}
@@ -390,7 +406,8 @@ function rcOpenOpp(id){
   '<label>Estado comercial<select id="f_estado">'+estOpts+'</select></label>'+
   '<label>% Comisión (opcional)<input id="f_compct" type="number" step="0.1" placeholder="auto vendedor" value="'+(o.comisionPct==null?'':o.comisionPct)+'"></label>'+
   '<label>Fecha seguimiento<input id="f_seg" type="date" value="'+rcEsc(o.seguimiento)+'"></label>'+
-  '<label class="full">Imagen (URL)<input id="f_img" value="'+rcEsc(o.img)+'" placeholder="https://..."></label>'+
+  '<label class="full">Imagen de la obra (subir desde el dispositivo)<input id="f_imgfile" type="file" accept="image/*" onchange="rcPickImg(this)"></label>'+
+  '<div class="full"><div id="f_imgprev" class="rcimgprev" style="'+(o.img?'display:block;background-image:url(\''+o.img+'\')':'display:none')+'"></div><input id="f_img" type="hidden" value="'+rcEsc(o.img)+'">'+(o.img?'<button type="button" class="rcbtn ghost" style="margin-top:6px;padding:5px 10px;font-size:12px" onclick="rcImgClear()">✕ Quitar imagen</button>':'')+'</div>'+
   '<div class="rcsec">Apartado Novidesa</div>'+
   '<label>Estado Novidesa<select id="f_nov">'+novOpts+'</select></label>'+
   '<label>Folio<input id="f_novfolio" value="'+rcEsc(o.novFolio)+'"></label>'+
@@ -419,4 +436,7 @@ function rcAddVend(){var $=function(x){return document.getElementById(x);};var n
 function rcDelVend(id){RC.vend=RC.vend.filter(function(v){return v.id!==id;});RC.opps.forEach(function(o){if(o.vendedorId===id)o.vendedorId=null;});rcSaveVend();rcSaveOpps();rcVListUI();rcRender();}
 function rcImport(){alert('Importación por OCR / IA (capturas de Notion → tarjetas): preparado para una próxima versión.');}
 function rcClear(){if(!RC.opps.length){alert('El tablero ya está vacío.');return;}if(!confirm('¿Vaciar todas las tarjetas del tablero? Los vendedores NO se tocan.'))return;RC.opps=[];rcSaveOpps();rcRender();}
+/* Subir imagen desde el dispositivo → se comprime a thumbnail (max 640px, JPEG) para no inflar localStorage */
+function rcPickImg(input){var f=input.files&&input.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var max=640,w=im.width,h=im.height;if(w>max){h=Math.round(h*max/w);w=max;}var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);var durl;try{durl=cv.toDataURL('image/jpeg',0.72);}catch(e){durl=rd.result;}var hid=document.getElementById('f_img');if(hid)hid.value=durl;var pv=document.getElementById('f_imgprev');if(pv){pv.style.backgroundImage='url(\''+durl+'\')';pv.style.display='block';}};im.onerror=function(){alert('No se pudo leer la imagen.');};im.src=rd.result;};rd.readAsDataURL(f);}
+function rcImgClear(){var h=document.getElementById('f_img');if(h)h.value='';var p=document.getElementById('f_imgprev');if(p){p.style.display='none';p.style.backgroundImage='';}var fi=document.getElementById('f_imgfile');if(fi)fi.value='';}
 </script></body></html>
