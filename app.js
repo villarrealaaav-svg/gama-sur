@@ -66,6 +66,16 @@ const INITIAL_APPS = [
     tags: ["logistica","carga","viajes","camion","remolque","despiece","3d","acomodo"]
   },
   {
+    id: "dashboard-proyectos",
+    name: "Dashboard de", nameItalic: "Proyectos",
+    desc: "Panorama de proyectos: KPIs, montos cotizados, estados y mapa de lotes.",
+    icon: "📊", color: "#2e5496", iconBg: "#eaf0fa",
+    url: "dashboard-proyectos.html",
+    badge: "new", badgeLabel: "Nuevo",
+    cat: "operacion",
+    tags: ["dashboard","proyectos","kpi","panel","montos","estados","palmarena","mapa","lotes","gerencia"]
+  },
+  {
     id: "clientes",
     name: "Directorio de", nameItalic: "Clientes",
     desc: "Guarda clientes una vez. Se autocompletan en todas las cotizaciones.",
