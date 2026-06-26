@@ -9,6 +9,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<script src="gamasur-img.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Arial,sans-serif}
 body{background:#F0F4F9;color:#1A2535;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -175,7 +176,7 @@ th{color:#1A2535}
 .rckv{color:#1A2535}
 .rcdh,.rcx{color:#1A2535}
 .rcform label{color:#3D4F63}
-.rcimgprev{height:120px;border-radius:8px;background-size:cover;background-position:center;border:1px solid #E5E7EB;margin-top:4px}
+.rcimgprev{height:120px;border-radius:8px;background-size:cover;background-position:center;border:1px solid #E5E7EB;margin-top:4px;display:flex;align-items:center;justify-content:center;color:#7A8FA6;font-size:12px}
 /* ===== Mapa General (Leaflet/OSM) + sync pill ===== */
 #viewGen.active{display:flex;flex-direction:column}
 .genwrap{flex:1;min-height:0;display:flex}
@@ -492,7 +493,7 @@ function rcDelVend(id){RC.vend=RC.vend.filter(function(v){return v.id!==id;});RC
 function rcImport(){alert('Importación por OCR / IA (capturas de Notion → tarjetas): preparado para una próxima versión.');}
 function rcClear(){if(!RC.opps.length){alert('El tablero ya está vacío.');return;}if(!confirm('¿Vaciar todas las tarjetas del tablero? Los vendedores NO se tocan.'))return;RC.opps=[];rcSaveOpps();rcRender();}
 /* Subir imagen desde el dispositivo → se comprime a thumbnail (max 640px, JPEG) para no inflar localStorage */
-function rcPickImg(input){var f=input.files&&input.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(){var im=new Image();im.onload=function(){var max=640,w=im.width,h=im.height;if(w>max){h=Math.round(h*max/w);w=max;}var cv=document.createElement('canvas');cv.width=w;cv.height=h;cv.getContext('2d').drawImage(im,0,0,w,h);var durl;try{durl=cv.toDataURL('image/jpeg',0.72);}catch(e){durl=rd.result;}var hid=document.getElementById('f_img');if(hid)hid.value=durl;var pv=document.getElementById('f_imgprev');if(pv){pv.style.backgroundImage='url(\''+durl+'\')';pv.style.display='block';}};im.onerror=function(){alert('No se pudo leer la imagen.');};im.src=rd.result;};rd.readAsDataURL(f);}
+function rcPickImg(input){var f=input.files&&input.files[0];if(!f)return;var pv=document.getElementById('f_imgprev');if(pv){pv.style.display='flex';pv.style.backgroundImage='';pv.textContent='⏳ Subiendo...';}if(typeof gsUploadImage!=='function'){alert('No cargó gamasur-img.js');if(pv)pv.textContent='';return;}gsUploadImage(f,{folder:'radar',max:1000,q:0.72}).then(function(url){var hid=document.getElementById('f_img');if(hid)hid.value=url;if(pv){pv.textContent='';pv.style.backgroundImage='url(\''+url+'\')';}}).catch(function(e){alert('No se pudo subir la imagen: '+e);if(pv){pv.textContent='✕ Error al subir';}});}
 function rcImgClear(){var h=document.getElementById('f_img');if(h)h.value='';var p=document.getElementById('f_imgprev');if(p){p.style.display='none';p.style.backgroundImage='';}var fi=document.getElementById('f_imgfile');if(fi)fi.value='';}
 </script>
 <script>
@@ -503,7 +504,7 @@ function fbStatus(on){var p=document.getElementById('syncPill');if(!p)return;p.c
 function fbParse(x){if(x==null)return null;if(typeof x==='string'){try{return JSON.parse(x);}catch(e){return null;}}return x;}
 function fbInit(){if(fbOk)return;try{if(typeof firebase==='undefined')return;if(!firebase.apps.length)firebase.initializeApp(FB_DASH);fbDb=firebase.database();fbOk=true;fbWire();}catch(e){fbOk=false;fbStatus(false);}}
 function fbData(key){
- if(key==='opps')return RC.opps.map(function(o){var c={};for(var k in o)c[k]=o[k];c.img='';return c;}); /* fotos NO viajan al sync (estado ligero) */
+ if(key==='opps')return RC.opps.map(function(o){var c={};for(var k in o)c[k]=o[k];if(c.img&&c.img.indexOf('data:')===0)c.img='';return c;}); /* URLs de Supabase SI sincronizan (ligeras); base64 viejo se descarta */
  if(key==='vend')return RC.vend;
  if(key==='palmPins')return (typeof mPins!=='undefined'?mPins:{});
  if(key==='genPins')return (typeof gPins!=='undefined'?gPins:{});
