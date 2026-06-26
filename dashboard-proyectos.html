@@ -510,7 +510,7 @@ function fbData(key){
  return null;
 }
 function fbPush(key){if(!fbOk||_fbApply)return;clearTimeout(_fbT[key]);_fbT[key]=setTimeout(function(){try{fbDb.ref('gamasur/dashboard/'+key).set(JSON.stringify(fbData(key)));}catch(e){}},700);}
-function fbApplyRemoteOpps(arr){if(!Array.isArray(arr))return;try{localStorage.setItem('rc_clean','1');localStorage.setItem('rc_seed_notion','1');}catch(e){}/* datos remotos mandan: no dejar que la migracion/seed local los borre */var li={};RC.opps.forEach(function(o){if(o.img)li[o.id]=o.img;});RC.opps=arr.map(function(o){if((!o.img||o.img==='')&&li[o.id])o.img=li[o.id];return o;});try{localStorage.setItem('rc_opps',JSON.stringify(RC.opps));}catch(e){}if(typeof rcReady!=='undefined'&&rcReady)rcRender();}
+function fbApplyRemoteOpps(arr){if(!Array.isArray(arr))return;try{localStorage.setItem('rc_clean','1');localStorage.setItem('rc_seed_notion','1');}catch(e){}/* datos remotos mandan: no dejar que la migracion/seed local los borre */var li={};RC.opps.forEach(function(o){if(o.img)li[o.id]=o.img;});try{var sv=JSON.parse(localStorage.getItem('rc_opps')||'[]');if(Array.isArray(sv))sv.forEach(function(o){if(o.img&&!li[o.id])li[o.id]=o.img;});}catch(e){}/* CLAVE: rescatar fotos del localStorage (en recarga la memoria esta vacia y el echo viene sin foto) */RC.opps=arr.map(function(o){if((!o.img||o.img==='')&&li[o.id])o.img=li[o.id];return o;});try{localStorage.setItem('rc_opps',JSON.stringify(RC.opps));}catch(e){}if(typeof rcReady!=='undefined'&&rcReady)rcRender();}
 function fbWire(){
  fbStatus(true);
  fbDb.ref('.info/connected').on('value',function(s){fbStatus(!!s.val());});
