@@ -196,10 +196,45 @@ th{color:#1A2535}
 .syncpill.on{color:#16A34A;border-color:#bbf7d0;background:#f0fdf4}
 .leaflet-popup-content{font-family:'Inter',sans-serif;font-size:13px}
 @media(max-width:680px){.genwrap{flex-direction:column}.genside{width:auto;border-right:none;border-bottom:1px solid #E5E7EB;max-height:38vh}}
+/* ===== PULIDO VISUAL (UI/UX pass) ===== */
+.ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;display:inline-block;vertical-align:-3px}
+.tab,.rcbtn,.mbtn,.homebtn,.brand{display:inline-flex;align-items:center;gap:7px}
+.brand .ic{width:18px;height:18px;color:#1e4d8b}
+.rcmeta .ic,.rcseg .ic{width:13px;height:13px;vertical-align:-2px;opacity:.85}
+.rcrtitle .ic{width:14px;height:14px;vertical-align:-2px;color:#e3b341}
+.rccimg.ph .ic{width:40px;height:40px;stroke-width:1.3;opacity:.4}
+.rcemptyic{margin-bottom:2px}
+.rcemptyic .ic{width:44px;height:44px;stroke-width:1.3;opacity:.5;color:#7A8FA6}
+.tab,.rcbtn,.rcfil,.mbtn,.homebtn,.genitem,.mitem,.zoomctl button{transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+button,.tab,.rcfil,.genitem,.mitem,[onclick]{cursor:pointer}
+a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.genitem:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid #2563EB;outline-offset:2px;border-radius:6px}
+.rckv,.rcmonto,.kpi .v,.money,.rcrnum,.rccom b,td.num,.rcradv{font-variant-numeric:tabular-nums}
+@keyframes rcFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.rccard{animation:rcFade .26s ease}
+.rckpi{animation:rcFade .2s ease}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
 </style></head>
 <body>
-<div class="appbar"><a href="index.html" class="homebtn" title="Volver al inicio">← Inicio</a><div class="brand">🏗️ GAMA SUR</div>
-<div class="tabs"><button class="tab active" data-v="panel">📊 Panel</button><button class="tab" data-v="map">🗺️ Mapa de Lotes</button><button class="tab" data-v="radar">🎯 Radar Comercial</button><button class="tab" data-v="genmap">🌍 Mapa General</button></div><span id="syncPill" class="syncpill" title="Sincronización multidispositivo">○ local</span></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+<symbol id="i-bldg" viewBox="0 0 24 24"><path d="M3 21h18M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M9 7h.01M9 11h.01M9 15h.01M14 7h.01M14 11h.01M14 15h.01"/></symbol>
+<symbol id="i-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></symbol>
+<symbol id="i-map" viewBox="0 0 24 24"><path d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2-6-2zM9 3v16M15 5v16"/></symbol>
+<symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M10 11v6M14 11v6"/></symbol>
+<symbol id="i-save" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2zM17 21v-8H7v8M7 3v5h8"/></symbol>
+<symbol id="i-folder" viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></symbol>
+<symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></symbol>
+<symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+<symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></symbol>
+<symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM5 4H3v2a3 3 0 0 0 3 3M19 4h2v2a3 3 0 0 0-3 3"/></symbol>
+</defs></svg>
+<div class="appbar"><a href="index.html" class="homebtn" title="Volver al inicio"><svg class="ic"><use href="#i-back"/></svg>Inicio</a><div class="brand"><svg class="ic"><use href="#i-bldg"/></svg>GAMA SUR</div>
+<div class="tabs"><button class="tab active" data-v="panel"><svg class="ic"><use href="#i-panel"/></svg>Panel</button><button class="tab" data-v="map"><svg class="ic"><use href="#i-map"/></svg>Mapa de Lotes</button><button class="tab" data-v="radar"><svg class="ic"><use href="#i-target"/></svg>Radar Comercial</button><button class="tab" data-v="genmap"><svg class="ic"><use href="#i-globe"/></svg>Mapa General</button></div><span id="syncPill" class="syncpill" title="Sincronización multidispositivo">○ local</span></div>
 <div id="viewPanel" class="view active"><div class="wrap">
 <header><h1>Dashboard de Proyectos — GAMA SUR</h1>
 <p>Inventario de carpetas de cliente · Actualizado 25-Jun-2026 · Montos = TOTAL SISTEMA de cotizaciones (Excel + PDF)</p></header>
@@ -229,9 +264,9 @@ th{color:#1A2535}
 </div></div>
 <div id="viewMap" class="view">
 <div class="maptools">
-<button class="mbtn primary" onclick="document.getElementById('mFileIn').click()">🗺️ Cargar plano</button>
-<button class="mbtn" onclick="mExport()">💾 Guardar posiciones</button>
-<button class="mbtn" onclick="document.getElementById('mImpIn').click()">📂 Importar posiciones</button>
+<button class="mbtn primary" onclick="document.getElementById('mFileIn').click()"><svg class="ic"><use href="#i-image"/></svg>Cargar plano</button>
+<button class="mbtn" onclick="mExport()"><svg class="ic"><use href="#i-save"/></svg>Guardar posiciones</button>
+<button class="mbtn" onclick="document.getElementById('mImpIn').click()"><svg class="ic"><use href="#i-folder"/></svg>Importar posiciones</button>
 <span id="mCnt" style="font-size:11px;opacity:.7"></span>
 <input type="file" id="mFileIn" accept="image/*" style="display:none">
 <input type="file" id="mImpIn" accept="application/json" style="display:none">
@@ -255,10 +290,10 @@ th{color:#1A2535}
 <input id="rcQ" class="rcsearch" placeholder="🔍 Buscar obra, cliente o vendedor...">
 <div class="rcfilters" id="rcFilters"></div>
 <div class="rcactions">
-<button class="rcbtn primary" onclick="rcOpenOpp()">＋ Oportunidad</button>
-<button class="rcbtn" onclick="rcOpenVend()">👤 Vendedores</button>
-<button class="rcbtn ghost" onclick="rcImport()">📥 Importar</button>
-<button class="rcbtn ghost" onclick="rcClear()">🗑️ Limpiar</button>
+<button class="rcbtn primary" onclick="rcOpenOpp()"><svg class="ic"><use href="#i-plus"/></svg>Oportunidad</button>
+<button class="rcbtn" onclick="rcOpenVend()"><svg class="ic"><use href="#i-users"/></svg>Vendedores</button>
+<button class="rcbtn ghost" onclick="rcImport()"><svg class="ic"><use href="#i-upload"/></svg>Importar</button>
+<button class="rcbtn ghost" onclick="rcClear()"><svg class="ic"><use href="#i-trash"/></svg>Limpiar</button>
 </div>
 </div>
 <div class="rcrank" id="rcRank"></div>
@@ -426,25 +461,25 @@ function rcRender(){
  document.getElementById('rcKpis').innerHTML=kp.map(function(k){return '<div class="rckpi"><div class="rckv" style="color:'+k[2]+'">'+k[1]+'</div><div class="rckl">'+k[0]+'</div></div>';}).join('');
  rcRankUI();
  var g=document.getElementById('rcGrid'),emp=document.getElementById('rcEmpty');
- if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML=A.length?'<div style="font-size:40px">🎯</div><div>Sin oportunidades en este filtro.</div>':'<div style="font-size:40px">🎯</div><div>Tablero vacío. Agrega tu primera oportunidad con <b>＋ Oportunidad</b>.</div>';}
+ if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML=A.length?'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Sin oportunidades en este filtro.</div>':'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Tablero vacío. Agrega tu primera oportunidad con <b>＋ Oportunidad</b>.</div>';}
  else{emp.style.display='none';g.innerHTML=list.map(rcCard).join('');}
 }
 function rcRankUI(){
  var el=document.getElementById('rcRank');if(!el)return;
  if(!RC.vend.length){el.innerHTML='';return;}
  var rows=RC.vend.map(function(v){var ops=RC.opps.filter(function(o){return o.vendedorId===v.id;});var pot=ops.reduce(function(s,o){return s+(Number(o.monto)||0);},0);var won=ops.filter(function(o){return o.estado==='ganada';}).reduce(function(s,o){return s+(Number(o.monto)||0);},0);var meta=Number(v.meta)||0;var adv=meta>0?Math.min(100,Math.round(won/meta*100)):0;return {v:v,pot:pot,won:won,adv:adv};}).sort(function(a,b){return b.won-a.won||b.pot-a.pot;});
- el.innerHTML='<div class="rcrtitle">🏆 Ranking de vendedores</div>'+rows.map(function(r,i){return '<div class="rcrrow"><span class="rcrpos">'+(i+1)+'</span><span class="rcdot" style="background:'+(r.v.color||'#2563EB')+'"></span><span class="rcrname">'+rcEsc(r.v.nombre)+'</span><span class="rcrnum">pot '+rcMoney(r.pot)+'</span><span class="rcrnum">vend '+rcMoney(r.won)+'</span><span class="rcrbar"><span style="width:'+r.adv+'%;background:'+(r.v.color||'#2563EB')+'"></span></span><span class="rcradv">'+r.adv+'%</span></div>';}).join('');
+ el.innerHTML='<div class="rcrtitle"><svg class="ic"><use href="#i-trophy"/></svg> Ranking de vendedores</div>'+rows.map(function(r,i){return '<div class="rcrrow"><span class="rcrpos">'+(i+1)+'</span><span class="rcdot" style="background:'+(r.v.color||'#2563EB')+'"></span><span class="rcrname">'+rcEsc(r.v.nombre)+'</span><span class="rcrnum">pot '+rcMoney(r.pot)+'</span><span class="rcrnum">vend '+rcMoney(r.won)+'</span><span class="rcrbar"><span style="width:'+r.adv+'%;background:'+(r.v.color||'#2563EB')+'"></span></span><span class="rcradv">'+r.adv+'%</span></div>';}).join('');
 }
 function rcCard(o){
  var e=RC_EST[o.estado]||RC_EST.libre,nv=RC_NOV[o.novidesa]||RC_NOV.sin,v=rcVend(o.vendedorId);
- var img=o.img?'<div class="rccimg" style="background-image:url(\''+rcEsc(o.img)+'\')"></div>':'<div class="rccimg ph">🏗️</div>';
+ var img=o.img?'<div class="rccimg" style="background-image:url(\''+rcEsc(o.img)+'\')"></div>':'<div class="rccimg ph"><svg class="ic"><use href="#i-bldg"/></svg></div>';
  return '<div class="rccard" style="--ec:'+e.c+'" onclick="rcOpenOpp(\''+o.id+'\')">'+img+
   '<div class="rcbody"><div class="rcbadges"><span class="rcebadge" style="background:'+e.c+'22;color:'+e.c+';border-color:'+e.c+'55">'+e.l+'</span><span class="rcnov" title="'+nv.l+'">'+nv.e+' '+nv.l+'</span></div>'+
   '<div class="rctitle">'+(rcEsc(o.obra)||'(sin nombre)')+'</div>'+
-  '<div class="rcmeta">'+(o.ubic?'📍 '+rcEsc(o.ubic)+'<br>':'')+(o.cliente?'🏢 '+rcEsc(o.cliente):'')+(o.constructora?' · '+rcEsc(o.constructora):'')+'</div>'+
+  '<div class="rcmeta">'+(o.ubic?'<svg class="ic"><use href="#i-pin"/></svg> '+rcEsc(o.ubic)+'<br>':'')+(o.cliente?'<svg class="ic"><use href="#i-bldg"/></svg> '+rcEsc(o.cliente):'')+(o.constructora?' · '+rcEsc(o.constructora):'')+'</div>'+
   '<div class="rcmonto">'+rcMoney(o.monto)+'<span>monto potencial</span></div>'+
   '<div class="rccom">Comisión posible <b>'+rcMoney(rcCom(o))+'</b></div>'+
-  '<div class="rcfoot"><span class="rcvend">'+(v?'<span class="rcdot" style="background:'+(v.color||'#2563EB')+'"></span>'+rcEsc(v.nombre):'<span class="rcdot" style="background:#444"></span>Sin asignar')+'</span>'+(o.seguimiento?'<span class="rcseg">📅 '+rcEsc(o.seguimiento)+'</span>':'')+'</div></div></div>';
+  '<div class="rcfoot"><span class="rcvend">'+(v?'<span class="rcdot" style="background:'+(v.color||'#2563EB')+'"></span>'+rcEsc(v.nombre):'<span class="rcdot" style="background:#444"></span>Sin asignar')+'</span>'+(o.seguimiento?'<span class="rcseg"><svg class="ic"><use href="#i-cal"/></svg> '+rcEsc(o.seguimiento)+'</span>':'')+'</div></div></div>';
 }
 function rcOpenOpp(id){
  var o=id?RC.opps.filter(function(x){return x.id===id;})[0]:null;var isNew=!o;
