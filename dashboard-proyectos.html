@@ -516,7 +516,15 @@ function fbWire(){
  fbStatus(true);
  fbDb.ref('.info/connected').on('value',function(s){fbStatus(!!s.val());});
  fbDb.ref('gamasur/dashboard/opps').on('value',function(s){var v=fbParse(s.val());if(v==null){if(RC.opps&&RC.opps.length)fbPush('opps');return;}_fbApply=true;fbApplyRemoteOpps(v);_fbApply=false;});
- fbDb.ref('gamasur/dashboard/vend').on('value',function(s){var v=fbParse(s.val());if(v==null){if(RC.vend&&RC.vend.length)fbPush('vend');return;}_fbApply=true;RC.vend=v;try{localStorage.setItem('rc_vend',JSON.stringify(v));}catch(e){}if(typeof rcReady!=='undefined'&&rcReady)rcRender();_fbApply=false;});
+ fbDb.ref('gamasur/dashboard/vend').on('value',function(s){var v=fbParse(s.val());
+   if(v==null||(Array.isArray(v)&&v.length===0)){
+     /* remoto vacio: NO borrar. Si hay vendedores en localStorage o memoria, restaurarlos y subirlos */
+     var local=[];try{local=JSON.parse(localStorage.getItem('rc_vend')||'[]')||[];}catch(e){}
+     if(!local.length&&RC.vend&&RC.vend.length)local=RC.vend;
+     if(local.length){_fbApply=true;RC.vend=local;try{localStorage.setItem('rc_vend',JSON.stringify(local));}catch(e){}_fbApply=false;if(typeof rcReady!=='undefined'&&rcReady)rcRender();fbPush('vend');}
+     return;
+   }
+   _fbApply=true;RC.vend=v;try{localStorage.setItem('rc_vend',JSON.stringify(v));}catch(e){}if(typeof rcReady!=='undefined'&&rcReady)rcRender();_fbApply=false;});
  fbDb.ref('gamasur/dashboard/palmPins').on('value',function(s){var v=fbParse(s.val());if(v==null){if(typeof mPins!=='undefined'&&Object.keys(mPins||{}).length)fbPush('palmPins');return;}_fbApply=true;if(typeof mPins!=='undefined'){mPins=v;try{localStorage.setItem('palmarena_pins',JSON.stringify(v));}catch(e){}if(typeof mRenderPins==='function')mRenderPins();if(typeof mRenderList==='function')mRenderList();if(typeof mCntUpd==='function')mCntUpd();}_fbApply=false;});
  fbDb.ref('gamasur/dashboard/genPins').on('value',function(s){var v=fbParse(s.val());if(v==null)return;_fbApply=true;gPins=v;try{localStorage.setItem('gen_pins',JSON.stringify(v));}catch(e){}if(GMAP){gRenderMarkers();gRenderList();}_fbApply=false;});
 }
