@@ -47,4 +47,23 @@
       rd.readAsDataURL(file);
     });
   };
+  /* gsUploadDataUrl(dataUrl, opts) → Promise<urlPublica>. Sube una imagen base64 ya existente (migración). */
+  window.gsUploadDataUrl=function(dataUrl,opts){
+    opts=opts||{}; var folder=opts.folder||'img';
+    return new Promise(function(resolve,reject){
+      if(!dataUrl||dataUrl.indexOf('data:')!==0){reject('no es dataURL');return;}
+      fetch(dataUrl).then(function(r){return r.blob();}).then(function(blob){
+        var ext=(blob.type&&blob.type.indexOf('png')>=0)?'png':'jpg';
+        var path=folder+'/'+Date.now()+'_'+Math.random().toString(36).slice(2,8)+'.'+ext;
+        return fetch(SUPA.url+'/storage/v1/object/'+SUPA.bucket+'/'+path,{
+          method:'POST',
+          headers:{apikey:SUPA.key,Authorization:'Bearer '+SUPA.key,'x-upsert':'true','Content-Type':blob.type||'image/jpeg'},
+          body:blob
+        }).then(function(rr){
+          if(rr.ok){resolve(SUPA.url+'/storage/v1/object/public/'+SUPA.bucket+'/'+path);}
+          else{rr.text().then(function(t){reject('subida '+rr.status+': '+t);});}
+        });
+      }).catch(function(e){reject('red: '+String(e));});
+    });
+  };
 })();
