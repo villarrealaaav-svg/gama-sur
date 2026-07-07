@@ -236,6 +236,29 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 .rcprox .ic{width:12px;height:12px;flex-shrink:0}
 .rccer{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid #E5E7EB;color:#0F766E;font-size:11.5px}
 .rccer .ic{width:12px;height:12px}
+/* Fase 2: Pipeline Kanban */
+.rcviewtoggle{display:inline-flex;background:#EEF2F7;border:1px solid #E5E7EB;border-radius:9px;padding:2px}
+.rcvt{background:none;border:none;padding:6px 13px;border-radius:7px;font-size:12.5px;font-weight:600;color:#7A8FA6;cursor:pointer;transition:all .15s}
+.rcvt.on{background:#fff;color:#1e4d8b;box-shadow:0 1px 3px rgba(26,37,53,.12)}
+.rcboard{display:flex;gap:12px;overflow-x:auto;padding-bottom:16px;align-items:flex-start}
+.rccol{flex:0 0 240px;background:#EEF2F7;border:1px solid #E5E7EB;border-radius:12px;display:flex;flex-direction:column;max-height:72vh}
+.rccolh{display:flex;align-items:center;gap:7px;padding:11px 13px;font-size:13px;font-weight:700;color:#1A2535;border-top:3px solid var(--cc);border-radius:12px 12px 0 0;background:#fff}
+.rccoldot{width:9px;height:9px;border-radius:50%;background:var(--cc);flex-shrink:0}
+.rccoln{background:var(--cc);color:#fff;border-radius:20px;padding:1px 8px;font-size:11px}
+.rccolsum{margin-left:auto;font-size:11px;color:#16A34A;font-weight:700;font-variant-numeric:tabular-nums}
+.rccollist{flex:1;overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;min-height:60px}
+.rccolempty{text-align:center;color:#B4BDC9;font-size:18px;padding:14px 0}
+.rccol.dragover{background:#DBEAFE;outline:2px dashed #2563EB;outline-offset:-4px}
+.rcmini{background:#fff;border:1px solid #E5E7EB;border-left:3px solid var(--ec);border-radius:9px;padding:9px 11px;cursor:grab;transition:box-shadow .15s,transform .15s}
+.rcmini:hover{box-shadow:0 4px 12px rgba(26,37,53,.12);transform:translateY(-1px)}
+.rcmini:active{cursor:grabbing}
+.rcminitop{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px}
+.rcminiapart{color:#16A34A;font-weight:600}
+.rcminiest{margin-left:auto;font-weight:700;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
+.rcminititle{font-size:13px;font-weight:700;color:#1A2535;line-height:1.25;margin-bottom:4px}
+.rcminimonto{font-size:14px;font-weight:700;color:#16A34A;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:6px}
+.rcminiprob{background:#EFF6FF;color:#2563EB;border:1px solid #DBEAFE;border-radius:10px;padding:0 6px;font-size:10px;font-weight:700}
+.rcminifoot{display:flex;align-items:center;gap:5px;margin-top:6px;font-size:11px;color:#3D4F63}
 </style></head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -315,6 +338,7 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 <div class="rctop">
 <input id="rcQ" class="rcsearch" placeholder="🔍 Buscar obra, cliente o vendedor...">
 <div class="rcfilters" id="rcFilters"></div>
+<div class="rcviewtoggle"><button class="rcvt on" id="rcvtCards" onclick="rcSetView('cards')">Tarjetas</button><button class="rcvt" id="rcvtPipe" onclick="rcSetView('pipeline')">Pipeline</button></div>
 <div class="rcactions">
 <button class="rcbtn primary" onclick="rcOpenOpp()"><svg class="ic"><use href="#i-plus"/></svg>Oportunidad</button>
 <button class="rcbtn" onclick="rcOpenVend()"><svg class="ic"><use href="#i-users"/></svg>Vendedores</button>
@@ -325,6 +349,7 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 <div class="rcalerts" id="rcAlerts"></div>
 <div class="rcrank" id="rcRank"></div>
 <div class="rcgrid" id="rcGrid"></div>
+<div class="rcboard" id="rcBoard" style="display:none"></div>
 <div class="rcempty" id="rcEmpty" style="display:none"></div>
 </div></div>
 <div class="rcmodal" id="rcModal" onclick="if(event.target===this)rcCloseModal()"><div class="rcdlg" id="rcDlg"></div></div>
@@ -452,7 +477,7 @@ var RC_EST={libre:{l:'Libre',c:'#f85149'},asignada:{l:'Asignada',c:'#fb923c'},co
 var RC_NOV={sin:{l:'Sin apartar',e:'🔴'},pendiente:{l:'Pendiente',e:'🟠'},apartada:{l:'Apartada',e:'🟢'},confirmada:{l:'Confirmada',e:'🔵'},rechazada:{l:'Rechazada',e:'⚪'}};
 var RC_FILTERS=[['todas','Todas'],['libre','Libres'],['asignada','Asignadas'],['cotizada','Cotizadas'],['negociacion','Negociación'],['apartadas','Apartadas'],['ganada','Ganadas'],['perdida','Perdidas']];
 var RC_DEFCOM=5;
-var RC={opps:[],vend:[],filter:'todas',q:''},rcReady=false;
+var RC={opps:[],vend:[],filter:'todas',q:'',view:'cards'},rcReady=false;
 function rcEsc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function rcMoney(n){return '$'+Math.round(Number(n)||0).toLocaleString('es-MX');}
 function rcUid(p){return p+Math.random().toString(36).slice(2,9);}
@@ -461,6 +486,30 @@ function rcCom(o){var pct=o.comisionPct;if(pct==null||pct===''){var v=rcVend(o.v
 /* ---- Fase 1: negocio (valor esperado, semáforo, riesgo, alertas) ---- */
 var RC_PROXIMA=['Llamada','Visita','Presentación','Cotización','Seguimiento','Negociación','Firma','Cobranza'];
 var RC_PROB=[10,25,50,75,90];
+/* ---- Fase 2: Pipeline Kanban (etapa comercial; Apartado = Novidesa, se muestra como candado) ---- */
+var RC_ETAPAS=[['prospecto','Prospecto','#f85149'],['contactado','Contactado','#fb923c'],['cotizado','Cotizado','#e3b341'],['seguimiento','Seguimiento','#8b5cf6'],['negociacion','Negociación','#2563EB'],['ganado','Ganado','#16A34A'],['perdido','Perdido','#8b949e']];
+var RC_EST2ETA={libre:'prospecto',asignada:'contactado',cotizada:'cotizado',negociacion:'negociacion',ganada:'ganado',perdida:'perdido'};
+var RC_ETA2EST={prospecto:'libre',contactado:'asignada',cotizado:'cotizada',negociacion:'negociacion',ganado:'ganada',perdido:'perdida'};
+function rcEtapa(o){return o.etapa||RC_EST2ETA[o.estado]||'prospecto';}
+function rcSetView(v){RC.view=v;var c=document.getElementById('rcvtCards'),p=document.getElementById('rcvtPipe');if(c)c.classList.toggle('on',v==='cards');if(p)p.classList.toggle('on',v==='pipeline');rcRender();}
+function rcMiniCard(o){var e=RC_EST[o.estado]||RC_EST.libre,sem=rcSemaforo(o),v=rcVend(o.vendedorId),nv=RC_NOV[o.novidesa]||RC_NOV.sin,apart=(o.novidesa==='apartada'||o.novidesa==='confirmada');
+ return '<div class="rcmini" draggable="true" ondragstart="rcDragStart(event,\''+o.id+'\')" onclick="rcOpenOpp(\''+o.id+'\')" style="--ec:'+e.c+'">'+
+  '<div class="rcminitop"><span class="rcsem" style="background:'+sem.c+';margin:0"></span>'+(apart?'<span class="rcminiapart" title="Apartado Novidesa: '+nv.l+'">'+nv.e+' apartada</span>':'')+'<span class="rcminiest" style="color:'+e.c+'">'+e.l+'</span></div>'+
+  '<div class="rcminititle">'+(rcEsc(o.obra)||'(sin nombre)')+'</div>'+
+  '<div class="rcminimonto">'+rcMoney(o.monto)+(o.probabilidadCierre?'<span class="rcminiprob">'+rcNum(o.probabilidadCierre)+'%</span>':'')+'</div>'+
+  '<div class="rcminifoot">'+(v?'<span class="rcdot" style="background:'+(v.color||'#2563EB')+'"></span>'+rcEsc(v.nombre):'<span style="opacity:.5">Sin vendedor</span>')+'</div>'+
+ '</div>';}
+function rcRenderPipeline(list){var board=document.getElementById('rcBoard');if(!board)return;
+ var by={};RC_ETAPAS.forEach(function(e){by[e[0]]=[];});
+ list.forEach(function(o){var k=rcEtapa(o);if(!by[k])by[k]=[];by[k].push(o);});
+ board.innerHTML=RC_ETAPAS.map(function(e){var ops=by[e[0]]||[];var sum=ops.reduce(function(s,o){return s+rcNum(o.monto);},0);
+  return '<div class="rccol" data-eta="'+e[0]+'" ondragover="rcDragOver(event)" ondragleave="this.classList.remove(\'dragover\')" ondrop="rcDrop(event,\''+e[0]+'\')">'+
+   '<div class="rccolh" style="--cc:'+e[2]+'"><span class="rccoldot"></span>'+e[1]+'<span class="rccoln">'+ops.length+'</span><span class="rccolsum">'+rcMoney(sum)+'</span></div>'+
+   '<div class="rccollist">'+(ops.length?ops.map(rcMiniCard).join(''):'<div class="rccolempty">—</div>')+'</div></div>';
+ }).join('');}
+function rcDragStart(ev,id){ev.dataTransfer.setData('id',id);ev.dataTransfer.effectAllowed='move';}
+function rcDragOver(ev){ev.preventDefault();ev.dataTransfer.dropEffect='move';ev.currentTarget.classList.add('dragover');}
+function rcDrop(ev,eta){ev.preventDefault();ev.currentTarget.classList.remove('dragover');var id=ev.dataTransfer.getData('id');if(!id)return;var o=RC.opps.filter(function(x){return x.id===id;})[0];if(!o)return;o.etapa=eta;if(RC_ETA2EST[eta])o.estado=RC_ETA2EST[eta];o.ultimaActividad=new Date().toISOString().slice(0,10);rcSaveOpps();rcRender();}
 function rcNum(x){return Number(x)||0;}
 function rcValorEsp(o){return rcNum(o.monto)*(rcNum(o.probabilidadCierre)/100);}
 function rcFechaSeg(o){return o.fechaProximaAccion||o.seguimiento||'';}
@@ -541,7 +590,9 @@ function rcRender(){
  document.getElementById('rcKpis').innerHTML=kp.map(function(k){return '<div class="rckpi"><div class="rckv" style="color:'+k[2]+'">'+k[1]+'</div><div class="rckl">'+k[0]+'</div></div>';}).join('');
  rcAlertsUI(A);
  rcRankUI();
- var g=document.getElementById('rcGrid'),emp=document.getElementById('rcEmpty');
+ var g=document.getElementById('rcGrid'),emp=document.getElementById('rcEmpty'),board=document.getElementById('rcBoard');
+ if(RC.view==='pipeline'){g.style.display='none';emp.style.display='none';if(board)board.style.display='flex';rcRenderPipeline(list);return;}
+ if(board)board.style.display='none';g.style.display='grid';
  if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML=A.length?'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Sin oportunidades en este filtro.</div>':'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Tablero vacío. Agrega tu primera oportunidad con <b>＋ Oportunidad</b>.</div>';}
  else{emp.style.display='none';g.innerHTML=list.map(rcCard).join('');}
 }
@@ -607,7 +658,7 @@ function rcOpenOpp(id){
 function rcSaveOpp(id,isNew){
  var $=function(x){return document.getElementById(x);};
  var o={id:id,obra:$('f_obra').value.trim(),ubic:$('f_ubic').value.trim(),cliente:$('f_cliente').value.trim(),constructora:$('f_constructora').value.trim(),monto:Number($('f_monto').value)||0,vendedorId:$('f_vend').value||null,estado:$('f_estado').value,comisionPct:$('f_compct').value===''?null:Number($('f_compct').value),seguimiento:$('f_seg').value,img:$('f_img').value.trim(),novidesa:$('f_nov').value,novFolio:$('f_novfolio').value.trim(),novFecha:$('f_novfecha').value,novResp:$('f_novresp').value.trim(),novObs:$('f_novobs').value.trim(),contactoNombre:$('f_cnom').value.trim(),contactoTel:$('f_ctel').value.trim(),contactoMail:$('f_cmail').value.trim(),contactoPersonas:$('f_cpers').value.trim(),probabilidadCierre:$('f_prob').value===''?null:Number($('f_prob').value),proximaAccion:$('f_prox').value,fechaProximaAccion:$('f_proxf').value,cerradorId:$('f_cerr').value||null,ultimaActividad:new Date().toISOString().slice(0,10)};
- if(isNew)RC.opps.unshift(o);else{var i=-1;RC.opps.forEach(function(x,j){if(x.id===id)i=j;});if(i>=0)RC.opps[i]=o;else RC.opps.unshift(o);}
+ var _prev=RC.opps.filter(function(x){return x.id===id;})[0];if(_prev&&_prev.etapa)o.etapa=_prev.etapa;if(isNew)RC.opps.unshift(o);else{var i=-1;RC.opps.forEach(function(x,j){if(x.id===id)i=j;});if(i>=0)RC.opps[i]=o;else RC.opps.unshift(o);}
  rcSaveOpps();rcCloseModal();rcRender();
 }
 function rcDelOpp(id){if(!confirm('¿Eliminar esta oportunidad?'))return;RC.opps=RC.opps.filter(function(x){return x.id!==id;});rcSaveOpps();rcCloseModal();rcRender();}
