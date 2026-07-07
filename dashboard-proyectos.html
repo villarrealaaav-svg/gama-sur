@@ -220,6 +220,22 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 .rccchip{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:#EFF6FF;border:1px solid #DBEAFE;color:#2563EB;flex-shrink:0;transition:background .15s,transform .15s}
 .rccchip:hover{background:#DBEAFE;transform:translateY(-1px)}
 .rccchip .ic{width:15px;height:15px}
+/* Fase 1: alertas, semáforo, valor esperado, cerrador */
+.rcalerts{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;min-height:18px}
+.rcaltl{font-size:12px;font-weight:700;color:#3D4F63}
+.rcalert{--ac:#DC2626;background:#fff;border:1px solid var(--ac);color:var(--ac);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s}
+.rcalert:hover,.rcalert.on{background:var(--ac);color:#fff}
+.rcalert.clr{--ac:#7A8FA6}
+.rcallok{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:#16A34A;font-weight:600}
+.rcallok .ic{width:14px;height:14px}
+.rcsem{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:auto;flex-shrink:0;box-shadow:0 0 0 3px rgba(0,0,0,.04)}
+.rcval{margin-top:6px;font-size:12px;color:#3D4F63}
+.rcval b{color:#2563EB;font-size:14px;font-variant-numeric:tabular-nums}
+.rcprob{background:#EFF6FF;color:#2563EB;border:1px solid #DBEAFE;border-radius:10px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:6px}
+.rcprox{margin-top:6px;font-size:11.5px;color:#7A8FA6;display:flex;align-items:center;gap:5px}
+.rcprox .ic{width:12px;height:12px;flex-shrink:0}
+.rccer{display:inline-flex;align-items:center;gap:4px;margin-left:8px;padding-left:8px;border-left:1px solid #E5E7EB;color:#0F766E;font-size:11.5px}
+.rccer .ic{width:12px;height:12px}
 </style></head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -306,6 +322,7 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 <button class="rcbtn ghost" onclick="rcClear()"><svg class="ic"><use href="#i-trash"/></svg>Limpiar</button>
 </div>
 </div>
+<div class="rcalerts" id="rcAlerts"></div>
 <div class="rcrank" id="rcRank"></div>
 <div class="rcgrid" id="rcGrid"></div>
 <div class="rcempty" id="rcEmpty" style="display:none"></div>
@@ -441,6 +458,26 @@ function rcMoney(n){return '$'+Math.round(Number(n)||0).toLocaleString('es-MX');
 function rcUid(p){return p+Math.random().toString(36).slice(2,9);}
 function rcVend(id){return RC.vend.filter(function(v){return v.id===id;})[0]||null;}
 function rcCom(o){var pct=o.comisionPct;if(pct==null||pct===''){var v=rcVend(o.vendedorId);pct=v?v.comPct:RC_DEFCOM;}return (Number(o.monto)||0)*(Number(pct)||0)/100;}
+/* ---- Fase 1: negocio (valor esperado, semáforo, riesgo, alertas) ---- */
+var RC_PROXIMA=['Llamada','Visita','Presentación','Cotización','Seguimiento','Negociación','Firma','Cobranza'];
+var RC_PROB=[10,25,50,75,90];
+function rcNum(x){return Number(x)||0;}
+function rcValorEsp(o){return rcNum(o.monto)*(rcNum(o.probabilidadCierre)/100);}
+function rcFechaSeg(o){return o.fechaProximaAccion||o.seguimiento||'';}
+function rcDaysTo(d){if(!d)return null;var t=new Date(d+'T00:00:00');if(isNaN(t.getTime()))return null;var n=new Date();n.setHours(0,0,0,0);return Math.round((t.getTime()-n.getTime())/86400000);}
+function rcSemaforo(o){var d=rcDaysTo(rcFechaSeg(o));if(d===null)return{c:'#9AA4B2',l:'Sin fecha'};if(d<0)return{c:'#DC2626',l:'Vencido'};if(d<=3)return{c:'#e3b341',l:'Por vencer'};return{c:'#16A34A',l:'Vigente'};}
+function rcVencido(o){var d=rcDaysTo(rcFechaSeg(o));return d!==null&&d<0;}
+function rcSinResp(o){return !o.vendedorId&&!o.cerradorId;}
+function rcAlertsUI(A){var el=document.getElementById('rcAlerts');if(!el)return;
+ var venc=A.filter(rcVencido).length,sinV=A.filter(function(o){return !o.vendedorId;}).length,sinC=A.filter(function(o){return !(o.contactoTel||o.contactoMail||o.contactoNombre);}).length,sinF=A.filter(function(o){return !rcFechaSeg(o);}).length;
+ var al=[];
+ if(venc)al.push(['venc',venc+' vencido'+(venc>1?'s':''),'#DC2626']);
+ if(sinV)al.push(['sinv',sinV+' sin vendedor','#EA580C']);
+ if(sinC)al.push(['sinc',sinC+' sin contacto','#EA580C']);
+ if(sinF)al.push(['sinf',sinF+' sin fecha','#C99A20']);
+ var isAlertFilter=/^(venc|sinv|sinc|sinf)$/.test(RC.filter);
+ el.innerHTML=al.length?('<span class="rcaltl">Alertas:</span>'+al.map(function(a){return '<button class="rcalert'+(RC.filter===a[0]?' on':'')+'" style="--ac:'+a[2]+'" onclick="rcSetFilter(\''+a[0]+'\')">'+a[1]+'</button>';}).join('')+(isAlertFilter?'<button class="rcalert clr" onclick="rcSetFilter(\'todas\')">✕ ver todas</button>':'')):'<span class="rcallok"><svg class="ic"><use href="#i-target"/></svg> Todo al día · sin alertas</span>';
+}
 function rcSeed(){return [];/* tablero arranca VACIO: sin auto-seed de obras */}
 /* Prospectos cargados de las capturas (Notion · Prospeccion de Clientes). estado: libre=Prospecto, asignada=Seguimiento, cotizada=Cotizado */
 var RC_NOTION=[
@@ -477,13 +514,32 @@ function rcMigrateImgs(){
 }
 function rcFiltersUI(){var el=document.getElementById('rcFilters');if(!el)return;el.innerHTML=RC_FILTERS.map(function(a){return '<button class="rcfil'+(RC.filter===a[0]?' on':'')+'" onclick="rcSetFilter(\''+a[0]+'\')">'+a[1]+'</button>';}).join('');}
 function rcSetFilter(k){RC.filter=k;rcFiltersUI();rcRender();}
-function rcMatch(o){if(RC.q){var v=rcVend(o.vendedorId);var hay=(o.obra+' '+o.ubic+' '+o.cliente+' '+o.constructora+' '+(v?v.nombre:'')).toLowerCase();if(hay.indexOf(RC.q)<0)return false;}var f=RC.filter;if(f==='todas')return true;if(f==='apartadas')return o.novidesa==='apartada'||o.novidesa==='confirmada';return o.estado===f;}
+function rcMatch(o){if(RC.q){var v=rcVend(o.vendedorId);var hay=(o.obra+' '+o.ubic+' '+o.cliente+' '+o.constructora+' '+(v?v.nombre:'')).toLowerCase();if(hay.indexOf(RC.q)<0)return false;}var f=RC.filter;if(f==='todas')return true;if(f==='apartadas')return o.novidesa==='apartada'||o.novidesa==='confirmada';if(f==='venc')return rcVencido(o);if(f==='sinv')return !o.vendedorId;if(f==='sinc')return !(o.contactoTel||o.contactoMail||o.contactoNombre);if(f==='sinf')return !rcFechaSeg(o);return o.estado===f;}
 function rcRender(){
  var A=RC.opps,list=A.filter(rcMatch);
  var apart=A.filter(function(o){return o.novidesa==='apartada'||o.novidesa==='confirmada';}).length;
  var cnt=function(s){return A.filter(function(o){return o.estado===s;}).length;};
- var kp=[['Oportunidades',A.length,'#2563EB'],['Libres',cnt('libre'),'#f85149'],['Asignadas',cnt('asignada'),'#fb923c'],['Apartadas Novidesa',apart,'#16A34A'],['Ganadas',cnt('ganada'),'#16A34A'],['Monto potencial',rcMoney(A.reduce(function(s,o){return s+(Number(o.monto)||0);},0)),'#16A34A'],['Comisiones potenciales',rcMoney(A.reduce(function(s,o){return s+rcCom(o);},0)),'#7c3aed']];
+ var sumMonto=A.reduce(function(s,o){return s+rcNum(o.monto);},0);
+ var sumCom=A.reduce(function(s,o){return s+rcCom(o);},0);
+ var sumVal=A.reduce(function(s,o){return s+rcValorEsp(o);},0);
+ var gan=cnt('ganada'),perd=cnt('perdida'),conv=(gan+perd)>0?Math.round(gan/(gan+perd)*100)+'%':'—';
+ var venc=A.filter(rcVencido).length,sinR=A.filter(rcSinResp).length;
+ var kp=[
+  ['Monto potencial',rcMoney(sumMonto),'#16A34A'],
+  ['Valor esperado',rcMoney(sumVal),'#2563EB'],
+  ['Comisiones potenciales',rcMoney(sumCom),'#7c3aed'],
+  ['Oportunidades',A.length,'#7A8FA6'],
+  ['Libres',cnt('libre'),'#f85149'],
+  ['Asignadas',cnt('asignada'),'#fb923c'],
+  ['En negociación',cnt('negociacion'),'#2563EB'],
+  ['Ganadas',gan,'#16A34A'],
+  ['Apartadas Novidesa',apart,'#16A34A'],
+  ['Seguimientos vencidos',venc,venc?'#DC2626':'#16A34A'],
+  ['Sin responsable',sinR,sinR?'#EA580C':'#16A34A'],
+  ['Conversión',conv,'#0F766E']
+ ];
  document.getElementById('rcKpis').innerHTML=kp.map(function(k){return '<div class="rckpi"><div class="rckv" style="color:'+k[2]+'">'+k[1]+'</div><div class="rckl">'+k[0]+'</div></div>';}).join('');
+ rcAlertsUI(A);
  rcRankUI();
  var g=document.getElementById('rcGrid'),emp=document.getElementById('rcEmpty');
  if(!list.length){g.innerHTML='';emp.style.display='block';emp.innerHTML=A.length?'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Sin oportunidades en este filtro.</div>':'<div class="rcemptyic"><svg class="ic"><use href="#i-target"/></svg></div><div>Tablero vacío. Agrega tu primera oportunidad con <b>＋ Oportunidad</b>.</div>';}
@@ -496,32 +552,42 @@ function rcRankUI(){
  el.innerHTML='<div class="rcrtitle"><svg class="ic"><use href="#i-trophy"/></svg> Ranking de vendedores</div>'+rows.map(function(r,i){return '<div class="rcrrow"><span class="rcrpos">'+(i+1)+'</span><span class="rcdot" style="background:'+(r.v.color||'#2563EB')+'"></span><span class="rcrname">'+rcEsc(r.v.nombre)+'</span><span class="rcrnum">pot '+rcMoney(r.pot)+'</span><span class="rcrnum">vend '+rcMoney(r.won)+'</span><span class="rcrbar"><span style="width:'+r.adv+'%;background:'+(r.v.color||'#2563EB')+'"></span></span><span class="rcradv">'+r.adv+'%</span></div>';}).join('');
 }
 function rcCard(o){
- var e=RC_EST[o.estado]||RC_EST.libre,nv=RC_NOV[o.novidesa]||RC_NOV.sin,v=rcVend(o.vendedorId);
+ var e=RC_EST[o.estado]||RC_EST.libre,nv=RC_NOV[o.novidesa]||RC_NOV.sin,v=rcVend(o.vendedorId),cer=rcVend(o.cerradorId),sem=rcSemaforo(o);
  var img=o.img?'<div class="rccimg" style="background-image:url(\''+rcEsc(o.img)+'\')"></div>':'<div class="rccimg ph"><svg class="ic"><use href="#i-bldg"/></svg></div>';
  return '<div class="rccard" style="--ec:'+e.c+'" onclick="rcOpenOpp(\''+o.id+'\')">'+img+
-  '<div class="rcbody"><div class="rcbadges"><span class="rcebadge" style="background:'+e.c+'22;color:'+e.c+';border-color:'+e.c+'55">'+e.l+'</span><span class="rcnov" title="'+nv.l+'">'+nv.e+' '+nv.l+'</span></div>'+
+  '<div class="rcbody"><div class="rcbadges"><span class="rcebadge" style="background:'+e.c+'22;color:'+e.c+';border-color:'+e.c+'55">'+e.l+'</span><span class="rcnov" title="'+nv.l+'">'+nv.e+' '+nv.l+'</span><span class="rcsem" style="background:'+sem.c+'" title="Seguimiento: '+sem.l+'"></span></div>'+
   '<div class="rctitle">'+(rcEsc(o.obra)||'(sin nombre)')+'</div>'+
   '<div class="rcmeta">'+(o.ubic?'<svg class="ic"><use href="#i-pin"/></svg> '+rcEsc(o.ubic)+'<br>':'')+(o.cliente?'<svg class="ic"><use href="#i-bldg"/></svg> '+rcEsc(o.cliente):'')+(o.constructora?' · '+rcEsc(o.constructora):'')+'</div>'+
   '<div class="rcmonto">'+rcMoney(o.monto)+'<span>monto potencial</span></div>'+
   '<div class="rccom">Comisión posible <b>'+rcMoney(rcCom(o))+'</b></div>'+
-  ((o.contactoNombre||o.contactoTel||o.contactoMail)?'<div class="rccontact">'+(o.contactoNombre?'<span class="rccname"><svg class="ic"><use href="#i-user"/></svg>'+rcEsc(o.contactoNombre)+'</span>':'<span class="rccname" style="opacity:.5">Contacto</span>')+(o.contactoTel?'<a class="rccchip" href="tel:'+rcEsc(String(o.contactoTel).replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation()" title="'+rcEsc(o.contactoTel)+'"><svg class="ic"><use href="#i-phone"/></svg></a>':'')+(o.contactoMail?'<a class="rccchip" href="mailto:'+rcEsc(o.contactoMail)+'" onclick="event.stopPropagation()" title="'+rcEsc(o.contactoMail)+'"><svg class="ic"><use href="#i-mail"/></svg></a>':'')+'</div>':'')+'<div class="rcfoot"><span class="rcvend">'+(v?'<span class="rcdot" style="background:'+(v.color||'#2563EB')+'"></span>'+rcEsc(v.nombre):'<span class="rcdot" style="background:#444"></span>Sin asignar')+'</span>'+(o.seguimiento?'<span class="rcseg"><svg class="ic"><use href="#i-cal"/></svg> '+rcEsc(o.seguimiento)+'</span>':'')+'</div></div></div>';
+  '<div class="rcval">Valor esperado <b>'+rcMoney(rcValorEsp(o))+'</b>'+(o.probabilidadCierre?'<span class="rcprob">'+rcNum(o.probabilidadCierre)+'%</span>':'')+'</div>'+
+  (o.proximaAccion?'<div class="rcprox"><svg class="ic"><use href="#i-cal"/></svg> '+rcEsc(o.proximaAccion)+(o.fechaProximaAccion?' · '+rcEsc(o.fechaProximaAccion):'')+'</div>':'')+
+  ((o.contactoNombre||o.contactoTel||o.contactoMail)?'<div class="rccontact">'+(o.contactoNombre?'<span class="rccname"><svg class="ic"><use href="#i-user"/></svg>'+rcEsc(o.contactoNombre)+'</span>':'<span class="rccname" style="opacity:.5">Contacto</span>')+(o.contactoTel?'<a class="rccchip" href="tel:'+rcEsc(String(o.contactoTel).replace(/[^0-9+]/g,''))+'" onclick="event.stopPropagation()" title="'+rcEsc(o.contactoTel)+'"><svg class="ic"><use href="#i-phone"/></svg></a>':'')+(o.contactoMail?'<a class="rccchip" href="mailto:'+rcEsc(o.contactoMail)+'" onclick="event.stopPropagation()" title="'+rcEsc(o.contactoMail)+'"><svg class="ic"><use href="#i-mail"/></svg></a>':'')+'</div>':'')+'<div class="rcfoot"><span class="rcvend">'+(v?'<span class="rcdot" style="background:'+(v.color||'#2563EB')+'"></span>'+rcEsc(v.nombre):'<span class="rcdot" style="background:#c0c7d0"></span>Sin vendedor')+(cer?'<span class="rccer" title="Cerrador"><svg class="ic"><use href="#i-target"/></svg>'+rcEsc(cer.nombre)+'</span>':'')+'</span>'+(o.seguimiento?'<span class="rcseg"><svg class="ic"><use href="#i-cal"/></svg> '+rcEsc(o.seguimiento)+'</span>':'')+'</div></div></div>';
 }
 function rcOpenOpp(id){
  var o=id?RC.opps.filter(function(x){return x.id===id;})[0]:null;var isNew=!o;
- if(!o)o={id:rcUid('op'),obra:'',ubic:'',cliente:'',constructora:'',monto:0,vendedorId:null,estado:'libre',novidesa:'sin',novFolio:'',novFecha:'',novObs:'',novResp:'',comisionPct:null,seguimiento:'',img:'',contactoNombre:'',contactoTel:'',contactoMail:'',contactoPersonas:''};
+ if(!o)o={id:rcUid('op'),obra:'',ubic:'',cliente:'',constructora:'',monto:0,vendedorId:null,estado:'libre',novidesa:'sin',novFolio:'',novFecha:'',novObs:'',novResp:'',comisionPct:null,seguimiento:'',img:'',contactoNombre:'',contactoTel:'',contactoMail:'',contactoPersonas:'',probabilidadCierre:null,proximaAccion:'',fechaProximaAccion:'',cerradorId:null,ultimaActividad:''};
  var vendOpts='<option value="">Sin asignar</option>'+RC.vend.map(function(v){return '<option value="'+v.id+'"'+(o.vendedorId===v.id?' selected':'')+'>'+rcEsc(v.nombre)+'</option>';}).join('');
  var estOpts=Object.keys(RC_EST).map(function(k){return '<option value="'+k+'"'+(o.estado===k?' selected':'')+'>'+RC_EST[k].l+'</option>';}).join('');
  var novOpts=Object.keys(RC_NOV).map(function(k){return '<option value="'+k+'"'+(o.novidesa===k?' selected':'')+'>'+RC_NOV[k].e+' '+RC_NOV[k].l+'</option>';}).join('');
+ var cerrOpts='<option value="">Sin cerrador</option>'+RC.vend.map(function(v){return '<option value="'+v.id+'"'+(o.cerradorId===v.id?' selected':'')+'>'+rcEsc(v.nombre)+'</option>';}).join('');
+ var probOpts='<option value="">—</option>'+RC_PROB.map(function(p){return '<option value="'+p+'"'+(rcNum(o.probabilidadCierre)===p?' selected':'')+'>'+p+'%</option>';}).join('');
+ var proxOpts='<option value="">—</option>'+RC_PROXIMA.map(function(p){return '<option'+(o.proximaAccion===p?' selected':'')+'>'+p+'</option>';}).join('');
  document.getElementById('rcDlg').innerHTML='<div class="rcdh">'+(isNew?'Nueva oportunidad':'Editar oportunidad')+'<span class="rcx" onclick="rcCloseModal()">✕</span></div><div class="rcform">'+
   '<label class="full">Obra<input id="f_obra" value="'+rcEsc(o.obra)+'"></label>'+
   '<label>Ubicación<input id="f_ubic" value="'+rcEsc(o.ubic)+'"></label>'+
   '<label>Cliente<input id="f_cliente" value="'+rcEsc(o.cliente)+'"></label>'+
   '<label>Constructora<input id="f_constructora" value="'+rcEsc(o.constructora)+'"></label>'+
   '<label>Monto potencial (MXN)<input id="f_monto" type="number" value="'+(Number(o.monto)||0)+'"></label>'+
-  '<label>Vendedor<select id="f_vend">'+vendOpts+'</select></label>'+
+  '<label>Vendedor (conseguidor)<select id="f_vend">'+vendOpts+'</select></label>'+
   '<label>Estado comercial<select id="f_estado">'+estOpts+'</select></label>'+
   '<label>% Comisión (opcional)<input id="f_compct" type="number" step="0.1" placeholder="auto vendedor" value="'+(o.comisionPct==null?'':o.comisionPct)+'"></label>'+
   '<label>Fecha seguimiento<input id="f_seg" type="date" value="'+rcEsc(o.seguimiento)+'"></label>'+
+  '<div class="rcsec">Seguimiento comercial</div>'+
+  '<label>Cerrador<select id="f_cerr">'+cerrOpts+'</select></label>'+
+  '<label>Probabilidad de cierre<select id="f_prob">'+probOpts+'</select></label>'+
+  '<label>Próxima acción<select id="f_prox">'+proxOpts+'</select></label>'+
+  '<label>Fecha próxima acción<input id="f_proxf" type="date" value="'+rcEsc(o.fechaProximaAccion)+'"></label>'+
   '<label class="full">Imagen de la obra (subir desde el dispositivo)<input id="f_imgfile" type="file" accept="image/*" onchange="rcPickImg(this)"></label>'+
   '<div class="full"><div id="f_imgprev" class="rcimgprev" style="'+(o.img?'display:block;background-image:url(\''+o.img+'\')':'display:none')+'"></div><input id="f_img" type="hidden" value="'+rcEsc(o.img)+'">'+(o.img?'<button type="button" class="rcbtn ghost" style="margin-top:6px;padding:5px 10px;font-size:12px" onclick="rcImgClear()">✕ Quitar imagen</button>':'')+'</div>'+
   '<div class="rcsec">Datos de contacto</div>'+
@@ -540,7 +606,7 @@ function rcOpenOpp(id){
 }
 function rcSaveOpp(id,isNew){
  var $=function(x){return document.getElementById(x);};
- var o={id:id,obra:$('f_obra').value.trim(),ubic:$('f_ubic').value.trim(),cliente:$('f_cliente').value.trim(),constructora:$('f_constructora').value.trim(),monto:Number($('f_monto').value)||0,vendedorId:$('f_vend').value||null,estado:$('f_estado').value,comisionPct:$('f_compct').value===''?null:Number($('f_compct').value),seguimiento:$('f_seg').value,img:$('f_img').value.trim(),novidesa:$('f_nov').value,novFolio:$('f_novfolio').value.trim(),novFecha:$('f_novfecha').value,novResp:$('f_novresp').value.trim(),novObs:$('f_novobs').value.trim(),contactoNombre:$('f_cnom').value.trim(),contactoTel:$('f_ctel').value.trim(),contactoMail:$('f_cmail').value.trim(),contactoPersonas:$('f_cpers').value.trim()};
+ var o={id:id,obra:$('f_obra').value.trim(),ubic:$('f_ubic').value.trim(),cliente:$('f_cliente').value.trim(),constructora:$('f_constructora').value.trim(),monto:Number($('f_monto').value)||0,vendedorId:$('f_vend').value||null,estado:$('f_estado').value,comisionPct:$('f_compct').value===''?null:Number($('f_compct').value),seguimiento:$('f_seg').value,img:$('f_img').value.trim(),novidesa:$('f_nov').value,novFolio:$('f_novfolio').value.trim(),novFecha:$('f_novfecha').value,novResp:$('f_novresp').value.trim(),novObs:$('f_novobs').value.trim(),contactoNombre:$('f_cnom').value.trim(),contactoTel:$('f_ctel').value.trim(),contactoMail:$('f_cmail').value.trim(),contactoPersonas:$('f_cpers').value.trim(),probabilidadCierre:$('f_prob').value===''?null:Number($('f_prob').value),proximaAccion:$('f_prox').value,fechaProximaAccion:$('f_proxf').value,cerradorId:$('f_cerr').value||null,ultimaActividad:new Date().toISOString().slice(0,10)};
  if(isNew)RC.opps.unshift(o);else{var i=-1;RC.opps.forEach(function(x,j){if(x.id===id)i=j;});if(i>=0)RC.opps[i]=o;else RC.opps.unshift(o);}
  rcSaveOpps();rcCloseModal();rcRender();
 }
