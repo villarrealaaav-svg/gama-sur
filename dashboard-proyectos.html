@@ -166,6 +166,15 @@ header p{color:#DBEAFE;opacity:.95}
 .appbar .brand{color:#1e4d8b}
 .tab{color:#7A8FA6}
 .tab.active{color:#1e4d8b;border-bottom-color:#2563EB}
+/* Agrupación visual: Archivo (proyectos vendidos) vs Comercial (prospección activa) */
+.tabs{gap:8px;align-items:center}
+.tabgrp{display:flex;gap:2px;border-radius:10px;padding:3px}
+.grp-archivo{background:#EEF1F5;border:1px solid #E1E6ED}
+.grp-comercial{background:#EAF3EC;border:1px solid #CFE8D6}
+.tabgrp .tab{border-radius:7px;border-bottom:none;padding:9px 14px}
+.grp-archivo .tab.active{background:#fff;color:#1e4d8b;box-shadow:0 1px 3px rgba(26,37,53,.12)}
+.grp-comercial .tab.active{background:#fff;color:#0F766E;box-shadow:0 1px 3px rgba(26,37,53,.12)}
+.grp-comercial .tab:not(.active):hover{color:#0F766E}
 .kpi .v{color:#1A2535}
 .kpi .l{color:#7A8FA6}
 .card,.kpi,.controls,.rccard,.rckpi,.rcrank{box-shadow:0 4px 14px rgba(26,37,53,.07)}
@@ -329,7 +338,10 @@ a:focus-visible,button:focus-visible,.tab:focus-visible,.rcfil:focus-visible,.ge
 <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
 </defs></svg>
 <div class="appbar"><a href="index.html" class="homebtn" title="Volver al inicio"><svg class="ic"><use href="#i-back"/></svg>Inicio</a><div class="brand"><svg class="ic"><use href="#i-bldg"/></svg>GAMA SUR</div>
-<div class="tabs"><button class="tab active" data-v="panel"><svg class="ic"><use href="#i-panel"/></svg>Panel</button><button class="tab" data-v="map"><svg class="ic"><use href="#i-map"/></svg>Mapa de Lotes</button><button class="tab" data-v="radar"><svg class="ic"><use href="#i-target"/></svg>Radar Comercial</button><button class="tab" data-v="genmap"><svg class="ic"><use href="#i-globe"/></svg>Mapa General</button><button class="tab" data-v="vend"><svg class="ic"><use href="#i-users"/></svg>Vendedores</button></div><span id="syncPill" class="syncpill" title="Sincronización multidispositivo">○ local</span></div>
+<div class="tabs">
+<div class="tabgrp grp-archivo"><button class="tab active" data-v="panel"><svg class="ic"><use href="#i-panel"/></svg>Panel</button><button class="tab" data-v="map"><svg class="ic"><use href="#i-map"/></svg>Mapa de Lotes</button></div>
+<div class="tabgrp grp-comercial"><button class="tab" data-v="radar"><svg class="ic"><use href="#i-target"/></svg>Radar Comercial</button><button class="tab" data-v="genmap"><svg class="ic"><use href="#i-globe"/></svg>Mapa General</button><button class="tab" data-v="vend"><svg class="ic"><use href="#i-users"/></svg>Vendedores</button></div>
+</div><span id="syncPill" class="syncpill" title="Sincronización multidispositivo">○ local</span></div>
 <div id="viewPanel" class="view active"><div class="wrap">
 <header><h1>Dashboard de Proyectos — GAMA SUR</h1>
 <p>Inventario de carpetas de cliente · Actualizado 25-Jun-2026 · Montos = TOTAL SISTEMA de cotizaciones (Excel + PDF)</p></header>
