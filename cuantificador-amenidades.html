@@ -981,6 +981,17 @@
           </div>
           <div class="field"><label>Proyecto / Obra</label>
             <input type="text" id="clienteObra" placeholder="EJ. RESIDENCIAL LAS HADAS · LOTE 14"></div>
+          <div class="field" style="border-top:1px dashed var(--blue-200); padding-top:10px; margin-top:2px;">
+            <label>🚚 Lugar de entrega <span class="hint">para que Novidesa cotice el flete exacto — puede ser distinto a la dirección fiscal</span></label>
+            <input type="text" id="entregaDireccion" placeholder="Calle, número, colonia, referencias"></div>
+          <div class="field-row">
+            <div class="field"><label>Municipio</label>
+              <input type="text" id="entregaMunicipio" placeholder="—"></div>
+            <div class="field"><label>Estado</label>
+              <input type="text" id="entregaEstado" placeholder="—"></div>
+            <div class="field" style="max-width:140px;"><label>Código Postal</label>
+              <input type="text" id="entregaCP" placeholder="86000" maxlength="5"></div>
+          </div>
           <div class="customer-db">
             <div class="toolbar">
               <input type="text" class="search" id="customerSearch" placeholder="🔎 Buscar cliente guardado…">
@@ -1249,7 +1260,7 @@ const STATE = {
     direccion: 'CALLE ARROYO SAN, #305 COL. LA SIERRA, TEAPA, TABASCO',
     tel: '9932510738', mail: '',
   },
-  cliente: { nombre:'', rfc:'', regimen:'', direccion:'', tel:'', mail:'', obra:'' },
+  cliente: { nombre:'', rfc:'', regimen:'', direccion:'', tel:'', mail:'', obra:'', entregaDireccion:'', entregaMunicipio:'', entregaEstado:'', entregaCP:'' },
   docNumbers: { cot: '', pre: '' },
   counters: { cot: 0, pre: 0 },
   history: [],
@@ -2636,6 +2647,15 @@ function renderNovidesa() {
         Fecha: ${fechaHoy}
       </div>
       <div class="b">
+        <div class="lbl">🚚 Lugar de entrega <span style="font-weight:400;font-size:9px;">(para cotizar flete)</span></div>
+        ${STATE.cliente.entregaDireccion || STATE.cliente.entregaMunicipio || STATE.cliente.entregaCP
+          ? `${STATE.cliente.entregaDireccion || '(sin dirección)'}<br>
+             ${[STATE.cliente.entregaMunicipio, STATE.cliente.entregaEstado].filter(Boolean).join(', ') || '—'}
+             ${STATE.cliente.entregaCP ? ` · C.P. <strong>${STATE.cliente.entregaCP}</strong>` : ''}`
+          : `<span style="color:var(--warn-ink,#b45309);">⚠ Falta capturar lugar de entrega (pestaña General)</span>`
+        }
+      </div>
+      <div class="b">
         <div class="lbl">Resumen del pedido</div>
         Áreas: <strong>${STATE.areas.length}</strong> · Tipos: <strong>${panelTypesUsed.length}</strong><br>
         Piezas: <strong>${totalPzas}</strong><br>
@@ -3389,6 +3409,10 @@ bindInput('clienteDireccion', v => STATE.cliente.direccion = v);
 bindInput('clienteTel',       v => STATE.cliente.tel = v);
 bindInput('clienteMail',      v => STATE.cliente.mail = v);
 bindInput('clienteObra',      v => STATE.cliente.obra = v);
+bindInput('entregaDireccion', v => STATE.cliente.entregaDireccion = v);
+bindInput('entregaMunicipio', v => STATE.cliente.entregaMunicipio = v);
+bindInput('entregaEstado',    v => STATE.cliente.entregaEstado = v);
+bindInput('entregaCP',        v => STATE.cliente.entregaCP = v);
 bindInput('utilidadPct',  v => { STATE.config.utilidadPct = v; STATE.activePresetId = null; renderPresets(); });
 bindInput('descuentoPct', v => { STATE.config.descuentoPct = v; if ((Number(v)||0) > 0) STATE.config.descuentoOn = true; syncDescuentoUI(); });
 bindInput('laborCost',    v => STATE.config.laborCost = v);
@@ -3448,6 +3472,10 @@ function syncClienteInputs() {
   document.getElementById('clienteTel').value = STATE.cliente.tel || '';
   document.getElementById('clienteMail').value = STATE.cliente.mail || '';
   document.getElementById('clienteObra').value = STATE.cliente.obra || '';
+  document.getElementById('entregaDireccion').value = STATE.cliente.entregaDireccion || '';
+  document.getElementById('entregaMunicipio').value = STATE.cliente.entregaMunicipio || '';
+  document.getElementById('entregaEstado').value = STATE.cliente.entregaEstado || '';
+  document.getElementById('entregaCP').value = STATE.cliente.entregaCP || '';
 }
 
 /* ============================================================
