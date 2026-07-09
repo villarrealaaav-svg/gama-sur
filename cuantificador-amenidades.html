@@ -271,6 +271,54 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
+  .manual-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 10px;
+  }
+  .manual-card {
+    border: 1px solid var(--blue-200); border-radius: 4px;
+    background: var(--blue-bg); padding: 10px 11px;
+  }
+  .manual-card .mc-head {
+    display: flex; align-items: center; gap: 7px; margin-bottom: 8px;
+  }
+  .manual-card .mc-swatch {
+    width: 11px; height: 11px; border: 1px solid var(--ink); border-radius: 2px; flex-shrink: 0;
+  }
+  .manual-card .mc-code {
+    font-weight: 700; font-size: 13px; color: var(--blue-deep);
+  }
+  .manual-card .mc-unit {
+    font-size: 9px; color: var(--ink-mute); margin-left: auto;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .manual-card .mc-add {
+    width: 22px; height: 22px; border: 1px solid var(--blue-brand);
+    background: #fff; color: var(--blue-brand); border-radius: 3px;
+    font-size: 13px; font-weight: 700; cursor: pointer; line-height: 1;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .manual-card .mc-add:hover { background: var(--blue-brand); color: #fff; }
+  .manual-row {
+    display: flex; align-items: center; gap: 6px; margin-bottom: 6px;
+  }
+  .manual-row:last-child { margin-bottom: 0; }
+  .manual-row .mr-lbl {
+    font-size: 9px; color: var(--ink-mute); font-family: 'JetBrains Mono', monospace;
+    flex-shrink: 0; width: 12px;
+  }
+  .manual-row input {
+    width: 100%; min-width: 0; border: 1px solid var(--blue-200); border-radius: 3px;
+    padding: 4px 6px; font-size: 12px; font-family: 'JetBrains Mono', monospace;
+    background: #fff; color: var(--ink);
+  }
+  .manual-row input:focus { outline: none; border-color: var(--blue-brand); }
+  .manual-row .mr-rm {
+    border: none; background: none; color: var(--ink-mute); cursor: pointer;
+    font-size: 13px; flex-shrink: 0; padding: 2px 4px;
+  }
+  .manual-row .mr-rm:hover { color: var(--danger, #c0392b); }
+
   .extra-row {
     display: grid;
     grid-template-columns: 2fr 80px 80px 100px 100px 110px auto;
@@ -975,40 +1023,50 @@
     <section>
       <h2>Áreas del proyecto <span class="hint">edición directa · clic en cualquier celda</span></h2>
       <div class="body">
-        <form class="area-form" id="areaForm" onsubmit="return false;"
-              style="grid-template-columns:2fr 80px 80px 1.3fr 1.2fr 1.3fr auto;">
-          <div class="field" style="margin:0;"><label>Nombre / Identificador</label>
-            <input type="text" id="areaName" placeholder="Ej. Recámara · Área A"></div>
-          <div class="field" style="margin:0;"><label>Lado A (m)</label>
-            <input type="number" step="0.01" min="0.6" id="areaA" placeholder="4.82"></div>
-          <div class="field" style="margin:0;"><label>Lado B (m)</label>
-            <input type="number" step="0.01" min="0.6" id="areaB" placeholder="4.20"></div>
-          <div class="field" style="margin:0;"><label>Nivel / Tipo</label>
-            <select id="areaNivel" class="nivel-select">
-              <option value="Entrepiso 1">Entrepiso 1</option>
-              <option value="Entrepiso 2">Entrepiso 2</option>
-              <option value="Entrepiso 3">Entrepiso 3</option>
-              <option value="Entrepiso 4">Entrepiso 4</option>
-              <option value="Azotea">Azotea</option>
-            </select></div>
-          <div class="field" style="margin:0;"><label>Panel</label>
-            <select id="areaPanelCode" class="panel-sel">
-              <option value="auto">Auto (por claro)</option>
-              <option value="M16">M16 · 15 cm</option>
-              <option value="M18">M18 · 18 cm</option>
-              <option value="M20">M20 · 20 cm</option>
-              <option value="M25">M25 · 25 cm</option>
-              <option value="M29">M29 · 29 cm</option>
-              <option value="M32">M32 · 32 cm</option>
-            </select></div>
-          <div class="field" style="margin:0;"><label>Dirección del panel</label>
-            <select id="areaDireccion" class="dir-sel">
-              <option value="corto">↔ Claro corto (defecto)</option>
-              <option value="largo">↕ Claro largo</option>
-            </select></div>
-          <div class="field" style="margin:0;"><button id="addBtn">+ Agregar</button></div>
-        </form>
-        <div id="areasContainer"></div>
+        <div class="nivel-tab-bar" id="areaModoTabBar">
+          <div class="nivel-tab" id="modoTabArea" onclick="setAreaModo('area')">📐 Modo Área <span class="hint" style="font-size:9px;font-weight:400;">A × B</span></div>
+          <div class="nivel-tab" id="modoTabTabla" onclick="setAreaModo('tabla')">🔢 Modo Tabla <span class="hint" style="font-size:9px;font-weight:400;">largo + cantidad</span></div>
+        </div>
+        <div id="modoAreaWrap">
+          <form class="area-form" id="areaForm" onsubmit="return false;"
+                style="grid-template-columns:2fr 80px 80px 1.3fr 1.2fr 1.3fr auto;">
+            <div class="field" style="margin:0;"><label>Nombre / Identificador</label>
+              <input type="text" id="areaName" placeholder="Ej. Recámara · Área A"></div>
+            <div class="field" style="margin:0;"><label>Lado A (m)</label>
+              <input type="number" step="0.01" min="0.6" id="areaA" placeholder="4.82"></div>
+            <div class="field" style="margin:0;"><label>Lado B (m)</label>
+              <input type="number" step="0.01" min="0.6" id="areaB" placeholder="4.20"></div>
+            <div class="field" style="margin:0;"><label>Nivel / Tipo</label>
+              <select id="areaNivel" class="nivel-select">
+                <option value="Entrepiso 1">Entrepiso 1</option>
+                <option value="Entrepiso 2">Entrepiso 2</option>
+                <option value="Entrepiso 3">Entrepiso 3</option>
+                <option value="Entrepiso 4">Entrepiso 4</option>
+                <option value="Azotea">Azotea</option>
+              </select></div>
+            <div class="field" style="margin:0;"><label>Panel</label>
+              <select id="areaPanelCode" class="panel-sel">
+                <option value="auto">Auto (por claro)</option>
+                <option value="M16">M16 · 15 cm</option>
+                <option value="M18">M18 · 18 cm</option>
+                <option value="M20">M20 · 20 cm</option>
+                <option value="M25">M25 · 25 cm</option>
+                <option value="M29">M29 · 29 cm</option>
+                <option value="M32">M32 · 32 cm</option>
+              </select></div>
+            <div class="field" style="margin:0;"><label>Dirección del panel</label>
+              <select id="areaDireccion" class="dir-sel">
+                <option value="corto">↔ Claro corto (defecto)</option>
+                <option value="largo">↕ Claro largo</option>
+              </select></div>
+            <div class="field" style="margin:0;"><button id="addBtn">+ Agregar</button></div>
+          </form>
+          <div id="areasContainer"></div>
+        </div>
+        <div id="modoTablaWrap" style="display:none;">
+          <div class="hint" style="margin-bottom:9px;">Captura directa por tipo de panel: largo (m) × cantidad de piezas. No calcula por área, va directo al despiece.</div>
+          <div class="manual-grid" id="manualPanelesGrid"></div>
+        </div>
       </div>
     </section>
 
@@ -1182,8 +1240,9 @@ const STATE = {
   config: {
     utilidadPct: 0, descuentoPct: 0, descuentoOn: false, laborCost: 36500,
     anticipoPct: 100, iva: true, vigencia: null,
-    compactView: false,
+    compactView: false, areaModo: 'area',
   },
+  manualPaneles: {},
   emisor: {
     nombre: 'FRANCISCO JAVIER CAB RUIZ',
     rfc: 'CARF8110049V7', regimen: '626',
@@ -1196,6 +1255,8 @@ const STATE = {
   history: [],
 };
 PANEL_TYPES.forEach(p => STATE.prices[p.code] = p.defaultPrice);
+const MANUAL_DEFL = { M16: 3.00, M18: 4.20, M20: 4.80, M25: 5.60, M29: 6.50, M32: 8.05 };
+PANEL_TYPES.forEach(p => STATE.manualPaneles[p.code] = [{ largo: MANUAL_DEFL[p.code] || 3.00, qty: 0 }]);
 
 const STORAGE_KEY = 'cuantif_makros_v8';
 // Migración automática desde versión anterior
@@ -1422,6 +1483,23 @@ function aggregateAll() {
     g.importe += r.importe;
     g.pesoKg += r.pesoKg;
   });
+  // Modo Tabla: captura directa de largo+cantidad por tipo de panel (sin A×B)
+  Object.keys(STATE.manualPaneles || {}).forEach(code => {
+    const g = groups[code]; if (!g) return;
+    (STATE.manualPaneles[code] || []).forEach(row => {
+      const largo = Number(row.largo) || 0;
+      const qty = Math.max(0, Math.floor(Number(row.qty)) || 0);
+      if (largo <= 0 || qty <= 0) return;
+      const ml = largo * qty, m2 = largo * PANEL_WIDTH * qty;
+      const key = largo.toFixed(2);
+      const prev = g.lengths.get(key) || { longitud: largo, pzas: 0, ml: 0, ubicaciones: new Set() };
+      prev.pzas += qty; prev.ml += ml; prev.ubicaciones.add('Tabla manual');
+      g.lengths.set(key, prev);
+      g.totalMl += ml; g.totalM2 += m2;
+      g.importe += ml * STATE.prices[code];
+      g.pesoKg += m2 * (g.type.espesor / 100) * (g.type.densidad || PANEL_DENSITY);
+    });
+  });
   return groups;
 }
 
@@ -1524,6 +1602,77 @@ function renderPrices() {
     inp.addEventListener('input', e => {
       STATE.prices[e.target.dataset.code] = Number(e.target.value) || 0;
       persistLocal(); markDirty(); renderAll();
+    });
+  });
+}
+
+/* ============================================================
+   MODO TABLA — captura directa de largo+cantidad por tipo de panel
+   ============================================================ */
+function setAreaModo(m) {
+  STATE.config.areaModo = m;
+  persistLocal(); markDirty();
+  syncAreaModoUI();
+}
+function syncAreaModoUI() {
+  const modo = STATE.config.areaModo || 'area';
+  const wrapArea = document.getElementById('modoAreaWrap');
+  const wrapTabla = document.getElementById('modoTablaWrap');
+  const tabArea = document.getElementById('modoTabArea');
+  const tabTabla = document.getElementById('modoTabTabla');
+  if (wrapArea) wrapArea.style.display = (modo === 'area') ? '' : 'none';
+  if (wrapTabla) wrapTabla.style.display = (modo === 'tabla') ? '' : 'none';
+  if (tabArea) tabArea.classList.toggle('all', modo === 'area');
+  if (tabTabla) tabTabla.classList.toggle('all', modo === 'tabla');
+  if (modo === 'tabla') renderManualPaneles();
+}
+function renderManualPaneles() {
+  const grid = document.getElementById('manualPanelesGrid');
+  if (!grid) return;
+  grid.innerHTML = PANEL_TYPES.map(p => {
+    const rows = STATE.manualPaneles[p.code] || [];
+    const rowsHtml = rows.map((row, idx) => `
+      <div class="manual-row">
+        <span class="mr-lbl">L:</span>
+        <input type="number" step="0.01" min="0" value="${row.largo}" data-code="${p.code}" data-idx="${idx}" data-field="largo">
+        <input type="number" step="1" min="0" value="${row.qty}" data-code="${p.code}" data-idx="${idx}" data-field="qty">
+        ${rows.length > 1 ? `<button type="button" class="mr-rm" data-code="${p.code}" data-idx="${idx}" title="Quitar renglón">✕</button>` : ''}
+      </div>
+    `).join('');
+    return `
+      <div class="manual-card">
+        <div class="mc-head">
+          <span class="mc-swatch" style="background:${p.hex || p.color};"></span>
+          <span class="mc-code">${p.code}</span>
+          <span class="mc-unit">${p.espesor}cm · 60cm</span>
+          <button type="button" class="mc-add" data-code="${p.code}" title="Agregar renglón">+</button>
+        </div>
+        ${rowsHtml}
+      </div>
+    `;
+  }).join('');
+  grid.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('input', e => {
+      const code = e.target.dataset.code, idx = Number(e.target.dataset.idx), field = e.target.dataset.field;
+      const row = STATE.manualPaneles[code][idx]; if (!row) return;
+      row[field] = e.target.value === '' ? 0 : Number(e.target.value);
+      persistLocal(); markDirty(); renderAll(); // NO renderManualPaneles aquí: no reconstruir el input que se está editando
+    });
+  });
+  grid.querySelectorAll('.mc-add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.code;
+      const defL = MANUAL_DEFL[code] || 3.00;
+      STATE.manualPaneles[code].push({ largo: defL, qty: 0 });
+      persistLocal(); markDirty(); renderManualPaneles(); renderAll();
+    });
+  });
+  grid.querySelectorAll('.mr-rm').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const code = btn.dataset.code, idx = Number(btn.dataset.idx);
+      STATE.manualPaneles[code].splice(idx, 1);
+      if (!STATE.manualPaneles[code].length) STATE.manualPaneles[code].push({ largo: MANUAL_DEFL[code] || 3.00, qty: 0 });
+      persistLocal(); markDirty(); renderManualPaneles(); renderAll();
     });
   });
 }
@@ -3200,8 +3349,16 @@ function hardRefreshUI() {
   PANEL_TYPES.forEach(p => {
     if (STATE.prices[p.code] === undefined) STATE.prices[p.code] = p.defaultPrice;
   });
+  if (!STATE.manualPaneles) STATE.manualPaneles = {};
+  PANEL_TYPES.forEach(p => {
+    if (!Array.isArray(STATE.manualPaneles[p.code]) || !STATE.manualPaneles[p.code].length) {
+      STATE.manualPaneles[p.code] = [{ largo: MANUAL_DEFL[p.code] || 3.00, qty: 0 }];
+    }
+  });
+  if (!STATE.config.areaModo) STATE.config.areaModo = 'area';
   syncInputsFromState();
   renderPrices(); renderExtras(); renderAll();
+  syncAreaModoUI();
   nextId = STATE.areas.length ? Math.max(...STATE.areas.map(a => a.id)) + 1 : 1;
   extraNextId = STATE.extras.length ? Math.max(...STATE.extras.map(e => e.id)) + 1 : 1;
   presetNextId = STATE.presets.length ? Math.max(...STATE.presets.map(p => p.id)) + 1 : 100;
