@@ -284,31 +284,30 @@ body.light .fab{background:rgba(255,255,255,.92)}
   <div class="md">
     <h2>Configuración de vehículos</h2>
     <p style="font-size:10px;color:var(--soft);margin-bottom:10px">
-      El copete es la <b>extensión frontal</b> del camión que va sobre la cabina (no encima de la jaula).
-      Termina al mismo nivel del techo.
+      Medidas reales de la flota, <b>bloqueadas</b> — no editables desde aquí para evitar que se desconfiguren.
+      El copete es la <b>extensión frontal</b> del camión que va sobre la cabina (no encima de la jaula). Termina al mismo nivel del techo.
     </p>
     <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:6px">🚛 Camión · jaula</div>
     <div class="mg">
-      <div class="mf"><label>Largo (m)</label><input id="mcL" type="number" step="0.1" value="10.00"></div>
-      <div class="mf"><label>Ancho (m)</label><input id="mcA" type="number" step="0.1" value="2.50"></div>
-      <div class="mf"><label>Alto total (m)</label><input id="mcH" type="number" step="0.1" value="3.20"></div>
-      <div class="mf"><label>Carga máx (kg)</label><input id="mcW" type="number" step="500" value="10000"></div>
+      <div class="mf"><label>Largo (m)</label><input id="mcL" type="number" step="0.1" value="8.40" readonly disabled></div>
+      <div class="mf"><label>Ancho (m)</label><input id="mcA" type="number" step="0.1" value="2.50" readonly disabled></div>
+      <div class="mf"><label>Alto total (m)</label><input id="mcH" type="number" step="0.1" value="3.00" readonly disabled></div>
+      <div class="mf"><label>Carga máx (kg)</label><input id="mcW" type="number" step="500" value="10000" readonly disabled></div>
     </div>
     <div style="font-size:10px;font-weight:700;color:var(--warn);margin:8px 0 6px">🔗 Remolque · jaula</div>
     <div class="mg">
-      <div class="mf"><label>Largo (m)</label><input id="mrL" type="number" step="0.1" value="10.70"></div>
-      <div class="mf"><label>Ancho (m)</label><input id="mrA" type="number" step="0.1" value="2.50"></div>
-      <div class="mf"><label>Alto (m)</label><input id="mrH" type="number" step="0.1" value="3.00"></div>
-      <div class="mf"><label>Carga máx (kg)</label><input id="mrW" type="number" step="500" value="12000"></div>
+      <div class="mf"><label>Largo (m)</label><input id="mrL" type="number" step="0.1" value="10.00" readonly disabled></div>
+      <div class="mf"><label>Ancho (m)</label><input id="mrA" type="number" step="0.1" value="2.50" readonly disabled></div>
+      <div class="mf"><label>Alto (m)</label><input id="mrH" type="number" step="0.1" value="3.20" readonly disabled></div>
+      <div class="mf"><label>Carga máx (kg)</label><input id="mrW" type="number" step="500" value="12000" readonly disabled></div>
     </div>
     <div style="font-size:10px;font-weight:700;color:#a78bfa;margin:8px 0 6px">🏠 Copete (extensión frontal del camión)</div>
     <div class="mg">
-      <div class="mf"><label>Largo copete (m)</label><input id="mcpL" type="number" step="0.1" value="2.30"></div>
-      <div class="mf"><label>Alto útil (m)</label><input id="mcpH" type="number" step="0.1" value="1.40"></div>
+      <div class="mf"><label>Largo copete (m)</label><input id="mcpL" type="number" step="0.1" value="2.30" readonly disabled></div>
+      <div class="mf"><label>Alto útil (m)</label><input id="mcpH" type="number" step="0.1" value="1.40" readonly disabled></div>
     </div>
     <div class="mb2">
-      <button class="mbn c" onclick="closeMo()">Cancelar</button>
-      <button class="mbn ok" onclick="applyMo()">✓ Aplicar</button>
+      <button class="mbn ok" onclick="closeMo()">Cerrar</button>
     </div>
   </div>
 </div>
@@ -1226,19 +1225,6 @@ function resetCam(){pan={x:0,y:0};ang={th:.7,ph:.50,r:32};tgt={...ang};calcCam()
 /* Modal */
 function openMo(){document.getElementById('mo').classList.add('open');}
 function closeMo(){document.getElementById('mo').classList.remove('open');}
-function applyMo(){
-  VEH.cam.L=+document.getElementById('mcL').value||10;
-  VEH.cam.A=+document.getElementById('mcA').value||2.5;
-  VEH.cam.H=+document.getElementById('mcH').value||3.2;
-  VEH.cam.pesoMax=+document.getElementById('mcW').value||10000;
-  VEH.rem.L=+document.getElementById('mrL').value||10.7;
-  VEH.rem.A=+document.getElementById('mrA').value||2.5;
-  VEH.rem.H=+document.getElementById('mrH').value||3.0;
-  VEH.rem.pesoMax=+document.getElementById('mrW').value||12000;
-  VEH.cop.L=+document.getElementById('mcpL').value||2.3;
-  VEH.cop.H=+document.getElementById('mcpH').value||1.4;
-  closeMo();dibujarVacio();
-}
 document.getElementById('mo').addEventListener('click',e=>{if(e.target===document.getElementById('mo'))closeMo();});
 
 // Prevenir context menu (right-click)
