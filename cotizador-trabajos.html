@@ -355,6 +355,9 @@ td.mo-desc input{white-space:normal;word-break:break-word;min-height:36px;
   border-bottom:1px solid var(--line);}
 .cli-name{flex:1;font-size:12px;font-weight:500;color:var(--ink);}
 /* ── PRINT MEDIA ── */
+.iva-toggle{font-size:9px;font-weight:800;letter-spacing:.04em;border:1px solid #3f7fd0;background:#2f6fc0;color:#fff;border-radius:20px;padding:2px 9px;cursor:pointer;transition:all .15s;line-height:1.4;}
+.iva-toggle:hover{filter:brightness(1.08);}
+.iva-toggle:not(.on){background:#e5e9f0;color:#94a1b5;border-color:#d4dae5;text-decoration:line-through;}
 @media print{
   html,body{background:white!important;padding:0!important;margin:0!important;
     width:100%!important;}
@@ -362,7 +365,7 @@ td.mo-desc input{white-space:normal;word-break:break-word;min-height:36px;
   .sheet{box-shadow:none!important;border-radius:0!important;max-width:100%!important;width:100%!important;}
   .fab,.fab-calc,.add-btn,.save-bar,.calc-float,.note-del,.add-note-btn,
   .sig-img-btn,.sig-img-actions,.ant-controls,.ant-note,.ant-warn,
-  .modal-overlay,.drag-handle{display:none!important;}
+  .modal-overlay,.drag-handle,.iva-toggle{display:none!important;}
   .watermark{opacity:.05!important;}
   td input,td select,.field-val,.vi-val,.cond-val,.fr-val,.sig-input,.doc-num input,
   .ant-val{border-color:transparent!important;}
@@ -373,8 +376,10 @@ td.mo-desc input{white-space:normal;word-break:break-word;min-height:36px;
   .footer,.cond-card,.subtotal-row{
     -webkit-print-color-adjust:exact!important;
     print-color-adjust:exact!important;}
-  .section,.sigs,.bottom,.conditions,.info-grid{
+  .section,.sigs,.bottom,.conditions,.info-grid,.tbl-wrap,table{
     page-break-inside:avoid;break-inside:avoid;}
+  .section-head{page-break-after:avoid;break-after:avoid;}
+  thead{display:table-header-group;}
   tbody tr{page-break-inside:avoid;break-inside:avoid;}
   .tbl-wrap{overflow:visible!important;}
   td.mo-desc input{height:auto!important;white-space:normal!important;}
@@ -638,7 +643,7 @@ td.mo-desc input{white-space:normal;word-break:break-word;min-height:36px;
         <input class="fr-val bold" id="finNeto" readonly>
       </div>
       <div class="fin-row">
-        <span class="fr-label">I.V.A. (16%)</span>
+        <span class="fr-label" style="display:flex;align-items:center;gap:8px;"><span id="ivaLbl">I.V.A. (16%)</span><button type="button" id="ivaToggle" class="iva-toggle on" onclick="toggleIva()" title="Activar / desactivar IVA (cobro a la mano)">IVA</button></span>
         <input class="fr-val" id="finIVA" readonly>
       </div>
       <div class="total-box">
@@ -803,6 +808,7 @@ const DEFAULT_NOTES = [
 let matCount = 0, moCount = 0;
 let calcHistArr = [];
 let antMode = 'pct'; // 'pct' or 'amt'
+let ivaOn = true; // IVA activado por defecto; se puede apagar (cobro a la mano)
 let autoSaveTimer = null;
 
 // ══════════════════════════════════════════
@@ -1033,7 +1039,7 @@ function calcTotals() {
   var descuento = Math.min(Math.max(descRaw, 0), subMat);
   var matNeto = subMat - descuento;
   var neto = matNeto + subMo + flete;
-  var iva = neto * 0.16;
+  var iva = ivaOn ? neto * 0.16 : 0;
   var total = neto + iva;
 
   // Anticipo
@@ -1080,6 +1086,13 @@ function calcTotals() {
   document.getElementById('finAnticipo').textContent = fmt(anticipo);
 
   triggerAutoSave();
+}
+
+function toggleIva(){ ivaOn = !ivaOn; syncIvaUI(); calcTotals(); }
+function syncIvaUI(){
+  var b = document.getElementById('ivaToggle'), l = document.getElementById('ivaLbl');
+  if (b) b.classList.toggle('on', ivaOn);
+  if (l) l.textContent = ivaOn ? 'I.V.A. (16%)' : 'I.V.A. (no aplica)';
 }
 
 // ══════════════════════════════════════════
@@ -1196,6 +1209,7 @@ function getState() {
     finFlete: document.getElementById('finFlete').value,
     finDesc: document.getElementById('finDesc').value,
     antMode: antMode,
+    ivaOn: ivaOn,
     antValue: document.getElementById('antValue').value,
     notes: getNotes(),
     matRows: matRows, moRows: moRows,
@@ -1229,6 +1243,8 @@ function applyState(s) {
       document.getElementById('antNote').style.display = 'none';
     }
   }
+  if (typeof s.ivaOn === 'boolean') ivaOn = s.ivaOn;
+  syncIvaUI();
   renderNotes(s.notes || DEFAULT_NOTES);
   calcTotals();
 }
