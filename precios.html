@@ -319,6 +319,8 @@ tr:hover .row-actions{opacity:1}
 .cot-toggle-row{display:flex;align-items:center;gap:6px;font-size:12px;color:#64748b;margin-bottom:4px}
 .delivery-input{width:100px;padding:3px 7px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;font-size:13px;text-align:right;background:#f0fdf4}
 .delivery-input:focus{border-color:#059669;outline:none}
+.discount-input{width:56px;padding:3px 7px;border:1px solid #cbd5e1;border-radius:4px;font:inherit;font-size:13px;text-align:right;background:#fef2f2}
+.discount-input:focus{border-color:#dc2626;outline:none}
 .cot-doc-footer{background:#f8faff;border-top:1px solid #e2e8f0;padding:12px 24px;font-size:11px;color:#64748b;text-align:center;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0 0 10px 10px}
 .cot-totals-wrap{display:grid;grid-template-columns:1fr auto;padding:16px 24px;gap:16px;border-top:1px solid #e2e8f0;align-items:start}
 /* ═══════════════════════════════════════════════
@@ -498,6 +500,9 @@ tr:hover .row-actions{opacity:1}
   .delivery-input { display: none !important; }
   /* Ocultar la fila de entrega si está desactivada */
   #cot-entrega-row[data-entrega-on="0"] { display: none !important; }
+  /* Descuento — ocultar el input de edición, mostrar solo si está activo */
+  .discount-input { display: none !important; }
+  #cot-descuento-row[data-desc-on="0"] { display: none !important; }
 
   /* ══════ FIRMA / PIE ══════ */
   .cot-doc-firma { overflow: visible !important; padding: 14px 18px 10px !important; page-break-inside: avoid; break-inside: avoid; }
@@ -914,6 +919,12 @@ tr:hover .row-actions{opacity:1}
               <label class="toggle-sw"><input type="checkbox" id="ivaToggle" checked onchange="updateTotals()"><span class="slider"></span></label>
               <span style="font-size:12px;color:var(--text2)">Incluir IVA 16%</span>
             </div>
+            <div class="cot-toggle-row">
+              <label class="toggle-sw"><input type="checkbox" id="descuentoToggle" onchange="updateTotals()"><span class="slider"></span></label>
+              <span style="font-size:12px;color:var(--text2)">Incluir descuento %</span>
+              <input class="discount-input no-print" id="descuentoInput" type="number" min="0" max="100" step="1" value="0" placeholder="0" onchange="updateTotals()" style="display:none">
+              <span style="font-size:12px;color:var(--text2)" id="descuentoPctSuffix" hidden>%</span>
+            </div>
           </div>
         </div>
         <!-- Totales -->
@@ -921,6 +932,10 @@ tr:hover .row-actions{opacity:1}
           <table class="cot-totals-table">
             <tbody>
               <tr><td class="t-label">Subtotal s/IVA</td><td class="t-val" id="tSubtotal">$0.00</td></tr>
+              <tr id="cot-descuento-row" data-desc-on="0">
+                <td class="t-label" style="color:#dc2626">Descuento (<span id="descuentoPctLbl">0</span>%)</td>
+                <td class="t-val" style="color:#dc2626" id="tDescuento">-$0.00</td>
+              </tr>
               <tr class="cot-entrega-row" id="cot-entrega-row">
                 <td class="t-label">
                   Costo de entrega
@@ -1667,24 +1682,40 @@ function updateTotals(){
   const sub = cotItems.reduce((s,x)=> s + (isNaN(x.qty)?0:x.qty) * (isNaN(x.precio)?0:x.precio), 0);
   const ivaEl = document.getElementById('ivaToggle');
   const ivaOn = ivaEl ? ivaEl.checked : true;
+  const descEl = document.getElementById('descuentoToggle');
+  const descOn = descEl ? descEl.checked : false;
+  const descRaw = parseFloat((document.getElementById('descuentoInput')||{}).value);
+  const descPct = descOn && !isNaN(descRaw) ? Math.min(Math.max(descRaw,0),100) : 0;
+  const descuentoMonto = sub * (descPct/100);
+  const subConDescuento = sub - descuentoMonto;
   const entEl = document.getElementById('entregaToggle');
   const entregaOn = entEl ? entEl.checked : false;
   const entRaw = parseFloat((document.getElementById('entregaInput')||{}).value);
   const entrega = entregaOn && !isNaN(entRaw) ? entRaw : 0;
-  // El IVA se aplica a (subtotal + costo de entrega). Total = base + IVA.
-  const base = sub + entrega;
+  // Descuento aplica SOLO sobre el subtotal de material, antes de entrega e IVA.
+  // El IVA se aplica a (subtotal con descuento + costo de entrega). Total = base + IVA.
+  const base = subConDescuento + entrega;
   const iva = ivaOn ? base * IVA : 0;
   const total = base + iva;
 
   const setTxt = (id, val) => { const el=document.getElementById(id); if(el) el.textContent=val; };
   setTxt('tSubtotal', fmtNum(sub));
+  setTxt('tDescuento', '-'+fmtNum(descuentoMonto));
+  setTxt('descuentoPctLbl', descPct);
   setTxt('tBase', fmtNum(base));
   setTxt('tIVA', fmtNum(iva));
   setTxt('tTotal', fmtNum(total));
 
+  const descRow = document.getElementById('cot-descuento-row');
+  if(descRow) descRow.setAttribute('data-desc-on', (descOn && descuentoMonto>0) ? '1' : '0');
+  const descInput = document.getElementById('descuentoInput');
+  const descSuffix = document.getElementById('descuentoPctSuffix');
+  if(descInput) descInput.style.display = descOn ? '' : 'none';
+  if(descSuffix) descSuffix.hidden = !descOn;
+
   // Mostrar "Base gravable" solo cuando hay entrega (si no, subtotal == base, es redundante)
   const rowBase = document.getElementById('rowBase');
-  if(rowBase) rowBase.style.display = (entregaOn && entrega>0) ? '' : 'none';
+  if(rowBase) rowBase.style.display = ((entregaOn && entrega>0) || (descOn && descuentoMonto>0)) ? '' : 'none';
 
   const rowIVA = document.getElementById('rowIVA');
   if(rowIVA) rowIVA.style.opacity = ivaOn ? '1' : '0.35';
