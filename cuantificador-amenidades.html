@@ -3558,11 +3558,6 @@ extraNextId = STATE.extras.length ? Math.max(...STATE.extras.map(e => e.id)) + 1
 presetNextId = STATE.presets.length ? Math.max(...STATE.presets.map(p => p.id)) + 1 : 100;
 customerNextId = STATE.customers.length ? Math.max(...STATE.customers.map(c => c.id)) + 1 : 1000;
 
-if (STATE.areas.length === 0) {
-  STATE.areas.push({ id: nextId++, name: 'Área de ejemplo (imagen N-2)', a: 4.82, b: 4.20 });
-  persistLocal();
-}
-
 renderPrices();
 renderLegend();
 syncInputsFromState();
