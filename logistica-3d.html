@@ -331,6 +331,7 @@ body.printing-report #reportPDF{display:block!important}
     <button class="cb" id="cb-x" onclick="txray()">👁</button>
   </div>
   <div style="position:absolute;bottom:56px;right:10px;display:flex;gap:8px;z-index:5">
+    <div class="fab" style="position:static" onclick="abrirCotizacionLogistica()" title="Cotización de flete y maniobras con los datos reales de este acomodo">💰 Cotización</div>
     <div class="fab" style="position:static" onclick="exportarReportePDF()" title="Genera un reporte listo para el cliente (PDF)">📄 Reporte PDF</div>
     <div class="fab" style="position:static" onclick="openMo()">⚙ Vehículos</div>
   </div>
@@ -1303,6 +1304,7 @@ document.getElementById('cv').addEventListener('contextmenu',e=>e.preventDefault
 const FB_LOG = { apiKey:"AIzaSyB0txTXmZEvYQX-uKvnJ6SVnP-yfeyhfBc", databaseURL:"https://launcher-gama-sur-default-rtdb.firebaseio.com" };
 const LOGO_KEY = 'gamasur_logo_global';
 const DESP_KEY = 'gamasur_despiece';
+const COTIZ_KEY = 'gamasur_cotiz_logistica';
 var fireDbLog = null;
 
 function setSync(s){
@@ -1349,6 +1351,42 @@ function loadDespiece(autoCalc){
   let payload=null;
   try{ const raw=localStorage.getItem(DESP_KEY); if(raw) payload=JSON.parse(raw); }catch(e){}
   applyDespiece(payload, autoCalc);
+}
+
+/* Payload de cotizacion: datos REALES del ultimo calculo (fletes, piezas, %carga, peso por viaje).
+   Nunca precios/margen/IVA — esos quedan editables en la cotizacion misma. */
+function construirPayloadCotizacion(){
+  if(!lastReport || !lastReport.ids || !lastReport.ids.length) return null;
+  const viajes = lastReport.ids.map(id=>{
+    const par=lastReport.pares[id];
+    const camPz = par.cam ? par.cam.placed.length : 0;
+    const remPz = par.rem ? par.rem.placed.length : 0;
+    const pcam = par.cam ? par.cam.util : null;
+    const prem = par.rem ? par.rem.util : null;
+    const peso = Math.round((par.cam?par.cam.pesoTotal:0)+(par.rem?par.rem.pesoTotal:0));
+    const tipo = (par.cam && par.rem) ? 'c' : 'p'; // c=completo (cam+rem), p=parcial (solo cam)
+    return {v:id, cam:camPz, rem:remPz, pcam, prem, peso, tipo};
+  });
+  const now=new Date();
+  const folio='LOG-'+now.toISOString().slice(0,10).replace(/-/g,'')+'-'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  return {
+    ts: now.getTime(), folio,
+    totalPiezas: lastReport.totalPzas,
+    totalViajes: lastReport.ids.length,
+    utilPromedio: lastReport.utilPromedio,
+    pesoTotal: lastReport.pesoTotal,
+    totalCostoReal: lastReport.totalCosto, // suma exacta ya calculada (para validar contra costo*cantidad)
+    costoCamSolo: COSTO.camSolo,
+    costoCamRem: COSTO.camRem,
+    viajes,
+  };
+}
+function abrirCotizacionLogistica(){
+  const payload = construirPayloadCotizacion();
+  if(!payload){ alert('Primero corre "⚡ Calcular acomodo" para generar la cotización.'); return; }
+  try{ localStorage.setItem(COTIZ_KEY, JSON.stringify(payload)); }catch(e){}
+  if(fireDbLog){ try{ fireDbLog.ref('gamasur/cotizLogistica').set(payload); }catch(e){} }
+  window.open('cotizacion-logistica.html','_blank');
 }
 
 function initFirebaseLog(){

@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cotización Logística · GAMA SUR</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+<style>
+  :root{
+    /* Identidad GAMA SUR (misma paleta que Logística 3D / Cuantificador / Dashboard) */
+    --navy:#1e4d8b; --navy2:#173e70; --accent:#2563eb; --accent-soft:#EFF6FF;
+    --paper:#ffffff; --bg:#F0F4F9; --ink:#1A2535; --muted:#7A8FA6;
+    --line:#E5E7EB; --line2:#EEF1F5;
+    --edit:#EFF6FF; --edit-line:#93C5FD; --edit-focus:#2563EB;
+    --green:#DCFCE7; --green2:#BBF7D0; --green-ink:#166534;
+    --amberbar:#F59E0B; --tealbar:#2563EB;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:'Inter','Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Arial,sans-serif;
+    color:var(--ink); background:var(--bg); line-height:1.4;
+    font-size:13px; padding:18px 12px 40px;
+    font-variant-numeric:tabular-nums;
+  }
+  .sheet{
+    max-width:900px; margin:0 auto; background:var(--paper);
+    box-shadow:0 6px 30px rgba(26,37,53,.10); border-radius:10px; overflow:hidden;
+  }
+
+  /* ---------- App toolbar (no imprime) ---------- */
+  .apptoolbar{
+    max-width:900px;margin:0 auto 12px;display:flex;align-items:center;gap:10px;
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:9px 14px;
+  }
+  .apptoolbar .homebtn{
+    display:inline-flex;align-items:center;gap:5px;background:var(--accent-soft);
+    border:1px solid #DBEAFE;color:var(--navy);text-decoration:none;font-size:12.5px;
+    font-weight:700;padding:6px 12px;border-radius:8px;transition:background .15s;
+  }
+  .apptoolbar .homebtn:hover{background:#DBEAFE}
+  .apptoolbar img.logo{height:24px;width:24px;object-fit:contain;border-radius:5px;background:#fff;display:none}
+  .apptoolbar .title{font-weight:800;color:var(--navy);font-size:13.5px;font-family:'Barlow Condensed','Inter',sans-serif;letter-spacing:.3px}
+  .apptoolbar .syncpill{font-size:10.5px;color:var(--muted);margin-left:auto;white-space:nowrap}
+  .apptoolbar .syncpill.on{color:#16A34A}
+
+  .toolbar{
+    max-width:900px; margin:0 auto 14px; display:flex; gap:10px; flex-wrap:wrap;
+    align-items:center; justify-content:space-between;
+  }
+  .toolbar .hint{font-size:11.5px; color:var(--muted)}
+  .toolbar .hint b{color:var(--navy)}
+  .btns{display:flex; gap:8px}
+  button{
+    font:inherit; font-size:12.5px; font-weight:700; cursor:pointer;
+    border:1px solid var(--navy); background:var(--navy); color:#fff;
+    padding:8px 15px; border-radius:8px; transition:.15s;
+  }
+  button.ghost{background:#fff; color:var(--navy)}
+  button:hover{background:var(--navy2); border-color:var(--navy2); color:#fff}
+  button.ghost:hover{background:var(--accent-soft); color:var(--navy); border-color:var(--accent)}
+
+  .databanner{
+    max-width:900px;margin:0 auto 12px;padding:8px 14px;background:var(--accent-soft);
+    border:1px solid #DBEAFE;border-radius:8px;font-size:11.5px;color:var(--navy);
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .databanner.warn{background:#FFF7ED;border-color:#FED7AA;color:#9A3412}
+  .databanner a{color:var(--accent);font-weight:700;text-decoration:none}
+  .databanner a:hover{text-decoration:underline}
+
+  /* ---------- Header (documento imprimible) ---------- */
+  header{
+    background:linear-gradient(135deg,var(--navy) 0%,var(--navy2) 100%);
+    color:#fff; padding:22px 30px 20px; display:flex; justify-content:space-between; gap:20px;
+  }
+  .brand{display:flex; gap:14px; align-items:flex-start}
+  .mark{
+    width:46px;height:46px;border-radius:9px;background:#fff;flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;overflow:hidden;
+  }
+  .mark svg{width:30px;height:30px}
+  .mark img{width:100%;height:100%;object-fit:contain}
+  .brand h1{font-size:21px;font-weight:800;letter-spacing:.3px;line-height:1;font-family:'Barlow Condensed','Inter',sans-serif}
+  .brand .sub{font-size:11.5px;color:#DBEAFE;margin-top:5px;letter-spacing:.3px}
+  .brand .doc{font-size:10.5px;color:#BFDBFE;margin-top:9px;text-transform:uppercase;letter-spacing:1.5px}
+  .meta{text-align:right;font-size:11.5px;color:#DBEAFE;min-width:210px}
+  .meta .folio{
+    display:inline-block;border:1px solid #3B6BB0;border-radius:6px;background:rgba(255,255,255,.08);
+    padding:4px 10px;font-weight:700;color:#fff;letter-spacing:.5px;margin-bottom:8px;
+  }
+  .meta .row{margin-top:3px}
+  .meta label{color:#93B4E0;margin-right:6px}
+
+  /* ---------- Bloques ---------- */
+  .body{padding:22px 30px 30px}
+  .sectitle{
+    font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;
+    color:var(--navy); padding-bottom:6px; margin:26px 0 12px;
+    border-bottom:2px solid var(--navy); display:flex; align-items:center; gap:8px;
+  }
+  .sectitle .tag{
+    font-size:10px;background:var(--accent);color:#fff;border-radius:5px;
+    padding:2px 8px;letter-spacing:.4px;font-weight:700;
+  }
+  .sectitle:first-child{margin-top:4px}
+
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 34px}
+  .fld{display:flex;align-items:baseline;gap:8px;font-size:12.5px;padding:2px 0}
+  .fld label{color:var(--muted);min-width:118px;flex:0 0 auto;font-weight:600}
+  .fld .val{flex:1}
+
+  /* Campos editables de texto */
+  [contenteditable]{
+    outline:none;border-bottom:1px dashed var(--line);padding:1px 3px 2px;
+    min-width:40px;display:inline-block;color:var(--ink);
+  }
+  [contenteditable]:hover{background:#F8FAFC;border-bottom-color:var(--edit-line)}
+  [contenteditable]:focus{background:var(--edit);border-bottom:1px solid var(--edit-focus)}
+  [contenteditable].fixed{border-bottom:none;color:var(--ink);font-weight:600}
+
+  /* Inputs numéricos */
+  input.num{
+    font:inherit;font-variant-numeric:tabular-nums;text-align:right;
+    width:98px;background:var(--edit);border:1px solid var(--edit-line);
+    border-radius:5px;padding:3px 7px;color:var(--navy);font-weight:700;
+  }
+  input.num.sm{width:52px}
+  input.num:focus{outline:2px solid var(--accent);outline-offset:-1px;background:#fff}
+  .pct-wrap{display:inline-flex;align-items:center;gap:3px}
+  .pct-wrap::after{content:"%";color:var(--muted);font-weight:600}
+
+  /* ---------- Manifiesto (acomodo) ---------- */
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  .manifest th{
+    background:var(--navy);color:#fff;font-weight:700;font-size:10.5px;
+    letter-spacing:.4px;text-transform:uppercase;padding:8px 8px;text-align:center;
+  }
+  .manifest th.l{text-align:left}
+  .manifest td{padding:7px 8px;border-bottom:1px solid var(--line2);text-align:center}
+  .manifest td.l{text-align:left}
+  .manifest td.r{text-align:right}
+  .manifest tbody tr:nth-child(even){background:#F8FAFC}
+  .manifest tr.partial td{background:#FFF7ED}
+  .viaje-b{font-weight:800;color:var(--navy)}
+  .barwrap{display:flex;align-items:center;gap:6px;justify-content:flex-start}
+  .bar{height:8px;border-radius:4px;background:var(--line);width:52px;position:relative;overflow:hidden;flex:0 0 auto}
+  .bar > i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
+  .bar.cam > i{background:var(--tealbar)}
+  .bar.rem > i{background:var(--amberbar)}
+  .barval{font-size:10.5px;color:var(--muted);min-width:30px;text-align:right}
+  .manifest tfoot td{
+    background:var(--green2);font-weight:800;color:var(--green-ink);
+    padding:8px;border-top:2px solid var(--navy)
+  }
+  .manifest tfoot td.r{text-align:right}
+  .legend{display:flex;gap:18px;font-size:11px;color:var(--muted);margin:8px 2px 0}
+  .legend span{display:inline-flex;align-items:center;gap:5px}
+  .dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .dot.cam{background:var(--tealbar)}.dot.rem{background:var(--amberbar)}
+
+  /* ---------- Costos ---------- */
+  .costos{width:100%;border-collapse:collapse;font-size:12.5px}
+  .costos th{
+    background:#F1F5F9;color:var(--navy);font-size:10.5px;letter-spacing:.5px;
+    text-transform:uppercase;font-weight:800;padding:8px 10px;text-align:left;
+    border-bottom:1px solid var(--line)
+  }
+  .costos th.r{text-align:right}
+  .costos td{padding:8px 10px;border-bottom:1px solid var(--line2)}
+  .costos td.r{text-align:right;font-variant-numeric:tabular-nums}
+  .costos td.c{text-align:center}
+  .costos .num-label{color:var(--muted);font-size:11px}
+  .opt-row.off{opacity:.4}
+  .costos tr.subtotal td{
+    background:var(--green);font-weight:800;color:var(--green-ink);
+    border-top:2px solid var(--navy);border-bottom:none;font-size:13px
+  }
+
+  /* Ledger precio */
+  .ledger{margin-top:14px;margin-left:auto;width:370px;font-size:12.5px}
+  .ledger .lrow{display:flex;justify-content:space-between;padding:6px 12px;border-bottom:1px solid var(--line2)}
+  .ledger .lrow label{color:var(--muted);font-weight:600}
+  .ledger .lrow.venta{background:var(--green);color:var(--green-ink);font-weight:800;border-radius:6px;border-bottom:none;margin-top:3px}
+  .ledger .lrow.total{
+    background:var(--navy);color:#fff;font-weight:800;font-size:15px;
+    border-radius:8px;padding:11px 12px;margin-top:5px;border-bottom:none
+  }
+  .ledger .lrow.total label{color:#DBEAFE}
+  .ledger .ret{font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px;padding:0 12px}
+
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+  .kpi{border:1px solid var(--line);border-radius:9px;padding:11px 12px;background:#F8FAFC}
+  .kpi .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800}
+  .kpi .v{font-size:17px;font-weight:800;color:var(--navy);margin-top:5px}
+
+  /* Condiciones / notas */
+  ul.cond{list-style:none;font-size:12px;color:var(--ink)}
+  ul.cond li{padding:3px 0 3px 16px;position:relative}
+  ul.cond li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
+  .notas{font-size:11px;color:var(--muted);background:#F8FAFC;border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:4px}
+  .notas p{padding:2px 0}
+  .warn{color:#B45309}
+
+  .firmas{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px}
+  .firma{text-align:center;font-size:11.5px;color:var(--muted)}
+  .firma .line{border-top:1px solid var(--ink);margin-bottom:6px;padding-top:0}
+  .firma b{color:var(--navy);display:block;font-size:12px}
+
+  footer{border-top:1px solid var(--line);margin-top:26px;padding-top:12px;font-size:10px;color:var(--muted);text-align:center;letter-spacing:.3px}
+
+  /* ---------- Print ---------- */
+  @media print{
+    body{background:#fff;padding:0;font-size:11px}
+    .apptoolbar,.toolbar,.databanner{display:none !important}
+    .sheet{box-shadow:none;max-width:none;border-radius:0}
+    input.num{border:none;background:transparent;padding:0;width:auto;color:var(--navy)}
+    [contenteditable]{border-bottom:none}
+    .kpi{background:#fff}
+    header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .manifest th,.manifest tfoot td,.costos tr.subtotal td,.ledger .lrow.total,.ledger .lrow.venta,
+    .bar>i,.dot,.sectitle .tag,.meta .folio{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    @page{size:A4;margin:12mm}
+  }
+  @media(max-width:640px){
+    .grid2{grid-template-columns:1fr}
+    .kpis{grid-template-columns:repeat(2,1fr)}
+    header{flex-direction:column}.meta{text-align:left}
+    .ledger{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<div class="apptoolbar">
+  <a href="index.html" class="homebtn">← Inicio</a>
+  <img id="globalLogoImg" class="logo" alt="">
+  <span class="title">Cotización Logística</span>
+  <span class="syncpill" id="syncPill">○ Local</span>
+</div>
+
+<div id="dataBanner" class="databanner" style="display:none"></div>
+
+<div class="toolbar">
+  <div class="hint">Los campos <b>azules</b> son editables y los totales se recalculan solos. Para el cliente: <b>Imprimir → Guardar como PDF</b>.</div>
+  <div class="btns">
+    <button class="ghost" onclick="location.reload()">Restablecer</button>
+    <button onclick="window.print()">Imprimir / Guardar PDF</button>
+  </div>
+</div>
+
+<div class="sheet">
+  <header>
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#1e4d8b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 4h13v9H1z"/><path d="M14 8h4l3 3v2h-7z"/><circle cx="5" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/>
+        </svg>
+      </div>
+      <div>
+        <h1 contenteditable>GAMA SUR</h1>
+        <div class="sub" contenteditable>Distribuidor NOVIDESA · Sistemas de panel aislante</div>
+        <div class="doc">Cotización de servicios logísticos · Flete y maniobras</div>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="folio">COT <span contenteditable id="cotNum">2026-001</span></span>
+      <div class="row"><label>Ref. reporte</label><span contenteditable class="fixed" id="refReporte">—</span></div>
+      <div class="row"><label>Fecha</label><span contenteditable id="fechaDoc">—</span></div>
+      <div class="row"><label>Vigencia</label><span contenteditable>15 días naturales</span></div>
+    </div>
+  </header>
+
+  <div class="body">
+
+    <!-- CLIENTE / SERVICIO -->
+    <div class="sectitle">Cliente y servicio</div>
+    <div class="grid2">
+      <div class="fld"><label>Cliente</label><span class="val" contenteditable>[Razón social del cliente]</span></div>
+      <div class="fld"><label>RFC</label><span class="val" contenteditable>[RFC]</span></div>
+      <div class="fld"><label>Obra / Proyecto</label><span class="val" contenteditable>[Nombre de la obra]</span></div>
+      <div class="fld"><label>Contacto obra</label><span class="val" contenteditable>[Nombre / teléfono]</span></div>
+      <div class="fld"><label>Origen (planta)</label><span class="val" contenteditable>[Ciudad / planta]</span></div>
+      <div class="fld"><label>Destino (obra)</label><span class="val" contenteditable>[Ciudad / obra]</span></div>
+      <div class="fld"><label>Producto</label><span class="val fixed" contenteditable>Panel M16 (MAKROS II P) · SCM2-1516-B</span></div>
+      <div class="fld"><label>Dimensiones</label><span class="val fixed" contenteditable>60 ancho × 15 espesor · largo variable</span></div>
+      <div class="fld"><label>Tipo de unidad</label><span class="val fixed" contenteditable>Camión jaula (full) + remolque</span></div>
+      <div class="fld"><label>Tiempo de tránsito</label><span class="val" contenteditable>[  ] días / viaje</span></div>
+    </div>
+
+    <!-- ACOMODO / MANIFIESTO -->
+    <div class="sectitle">Acomodo de carga por viaje <span class="tag" id="tagResumen">0 piezas · 0 viajes</span></div>
+    <table class="manifest">
+      <thead>
+        <tr>
+          <th class="l">Viaje</th>
+          <th>Pzas camión</th>
+          <th>Pzas remolque</th>
+          <th>Total pzas</th>
+          <th class="l">% Carga camión</th>
+          <th class="l">% Carga remolque</th>
+          <th>Peso (kg)</th>
+          <th class="r">Flete (MXN)</th>
+        </tr>
+      </thead>
+      <tbody id="manifestBody"><!-- JS --></tbody>
+      <tfoot>
+        <tr>
+          <td class="l">TOTAL</td>
+          <td id="tCam">—</td>
+          <td id="tRem">—</td>
+          <td id="tTot">—</td>
+          <td colspan="2" style="text-align:left;font-weight:600" id="tUtil">Utilización promedio — · carga por volumen</td>
+          <td id="tPeso">—</td>
+          <td class="r" id="tFlete">—</td>
+        </tr>
+      </tfoot>
+    </table>
+    <div class="legend">
+      <span><i class="dot cam"></i> Camión (jaula/copete): 1 sola longitud por viaje</span>
+      <span><i class="dot rem"></i> Remolque: combina longitudes</span>
+    </div>
+
+    <!-- COSTOS OPERATIVOS -->
+    <div class="sectitle">A · Costos operativos</div>
+    <table class="costos">
+      <thead>
+        <tr><th style="width:44px">#</th><th>Concepto</th><th class="r" style="width:90px">Cant.</th><th class="r" style="width:130px">P. unitario</th><th class="r" style="width:130px">Importe</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="c">1</td><td>Flete camión jaula + remolque <span class="num-label">(viajes completos)</span></td>
+          <td class="r"><input class="num sm" id="numCompletos" type="number" min="0" value="0"></td>
+          <td class="r"><input class="num" id="fleteCompleto" type="number" min="0" value="40500"></td>
+          <td class="r" id="impFleteC">—</td>
+        </tr>
+        <tr>
+          <td class="c">2</td><td>Flete camión <span class="num-label">(viaje parcial, sin remolque)</span></td>
+          <td class="r"><input class="num sm" id="numParciales" type="number" min="0" value="0"></td>
+          <td class="r"><input class="num" id="fleteParcial" type="number" min="0" value="33500"></td>
+          <td class="r" id="impFleteP">—</td>
+        </tr>
+        <tr>
+          <td class="c">3</td><td>Maniobra de carga en planta</td>
+          <td class="r"><span id="cantCarga" class="num-label">0 viajes</span></td>
+          <td class="r"><input class="num" id="maniobraCarga" type="number" min="0" value="3500"></td>
+          <td class="r" id="impCarga">—</td>
+        </tr>
+        <tr>
+          <td class="c">4</td><td>Seguro de carga <span class="num-label">(sobre valor declarado)</span></td>
+          <td class="r"><span class="pct-wrap"><input class="num sm" id="tasaSeguro" type="number" min="0" step="0.1" value="0.4"></span></td>
+          <td class="r"><input class="num" id="valorDeclarado" type="number" min="0" value="0"></td>
+          <td class="r" id="impSeguro">—</td>
+        </tr>
+        <tr class="opt-row" id="rowDescarga">
+          <td class="c">5</td>
+          <td>Maniobra de descarga en obra
+            <label style="font-weight:600;color:var(--accent);cursor:pointer;margin-left:6px">
+              <input type="checkbox" id="togDescarga" checked style="vertical-align:-1px"> incluir
+            </label>
+          </td>
+          <td class="r"><span id="cantDescarga" class="num-label">0 viajes</span></td>
+          <td class="r"><input class="num" id="maniobraDescarga" type="number" min="0" value="4500"></td>
+          <td class="r" id="impDescarga">—</td>
+        </tr>
+        <tr class="subtotal"><td colspan="4">COSTO OPERATIVO TOTAL</td><td class="r" id="costoOperativo">—</td></tr>
+      </tbody>
+    </table>
+
+    <!-- MARGEN Y PRECIO -->
+    <div class="sectitle">B · Margen y precio de venta</div>
+    <div class="ledger">
+      <div class="lrow"><label>Costo operativo total</label><span id="ledCosto">—</span></div>
+      <div class="lrow"><label>Margen de utilidad&nbsp;&nbsp;<span class="pct-wrap"><input class="num sm" id="margen" type="number" min="0" step="1" value="20"></span></label><span id="ledUtil">—</span></div>
+      <div class="lrow venta"><label>Precio de venta (antes de IVA)</label><span id="ledPrecio">—</span></div>
+      <div class="lrow"><label>IVA&nbsp;&nbsp;<span class="pct-wrap"><input class="num sm" id="iva" type="number" min="0" step="1" value="16"></span></label><span id="ledIva">—</span></div>
+      <div class="lrow total"><label>TOTAL A PAGAR (MXN)</label><span id="ledTotal">—</span></div>
+      <div class="ret">Retención de IVA autotransporte (4%), informativa: <b id="ledRet">—</b></div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="sectitle">C · Indicadores</div>
+    <div class="kpis">
+      <div class="kpi"><div class="k">Costo op. / viaje</div><div class="v" id="kCostoViaje">—</div></div>
+      <div class="kpi"><div class="k">Precio venta / viaje</div><div class="v" id="kPrecioViaje">—</div></div>
+      <div class="kpi"><div class="k">Precio / pieza</div><div class="v" id="kPrecioPieza">—</div></div>
+      <div class="kpi"><div class="k">Utilidad total</div><div class="v" id="kUtilidad">—</div></div>
+    </div>
+
+    <!-- CONDICIONES -->
+    <div class="sectitle">Condiciones comerciales</div>
+    <ul class="cond">
+      <li>Moneda: pesos mexicanos (MXN). Precios más IVA (desglosado arriba).</li>
+      <li contenteditable>Forma de pago: 50% anticipo a la programación / 50% contra entrega.</li>
+      <li>Ruta directa planta → obra; peajes y combustible incluidos en el flete.</li>
+      <li contenteditable>Estadía libre: 3 h por maniobra; excedente $______ / hora.</li>
+      <li>El seguro cubre el valor declarado; excedentes requieren póliza adicional.</li>
+      <li>Accesos, maniobrabilidad y permisos dentro de obra por cuenta del cliente.</li>
+      <li>No incluye descarga en obra (salvo se active), maniobras extraordinarias ni tiempos muertos.</li>
+    </ul>
+
+    <div class="sectitle">Notas</div>
+    <div class="notas" id="notasBox">
+      <p id="notaReporte">Sin datos de Logística 3D todavía.</p>
+      <p class="warn">El margen de utilidad es una decisión comercial: si el flete se traslada a costo, ponerlo en 0%.</p>
+      <p class="warn" id="notaSeguro">El valor declarado es un placeholder: sustituir por el valor real del material para el cálculo correcto del seguro.</p>
+    </div>
+
+    <div class="firmas">
+      <div class="firma"><div class="line">&nbsp;</div><b>Autoriza — GAMA SUR</b>Nombre y firma</div>
+      <div class="firma"><div class="line">&nbsp;</div><b>Acepta — Cliente</b>Nombre y firma</div>
+    </div>
+
+    <footer id="footerDoc">Documento editable · GAMA SUR · Generado a partir del reporte de Logística 3D</footer>
+  </div>
+</div>
+
+<script>
+  /* ============================================================
+     Puente de datos con Logística 3D (mismo patrón que el despiece:
+     localStorage instantáneo entre pestañas + Firebase entre dispositivos)
+     ============================================================ */
+  const FB_LOG = { apiKey:"AIzaSyB0txTXmZEvYQX-uKvnJ6SVnP-yfeyhfBc", databaseURL:"https://launcher-gama-sur-default-rtdb.firebaseio.com" };
+  const LOGO_KEY = 'gamasur_logo_global';
+  const COTIZ_KEY = 'gamasur_cotiz_logistica';
+  var fireDbLog = null;
+
+  let VIAJES = [];
+  let PIEZAS = 0;
+
+  const mxn = x => (x||0).toLocaleString('es-MX',{style:'currency',currency:'MXN',minimumFractionDigits:2,maximumFractionDigits:2});
+  const mxn0 = x => (x||0).toLocaleString('es-MX',{style:'currency',currency:'MXN',maximumFractionDigits:0});
+  const numf = x => (x||0).toLocaleString('es-MX');
+  const val = id => parseFloat(document.getElementById(id).value) || 0;
+  const set = (id,txt) => { const e=document.getElementById(id); if(e) e.textContent = txt; };
+
+  function setSync(s){
+    const p=document.getElementById('syncPill'); if(!p) return;
+    p.className = 'syncpill'+(s==='on'?' on':'');
+    p.textContent = (s==='on'?'● Sincronizado':s==='syncing'?'● Guardando…':'○ Local');
+  }
+  function applyLogo(v){
+    if(!v) return;
+    const i=document.getElementById('globalLogoImg');
+    if(i){ i.src=v; i.style.display=''; }
+  }
+  function loadLogoLocal(){
+    try{ const v=localStorage.getItem(LOGO_KEY); if(v) applyLogo(v); }catch(e){}
+  }
+
+  /* ---- Banner de datos (con/sin payload) ---- */
+  function updateDataBanner(payload){
+    const b=document.getElementById('dataBanner'); if(!b) return;
+    if(!payload){
+      b.className='databanner warn'; b.style.display='flex';
+      b.innerHTML='⚠ Sin datos de Logística 3D todavía. Ve a <a href="logistica-3d.html">Logística 3D</a>, calcula el acomodo y genera la cotización desde el botón <b>💰 Cotización</b>.';
+      return;
+    }
+    const d=new Date(payload.ts||Date.now());
+    const fecha=d.toLocaleString('es-MX',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+    b.className='databanner'; b.style.display='flex';
+    b.innerHTML='🚚 Datos de Logística 3D: <b>'+numf(payload.totalPiezas)+'</b> piezas · <b>'+payload.totalViajes+'</b> viajes · '+fecha+
+      ' · <a href="#" onclick="cargarCotizacion(true);return false">recargar</a>';
+  }
+
+  /* ---- Render manifiesto (dinámico: solo lo que existe) ---- */
+  function bar(cls,pct){
+    if(pct===null || pct===undefined) return '<span class="barval">—</span>';
+    return '<div class="barwrap"><span class="bar '+cls+'"><i style="width:'+Math.round(pct*100)+'%"></i></span><span class="barval">'+Math.round(pct*100)+'%</span></div>';
+  }
+  function renderManifest(){
+    const tb = document.getElementById('manifestBody');
+    if(!VIAJES.length){
+      tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:16px">Sin viajes calculados todavía.</td></tr>';
+      set('tCam','—'); set('tRem','—'); set('tTot','—'); set('tPeso','—'); set('tFlete','—');
+      set('tagResumen','0 piezas · 0 viajes');
+      return;
+    }
+    let tCam=0,tRem=0,tTot=0,tPeso=0;
+    tb.innerHTML = VIAJES.map(r=>{
+      const tot=r.cam+r.rem; tCam+=r.cam; tRem+=r.rem; tTot+=tot; tPeso+=r.peso;
+      const flete = r.tipo==='c' ? val('fleteCompleto') : val('fleteParcial');
+      return '<tr class="'+(r.tipo==='p'?'partial':'')+'">'+
+        '<td class="l"><span class="viaje-b">Viaje '+r.v+'</span>'+(r.tipo==='p'?' · parcial':'')+'</td>'+
+        '<td>'+numf(r.cam)+'</td>'+
+        '<td>'+(r.rem?numf(r.rem):'—')+'</td>'+
+        '<td><b>'+numf(tot)+'</b></td>'+
+        '<td class="l">'+bar('cam',r.pcam)+'</td>'+
+        '<td class="l">'+bar('rem',r.prem)+'</td>'+
+        '<td>'+numf(r.peso)+'</td>'+
+        '<td class="r">'+mxn0(flete)+'</td></tr>';
+    }).join('');
+    set('tCam',numf(tCam)); set('tRem',numf(tRem)); set('tTot',numf(tTot)); set('tPeso',numf(tPeso)+' kg');
+    set('tagResumen', numf(PIEZAS||tTot)+' piezas · '+VIAJES.length+' viajes');
+  }
+
+  /* ---- Recálculo de costos (sin cambios de lógica) ---- */
+  function recalc(){
+    const nc=val('numCompletos'), np=val('numParciales'), viajes=nc+np;
+    const fc=val('fleteCompleto')*nc;
+    const fp=val('fleteParcial')*np;
+    const carga=val('maniobraCarga')*viajes;
+    const seguro=val('valorDeclarado')*val('tasaSeguro')/100;
+    const incl=document.getElementById('togDescarga').checked;
+    const descarga = incl ? val('maniobraDescarga')*viajes : 0;
+    const costo = fc+fp+carga+seguro+descarga;
+    const margen = val('margen')/100;
+    const utilidad = costo*margen;
+    const precio = costo+utilidad;
+    const iva = precio*val('iva')/100;
+    const total = precio+iva;
+    const ret = precio*0.04;
+
+    set('impFleteC',mxn(fc)); set('impFleteP',mxn(fp));
+    set('impCarga',mxn(carga)); set('impSeguro',mxn(seguro));
+    document.getElementById('cantCarga').textContent = viajes+' viajes';
+    document.getElementById('cantDescarga').textContent = viajes+' viajes';
+
+    const impDesc=document.getElementById('impDescarga');
+    impDesc.textContent = incl ? mxn(descarga) : '—';
+    document.getElementById('rowDescarga').classList.toggle('off', !incl);
+
+    set('costoOperativo',mxn(costo));
+    set('ledCosto',mxn(costo)); set('ledUtil',mxn(utilidad));
+    set('ledPrecio',mxn(precio)); set('ledIva',mxn(iva)); set('ledTotal',mxn(total));
+    set('ledRet',mxn(ret));
+
+    set('kCostoViaje', viajes?mxn0(costo/viajes):'—');
+    set('kPrecioViaje', viajes?mxn0(precio/viajes):'—');
+    set('kPrecioPieza', PIEZAS?mxn(precio/PIEZAS):'—');
+    set('kUtilidad', mxn0(utilidad));
+
+    // refrescar fletes del manifiesto si cambian tarifas
+    document.querySelectorAll('#manifestBody tr').forEach((tr,i)=>{
+      const r=VIAJES[i]; if(!r || !tr.lastElementChild) return;
+      const f = r.tipo==='c'?val('fleteCompleto'):val('fleteParcial');
+      tr.lastElementChild.textContent = mxn0(f);
+    });
+    set('tFlete', mxn0(val('fleteCompleto')*nc + val('fleteParcial')*np));
+  }
+
+  /* ---- Aplicar payload real de Logística 3D ---- */
+  function aplicarPayload(payload){
+    if(!payload || !Array.isArray(payload.viajes) || !payload.viajes.length){
+      VIAJES = []; PIEZAS = 0;
+      updateDataBanner(null);
+      renderManifest();
+      recalc();
+      return;
+    }
+    VIAJES = payload.viajes;
+    PIEZAS = payload.totalPiezas || 0;
+
+    const nCompletos = VIAJES.filter(v=>v.tipo==='c').length;
+    const nParciales = VIAJES.filter(v=>v.tipo==='p').length;
+    document.getElementById('numCompletos').value = nCompletos;
+    document.getElementById('numParciales').value = nParciales;
+    if(payload.costoCamRem)  document.getElementById('fleteCompleto').value = payload.costoCamRem;
+    if(payload.costoCamSolo) document.getElementById('fleteParcial').value  = payload.costoCamSolo;
+    if(payload.folio) document.getElementById('refReporte').textContent = payload.folio;
+    const fecha = new Date(payload.ts||Date.now());
+    document.getElementById('fechaDoc').textContent = fecha.toLocaleDateString('es-MX');
+
+    const utilTxt = (payload.utilPromedio!=null) ? payload.utilPromedio+'%' : '—';
+    document.getElementById('tUtil').textContent = 'Utilización promedio '+utilTxt+' · carga por volumen';
+
+    document.getElementById('notaReporte').innerHTML =
+      'Cotización basada en el reporte <b>'+(payload.folio||'—')+'</b>: '+VIAJES.length+' viaje'+(VIAJES.length===1?'':'s')+
+      ' ('+nCompletos+' completo'+(nCompletos===1?'':'s')+(nParciales?' + '+nParciales+' parcial'+(nParciales===1?'':'es'):'')+') para '+numf(PIEZAS)+' piezas.'+
+      (payload.totalCostoReal ? ' Costo de flete real del acomodo: <b>'+mxn0(payload.totalCostoReal)+'</b>.' : '');
+    document.getElementById('footerDoc').textContent = 'Documento editable · GAMA SUR · Generado a partir del reporte de Logística 3D '+(payload.folio||'');
+
+    updateDataBanner(payload);
+    renderManifest();
+    recalc();
+  }
+
+  function cargarCotizacion(force){
+    let payload=null;
+    try{ const raw=localStorage.getItem(COTIZ_KEY); if(raw) payload=JSON.parse(raw); }catch(e){}
+    aplicarPayload(payload);
+  }
+
+  function initFirebaseLog(){
+    if(typeof firebase==='undefined') return;
+    try{
+      if(!firebase.apps.length) firebase.initializeApp(FB_LOG);
+      fireDbLog=firebase.database();
+      fireDbLog.ref('.info/connected').on('value', s=> setSync(s.val()?'on':'off'));
+      fireDbLog.ref('gamasur/logo').on('value', snap=>{
+        const v=snap.val(); if(!v) return;
+        try{ localStorage.setItem(LOGO_KEY, v); }catch(e){}
+        applyLogo(v);
+      });
+      fireDbLog.ref('gamasur/cotizLogistica').on('value', snap=>{
+        const v=snap.val(); if(!v) return;
+        try{
+          const localRaw=localStorage.getItem(COTIZ_KEY);
+          const localTs=localRaw?(JSON.parse(localRaw).ts||0):0;
+          if((v.ts||0) >= localTs){ localStorage.setItem(COTIZ_KEY, JSON.stringify(v)); aplicarPayload(v); }
+        }catch(e){ try{ localStorage.setItem(COTIZ_KEY, JSON.stringify(v)); }catch(e2){} aplicarPayload(v); }
+      });
+    }catch(e){ console.warn('Firebase init:', e); }
+  }
+
+  document.querySelectorAll('input.num, #togDescarga').forEach(el=>{
+    el.addEventListener('input',recalc);
+    el.addEventListener('change',recalc);
+  });
+
+  /* INIT */
+  loadLogoLocal();
+  initFirebaseLog();
+  cargarCotizacion();
+  renderManifest();
+  recalc();
+
+  // Sync instantáneo entre pestañas del MISMO navegador (Logística 3D -> esta pestaña)
+  window.addEventListener('storage', function(e){
+    if(e.key === COTIZ_KEY && e.newValue){
+      try{ aplicarPayload(JSON.parse(e.newValue)); }catch(err){}
+    } else if(e.key === LOGO_KEY && e.newValue){
+      try{ applyLogo(e.newValue); }catch(err){}
+    }
+  });
+</script>
+</body>
+</html>
