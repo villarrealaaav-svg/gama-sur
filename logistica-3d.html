@@ -189,6 +189,54 @@ body.light .cbar{background:rgba(255,255,255,.92)}
      color:var(--soft);transition:all .15s;z-index:5;touch-action:manipulation}
 body.light .fab{background:rgba(255,255,255,.92)}
 .fab:hover{border-color:var(--blue);color:var(--ink)}
+
+/* ============================================================
+   REPORTE PDF — cliente final, tema azul GamaSur
+   ============================================================ */
+#reportPDF{display:none}
+.rpt-page{font-family:'Segoe UI',Arial,sans-serif;color:#1c2530;background:#fff;max-width:900px;margin:0 auto}
+.rpt-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1e4d8b;padding-bottom:12px;margin-bottom:16px}
+.rpt-logo{width:52px;height:52px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid #E5E7EB;padding:4px}
+.rpt-logo-ph{display:flex;align-items:center;justify-content:center;font-size:26px;background:#EFF6FF}
+.rpt-htitle{flex:1}
+.rpt-h1{font-size:20px;font-weight:800;color:#1e4d8b}
+.rpt-h2{font-size:11px;color:#64748b;margin-top:2px}
+.rpt-folio{text-align:right}
+.rpt-folio-num{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:12px;color:#1e4d8b;background:#EFF6FF;border:1px solid #BFDBFE;border-radius:6px;padding:3px 9px;display:inline-block}
+.rpt-folio-date{font-size:10px;color:#64748b;margin-top:4px}
+.rpt-kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:18px}
+.rpt-kpi{border:1px solid #E5E7EB;border-radius:8px;padding:8px 6px;text-align:center;background:#F8FAFC}
+.rpt-kpi-v{font-size:15px;font-weight:800;color:#1e4d8b;font-family:'JetBrains Mono',monospace}
+.rpt-kpi-l{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#334155;margin-top:2px}
+.rpt-kpi-s{font-size:7.5px;color:#94A3B8}
+.rpt-section{margin-bottom:18px}
+.rpt-sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:#1e4d8b;padding:6px 10px;border-radius:5px 5px 0 0}
+.rpt-table{width:100%;border-collapse:collapse;font-size:11px;border:1px solid #E5E7EB;border-top:none}
+.rpt-table thead th{background:#F1F5F9;color:#334155;font-size:9px;text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:6px 8px;border-bottom:1px solid #E5E7EB}
+.rpt-table td{padding:6px 8px;border-bottom:1px solid #F1F5F9}
+.rpt-table .rpt-num{text-align:right;font-family:'JetBrains Mono',monospace;font-weight:700}
+.rpt-sw{display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
+.rpt-code{font-weight:700;color:#1e4d8b}
+.rpt-empty{text-align:center;color:#94A3B8;font-style:italic;padding:12px}
+.rpt-trip{border:1px solid #E5E7EB;border-radius:8px;margin-bottom:10px;overflow:hidden}
+.rpt-trip-head{display:flex;justify-content:space-between;background:#1e4d8b;color:#fff;font-weight:700;font-size:12px;padding:6px 10px}
+.rpt-trip-cost{font-family:'JetBrains Mono',monospace;color:#A7F3D0}
+.rpt-trip-unit{padding:8px 10px;border-top:1px solid #F1F5F9}
+.rpt-trip-unit-h{font-size:10px;font-weight:700;color:#334155;margin-bottom:4px}
+.rpt-table-sm td{padding:3px 6px;font-size:10px}
+.rpt-warn{background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;border-radius:6px;padding:8px 10px;font-size:11px;font-weight:600;margin-top:8px}
+.rpt-views-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #E5E7EB;border-top:none;padding:10px}
+.rpt-view{margin:0;border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;background:#F8FAFC}
+.rpt-view img{width:100%;display:block;background:#fff}
+.rpt-view figcaption{font-size:9px;font-weight:700;text-align:center;color:#334155;padding:4px;border-top:1px solid #E5E7EB;text-transform:uppercase;letter-spacing:.03em}
+.rpt-footer{text-align:center;font-size:9px;color:#94A3B8;border-top:1px solid #E5E7EB;padding-top:8px;margin-top:6px}
+body.printing-report .app,body.printing-report .mo{display:none!important}
+body.printing-report #reportPDF{display:block!important}
+@media print{
+  body.printing-report{background:#fff!important}
+  .rpt-section,.rpt-trip{page-break-inside:avoid;break-inside:avoid}
+  @page{size:letter portrait;margin:12mm 10mm}
+}
 </style>
 </head>
 <body>
@@ -275,7 +323,10 @@ body.light .fab{background:rgba(255,255,255,.92)}
     <span style="color:var(--mute);align-self:center">|</span>
     <button class="cb" id="cb-x" onclick="txray()">👁</button>
   </div>
-  <div class="fab" onclick="openMo()">⚙ Vehículos</div>
+  <div style="position:absolute;bottom:56px;right:10px;display:flex;gap:8px;z-index:5">
+    <div class="fab" style="position:static" onclick="exportarReportePDF()" title="Genera un reporte listo para el cliente (PDF)">📄 Reporte PDF</div>
+    <div class="fab" style="position:static" onclick="openMo()">⚙ Vehículos</div>
+  </div>
 </div>
 </div>
 
@@ -715,6 +766,14 @@ function calcular(){
     vjl.appendChild(d);
   }
   dibujar3D(viajes);
+
+  lastReport = {
+    pares, ids, tripCosto, totalCosto,
+    totalPzas: todos.length,
+    utilPromedio: viajes.length ? Math.round(viajes.reduce((s,v)=>s+v.util,0)/viajes.length*100) : 0,
+    pesoTotal: viajes.length ? Math.round(viajes.reduce((s,v)=>s+v.pesoTotal,0)) : 0,
+    sinColocar: rest.length,
+  };
 }
 
 /* ============================================================
@@ -940,6 +999,7 @@ function animBajar(ms){
    - Copete:       X=[LcJ, LcJ+LCop]       (al frente del camión)
    ============================================================ */
 let sc,cam3,ren;
+let lastReport=null; // datos del ultimo calculo, para el Reporte PDF
 let meshes=[],grps=[];
 let xray=false;
 
@@ -1031,7 +1091,7 @@ function calcCam(){
 
 function initThree(){
   const cv=document.getElementById('cv');
-  ren=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance'});
+  ren=new THREE.WebGLRenderer({canvas:cv,antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});
   ren.setPixelRatio(Math.min(window.devicePixelRatio,2));
   ren.setClearColor(dark?0x1b2c4a:0xf0ede6);
   ren.shadowMap.enabled=false;               // sin sombras → mucho más ligero al mover/cargar
@@ -1325,6 +1385,147 @@ window.addEventListener('storage', function(e){
     try{ applyLogo(e.newValue); }catch(err){}
   }
 });
+
+/* ============================================================
+   REPORTE PDF PARA CLIENTE
+   Captura 4 vistas fijas del acomodo (Top/Frente/Lateral/Iso),
+   arma tabla de material propuesto + detalle por viaje, e imprime
+   (el usuario guarda como PDF desde el diálogo de impresión).
+   ============================================================ */
+function capturarVistas(){
+  const targets={
+    t:{th:.70, ph:.02,  label:'Vista Superior'},
+    f:{th:Math.PI/2, ph:1.47, label:'Vista Frontal'},
+    s:{th:.01, ph:1.47, label:'Vista Lateral'},
+    i:{th:.79, ph:.62,  label:'Vista Isométrica'},
+  };
+  const savedTh=ang.th, savedPh=ang.ph;
+  const cv=document.getElementById('cv');
+  const orden=['t','f','s','i'];
+  let i=0, out=[];
+  return new Promise(resolve=>{
+    function next(){
+      if(i>=orden.length){
+        ang.th=savedTh; ang.ph=savedPh; calcCam(); ren.render(sc,cam3);
+        resolve(out);
+        return;
+      }
+      const key=orden[i]; const t=targets[key];
+      ang.th=t.th; ang.ph=t.ph; calcCam();
+      // setTimeout (no rAF): rAF se pausa si la pestaña queda oculta/sin foco y colgaría el reporte
+      setTimeout(()=>{
+        ren.render(sc,cam3);
+        out.push({label:t.label, src:cv.toDataURL('image/png')});
+        i++; next();
+      },40);
+    }
+    next();
+  });
+}
+function rptMaterialRows(){
+  let rows='', any=false;
+  CAT.forEach(p=>{
+    const ms=(medidas[p.code]||[]).filter(m=>Math.floor(m.qty)>0);
+    if(!ms.length) return;
+    any=true;
+    const totalPzs=ms.reduce((s,m)=>s+Math.floor(m.qty),0);
+    const largos=ms.map(m=>(+m.largo).toFixed(2)+' m ×'+Math.floor(m.qty)).join(', ');
+    rows+='<tr><td><span class="rpt-sw" style="background:'+p.hex+'"></span></td>'+
+      '<td class="rpt-code">'+p.code+'</td>'+
+      '<td>'+Math.round(p.esp*100)+' cm espesor · 60 cm ancho</td>'+
+      '<td>'+largos+'</td>'+
+      '<td class="rpt-num">'+totalPzs+'</td></tr>';
+  });
+  BOXES.forEach(b=>{
+    const el=document.getElementById(b.inp);
+    const q=el?Math.max(0,parseInt(el.value)||0):0;
+    if(!q) return;
+    any=true;
+    rows+='<tr><td><span class="rpt-sw" style="background:'+b.hex+'"></span></td>'+
+      '<td class="rpt-code">'+b.label+'</td>'+
+      '<td>'+b.dx.toFixed(2)+'×'+b.dz.toFixed(2)+'×'+b.dy.toFixed(2)+' m</td>'+
+      '<td>—</td>'+
+      '<td class="rpt-num">'+q+' '+b.unidad+'</td></tr>';
+  });
+  return any?rows:'<tr><td colspan="5" class="rpt-empty">Sin material capturado.</td></tr>';
+}
+function rptViajesHTML(){
+  if(!lastReport||!lastReport.ids.length) return '<div class="rpt-empty">Sin viajes calculados.</div>';
+  let out='';
+  lastReport.ids.forEach(id=>{
+    const par=lastReport.pares[id];
+    const costo=lastReport.tripCosto[id];
+    out+='<div class="rpt-trip"><div class="rpt-trip-head">🚚 Viaje '+id+
+      '<span class="rpt-trip-cost">$'+costo.toLocaleString('es-MX')+' MXN</span></div>';
+    [['cam','Camión + copete'],['rem','Remolque']].forEach(([tp,nombre])=>{
+      const v=par[tp]; if(!v) return;
+      const agr={};
+      v.placed.forEach(c=>{
+        const k=c.it.code+(c.it.kind==='panel'?'@'+c.it.dx.toFixed(2):'');
+        agr[k]=(agr[k]||0)+1;
+      });
+      const rows=Object.entries(agr).map(([k,cnt])=>{
+        const code=k.split('@')[0], largo=k.split('@')[1];
+        const col=colorOf(code);
+        return '<tr><td><span class="rpt-sw" style="background:'+col+'"></span></td>'+
+          '<td>'+code+(largo?' · '+largo+' m':'')+'</td>'+
+          '<td class="rpt-num">'+cnt+'</td></tr>';
+      }).join('');
+      out+='<div class="rpt-trip-unit"><div class="rpt-trip-unit-h">'+nombre+' — '+
+        Math.round(v.util*100)+'% carga'+(v.pesoTotal?' · '+Math.round(v.pesoTotal)+' kg':'')+'</div>'+
+        '<table class="rpt-table rpt-table-sm"><tbody>'+rows+'</tbody></table></div>';
+    });
+    out+='</div>';
+  });
+  if(lastReport.sinColocar>0){
+    out+='<div class="rpt-warn">⚠ '+lastReport.sinColocar+' piezas no cupieron en los viajes calculados.</div>';
+  }
+  return out;
+}
+function rptBuildHTML(shots){
+  const now=new Date();
+  const folio='LOG-'+now.toISOString().slice(0,10).replace(/-/g,'')+'-'+String(now.getHours()).padStart(2,'0')+String(now.getMinutes()).padStart(2,'0');
+  const fecha=now.toLocaleDateString('es-MX',{day:'2-digit',month:'long',year:'numeric'});
+  const logoImg=document.getElementById('globalLogoImg');
+  const hasLogo=logoImg && logoImg.style.display!=='none' && logoImg.src;
+  const kpis=[
+    ['Total piezas', lastReport.totalPzas, 'paneles + pallets'],
+    ['Viajes', lastReport.ids.length, 'camión (+remolque)'],
+    ['% Carga', lastReport.utilPromedio+'%', 'utilización promedio'],
+    ['Peso total', lastReport.pesoTotal.toLocaleString('es-MX')+' kg', 'estimado'],
+    ['Costo flete total', '$'+lastReport.totalCosto.toLocaleString('es-MX'), 'MXN · suma de viajes'],
+  ];
+  return '<div class="rpt-page">'+
+    '<div class="rpt-header">'+
+      (hasLogo?'<img class="rpt-logo" src="'+logoImg.src+'">':'<div class="rpt-logo rpt-logo-ph">🏗️</div>')+
+      '<div class="rpt-htitle"><div class="rpt-h1">Reporte de Logística</div>'+
+      '<div class="rpt-h2">GAMA SUR · Distribuidor NOVIDESA</div></div>'+
+      '<div class="rpt-folio"><div class="rpt-folio-num">'+folio+'</div><div class="rpt-folio-date">'+fecha+'</div></div>'+
+    '</div>'+
+    '<div class="rpt-kpis">'+kpis.map(k=>'<div class="rpt-kpi"><div class="rpt-kpi-v">'+k[1]+'</div>'+
+      '<div class="rpt-kpi-l">'+k[0]+'</div><div class="rpt-kpi-s">'+k[2]+'</div></div>').join('')+'</div>'+
+    '<div class="rpt-section"><div class="rpt-sec-title">Material Propuesto</div>'+
+      '<table class="rpt-table"><thead><tr><th></th><th>Tipo</th><th>Especificación</th><th>Largo(s) capturado(s)</th><th class="rpt-num">Piezas</th></tr></thead>'+
+      '<tbody>'+rptMaterialRows()+'</tbody></table></div>'+
+    '<div class="rpt-section"><div class="rpt-sec-title">Detalle por Viaje</div>'+rptViajesHTML()+'</div>'+
+    '<div class="rpt-section"><div class="rpt-sec-title">Vistas del Acomodo</div>'+
+      '<div class="rpt-views-grid">'+shots.map(s=>'<figure class="rpt-view"><img src="'+s.src+'"><figcaption>'+s.label+'</figcaption></figure>').join('')+'</div></div>'+
+    '<div class="rpt-footer">Generado automáticamente por Logística 3D — GAMA SUR · '+fecha+'</div>'+
+  '</div>';
+}
+async function exportarReportePDF(){
+  if(!lastReport || !lastReport.ids || !lastReport.ids.length){
+    alert('Primero corre "⚡ Calcular acomodo" para generar el reporte.');
+    return;
+  }
+  const shots = await capturarVistas();
+  document.getElementById('reportPDF').innerHTML = rptBuildHTML(shots);
+  document.body.classList.add('printing-report');
+  requestAnimationFrame(()=>{ window.print(); });
+  const cleanup=()=>{ document.body.classList.remove('printing-report'); window.removeEventListener('afterprint',cleanup); };
+  window.addEventListener('afterprint',cleanup);
+}
 </script>
+<div id="reportPDF"></div>
 </body>
 </html>
