@@ -218,12 +218,16 @@ body.light .fab{background:rgba(255,255,255,.92)}
 .rpt-sw{display:inline-block;width:10px;height:10px;border-radius:3px;border:1px solid rgba(0,0,0,.15)}
 .rpt-code{font-weight:700;color:#1e4d8b}
 .rpt-empty{text-align:center;color:#94A3B8;font-style:italic;padding:12px}
-.rpt-trip{border:1px solid #E5E7EB;border-radius:8px;margin-bottom:10px;overflow:hidden}
-.rpt-trip-head{display:flex;justify-content:space-between;background:#1e4d8b;color:#fff;font-weight:700;font-size:12px;padding:6px 10px}
+.rpt-trips-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid #E5E7EB;border-top:none;padding:8px}
+.rpt-trip{border:1px solid #E5E7EB;border-radius:7px;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+.rpt-trip-head{display:flex;justify-content:space-between;background:#1e4d8b;color:#fff;font-weight:700;font-size:10.5px;padding:4px 8px}
 .rpt-trip-cost{font-family:'JetBrains Mono',monospace;color:#A7F3D0}
-.rpt-trip-unit{padding:8px 10px;border-top:1px solid #F1F5F9}
-.rpt-trip-unit-h{font-size:10px;font-weight:700;color:#334155;margin-bottom:4px}
-.rpt-table-sm td{padding:3px 6px;font-size:10px}
+.rpt-trip-unit{padding:5px 8px;border-top:1px solid #F1F5F9}
+.rpt-trip-unit-h{font-size:8.5px;font-weight:700;color:#334155;margin-bottom:3px}
+.rpt-table-sm{table-layout:fixed;border:none!important}
+.rpt-table-sm td{padding:1.5px 4px;font-size:8.5px}
+.rpt-table-sm td:first-child{width:14px}
+.rpt-table-sm td:last-child{width:28px}
 .rpt-warn{background:#FEF2F2;border:1px solid #FCA5A5;color:#B91C1C;border-radius:6px;padding:8px 10px;font-size:11px;font-weight:600;margin-top:8px}
 .rpt-views-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;border:1px solid #E5E7EB;border-top:none;padding:10px}
 .rpt-view{margin:0;border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;background:#F8FAFC}
@@ -233,9 +237,12 @@ body.light .fab{background:rgba(255,255,255,.92)}
 body.printing-report .app,body.printing-report .mo{display:none!important}
 body.printing-report #reportPDF{display:block!important}
 @media print{
+  /* html,body tienen overflow:hidden+height:100% para bloquear scroll del canvas 3D en pantalla;
+     eso mismo recorta la impresion a 1 sola hoja si no se libera aqui. */
+  html,body.printing-report{height:auto!important;overflow:visible!important}
   body.printing-report{background:#fff!important}
   .rpt-section,.rpt-trip{page-break-inside:avoid;break-inside:avoid}
-  @page{size:letter portrait;margin:12mm 10mm}
+  @page{size:letter portrait;margin:12mm}
 }
 </style>
 </head>
@@ -1451,7 +1458,7 @@ function rptMaterialRows(){
 }
 function rptViajesHTML(){
   if(!lastReport||!lastReport.ids.length) return '<div class="rpt-empty">Sin viajes calculados.</div>';
-  let out='';
+  let out='<div class="rpt-trips-grid">';
   lastReport.ids.forEach(id=>{
     const par=lastReport.pares[id];
     const costo=lastReport.tripCosto[id];
@@ -1477,6 +1484,7 @@ function rptViajesHTML(){
     });
     out+='</div>';
   });
+  out+='</div>';
   if(lastReport.sinColocar>0){
     out+='<div class="rpt-warn">⚠ '+lastReport.sinColocar+' piezas no cupieron en los viajes calculados.</div>';
   }
