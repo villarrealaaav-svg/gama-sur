@@ -195,7 +195,7 @@ body.light .fab{background:rgba(255,255,255,.92)}
    ============================================================ */
 #reportPDF{display:none}
 .rpt-page{font-family:'Segoe UI',Arial,sans-serif;color:#1c2530;background:#fff;max-width:900px;margin:0 auto}
-.rpt-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1e4d8b;padding-bottom:12px;margin-bottom:16px}
+.rpt-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #1e4d8b;padding-bottom:22px;margin-bottom:26px}
 .rpt-logo{width:52px;height:52px;object-fit:contain;border-radius:8px;background:#fff;border:1px solid #E5E7EB;padding:4px}
 .rpt-logo-ph{display:flex;align-items:center;justify-content:center;font-size:26px;background:#EFF6FF}
 .rpt-htitle{flex:1}
@@ -209,7 +209,7 @@ body.light .fab{background:rgba(255,255,255,.92)}
 .rpt-kpi-v{font-size:15px;font-weight:800;color:#1e4d8b;font-family:'JetBrains Mono',monospace}
 .rpt-kpi-l{font-size:8.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:#334155;margin-top:2px}
 .rpt-kpi-s{font-size:7.5px;color:#94A3B8}
-.rpt-section{margin-bottom:18px}
+.rpt-section{margin-bottom:28px}
 .rpt-sec-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#fff;background:#1e4d8b;padding:6px 10px;border-radius:5px 5px 0 0}
 .rpt-table{width:100%;border-collapse:collapse;font-size:11px;border:1px solid #E5E7EB;border-top:none}
 .rpt-table thead th{background:#F1F5F9;color:#334155;font-size:9px;text-transform:uppercase;letter-spacing:.03em;text-align:left;padding:6px 8px;border-bottom:1px solid #E5E7EB}
@@ -219,7 +219,7 @@ body.light .fab{background:rgba(255,255,255,.92)}
 .rpt-code{font-weight:700;color:#1e4d8b}
 .rpt-empty{text-align:center;color:#94A3B8;font-style:italic;padding:12px}
 .rpt-trips-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;border:1px solid #E5E7EB;border-top:none;padding:8px}
-.rpt-trip{border:1px solid #E5E7EB;border-radius:7px;overflow:hidden;page-break-inside:avoid;break-inside:avoid}
+.rpt-trip{border:1.5px solid #CBD5E1;border-radius:8px;overflow:hidden;page-break-inside:avoid;break-inside:avoid;box-shadow:0 1px 3px rgba(30,77,139,.08)}
 .rpt-trip-head{display:flex;justify-content:space-between;background:#1e4d8b;color:#fff;font-weight:700;font-size:10.5px;padding:4px 8px}
 .rpt-trip-cost{font-family:'JetBrains Mono',monospace;color:#A7F3D0}
 .rpt-trip-unit{padding:5px 8px;border-top:1px solid #F1F5F9}
@@ -233,7 +233,7 @@ body.light .fab{background:rgba(255,255,255,.92)}
 .rpt-view{margin:0;border:1px solid #E5E7EB;border-radius:6px;overflow:hidden;background:#F8FAFC}
 .rpt-view img{width:100%;display:block;background:#fff}
 .rpt-view figcaption{font-size:9px;font-weight:700;text-align:center;color:#334155;padding:4px;border-top:1px solid #E5E7EB;text-transform:uppercase;letter-spacing:.03em}
-.rpt-footer{text-align:center;font-size:9px;color:#94A3B8;border-top:1px solid #E5E7EB;padding-top:8px;margin-top:6px}
+.rpt-footer{text-align:center;font-size:9px;color:#94A3B8;border-top:1px solid #E5E7EB;padding-top:16px;margin-top:20px;padding-bottom:6px}
 body.printing-report .app,body.printing-report .mo{display:none!important}
 body.printing-report #reportPDF{display:block!important}
 @media print{
@@ -242,7 +242,7 @@ body.printing-report #reportPDF{display:block!important}
   html,body.printing-report{height:auto!important;overflow:visible!important}
   body.printing-report{background:#fff!important}
   .rpt-section,.rpt-trip{page-break-inside:avoid;break-inside:avoid}
-  @page{size:letter portrait;margin:12mm}
+  @page{size:letter portrait;margin:36mm}
 }
 </style>
 </head>
