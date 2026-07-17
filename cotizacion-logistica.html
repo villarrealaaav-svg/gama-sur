@@ -191,7 +191,7 @@
   .ledger .ret{font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px;padding:0 12px}
 
   /* KPIs */
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
   .kpi{border:1px solid var(--line);border-radius:9px;padding:11px 12px;background:#F8FAFC}
   .kpi .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800}
   .kpi .v{font-size:17px;font-weight:800;color:var(--navy);margin-top:5px}
@@ -369,13 +369,12 @@
       </tbody>
     </table>
 
-    <!-- MARGEN Y PRECIO -->
-    <div class="sectitle">B · Margen y precio de venta</div>
+    <!-- PRECIO DE VENTA -->
+    <div class="sectitle">B · Precio de venta</div>
     <div class="ledger">
       <div class="lrow"><label>Costo operativo total</label><span id="ledCosto">—</span></div>
-      <div class="lrow"><label>Margen de utilidad&nbsp;&nbsp;<span class="pct-wrap"><input class="num sm" id="margen" type="number" min="0" step="1" value="20"></span></label><span id="ledUtil">—</span></div>
       <div class="lrow venta"><label>Precio de venta (antes de IVA)</label><span id="ledPrecio">—</span></div>
-      <div class="lrow"><label>IVA&nbsp;&nbsp;<span class="pct-wrap"><input class="num sm" id="iva" type="number" min="0" step="1" value="16"></span></label><span id="ledIva">—</span></div>
+      <div class="lrow"><label>IVA&nbsp;&nbsp;16%</label><span id="ledIva">—</span></div>
       <div class="lrow total"><label>TOTAL A PAGAR (MXN)</label><span id="ledTotal">—</span></div>
       <div class="ret">Retención de IVA autotransporte (4%), informativa: <b id="ledRet">—</b></div>
     </div>
@@ -386,7 +385,6 @@
       <div class="kpi"><div class="k">Costo op. / viaje</div><div class="v" id="kCostoViaje">—</div></div>
       <div class="kpi"><div class="k">Precio venta / viaje</div><div class="v" id="kPrecioViaje">—</div></div>
       <div class="kpi"><div class="k">Precio / pieza</div><div class="v" id="kPrecioPieza">—</div></div>
-      <div class="kpi"><div class="k">Utilidad total</div><div class="v" id="kUtilidad">—</div></div>
     </div>
 
     <!-- CONDICIONES -->
@@ -404,7 +402,7 @@
     <div class="sectitle">Notas</div>
     <div class="notas" id="notasBox">
       <p id="notaReporte">Sin datos de Logística 3D todavía.</p>
-      <p class="warn">El margen de utilidad es una decisión comercial: si el flete se traslada a costo, ponerlo en 0%.</p>
+      <p class="warn">La utilidad ya va incluida en los precios de flete y maniobra de carga capturados arriba.</p>
       <p class="warn" id="notaSeguro">El valor declarado es un placeholder: sustituir por el valor real del material para el cálculo correcto del seguro.</p>
     </div>
 
@@ -506,10 +504,9 @@
     const incl=document.getElementById('togDescarga').checked;
     const descarga = incl ? val('maniobraDescarga')*viajes : 0;
     const costo = fc+fp+carga+seguro+descarga;
-    const margen = val('margen')/100;
-    const utilidad = costo*margen;
-    const precio = costo+utilidad;
-    const iva = precio*val('iva')/100;
+    // Sin margen aparte: la utilidad ya va incluida en las tarifas de flete/maniobra editables.
+    const precio = costo;
+    const iva = precio*0.16; // IVA fijo 16%
     const total = precio+iva;
     const ret = precio*0.04;
 
@@ -523,14 +520,13 @@
     document.getElementById('rowDescarga').classList.toggle('off', !incl);
 
     set('costoOperativo',mxn(costo));
-    set('ledCosto',mxn(costo)); set('ledUtil',mxn(utilidad));
+    set('ledCosto',mxn(costo));
     set('ledPrecio',mxn(precio)); set('ledIva',mxn(iva)); set('ledTotal',mxn(total));
     set('ledRet',mxn(ret));
 
     set('kCostoViaje', viajes?mxn0(costo/viajes):'—');
     set('kPrecioViaje', viajes?mxn0(precio/viajes):'—');
     set('kPrecioPieza', PIEZAS?mxn(precio/PIEZAS):'—');
-    set('kUtilidad', mxn0(utilidad));
 
     // refrescar fletes del manifiesto si cambian tarifas
     document.querySelectorAll('#manifestBody tr').forEach((tr,i)=>{
