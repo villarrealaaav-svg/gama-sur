@@ -190,19 +190,10 @@
   .ledger .lrow.total label{color:#DBEAFE}
   .ledger .ret{font-size:10.5px;color:var(--muted);text-align:right;margin-top:6px;padding:0 12px}
 
-  /* KPIs */
-  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
-  .kpi{border:1px solid var(--line);border-radius:9px;padding:11px 12px;background:#F8FAFC}
-  .kpi .k{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:800}
-  .kpi .v{font-size:17px;font-weight:800;color:var(--navy);margin-top:5px}
-
-  /* Condiciones / notas */
+  /* Condiciones */
   ul.cond{list-style:none;font-size:12px;color:var(--ink)}
   ul.cond li{padding:3px 0 3px 16px;position:relative}
   ul.cond li::before{content:"";position:absolute;left:2px;top:9px;width:5px;height:5px;border-radius:50%;background:var(--accent)}
-  .notas{font-size:11px;color:var(--muted);background:#F8FAFC;border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 8px 8px 0;margin-top:4px}
-  .notas p{padding:2px 0}
-  .warn{color:#B45309}
 
   .firmas{display:grid;grid-template-columns:1fr 1fr;gap:60px;margin-top:40px}
   .firma{text-align:center;font-size:11.5px;color:var(--muted)}
@@ -218,7 +209,6 @@
     .sheet{box-shadow:none;max-width:none;border-radius:0}
     input.num{border:none;background:transparent;padding:0;width:auto;color:var(--navy)}
     [contenteditable]{border-bottom:none}
-    .kpi{background:#fff}
     header{-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .manifest th,.manifest tfoot td,.costos tr.subtotal td,.ledger .lrow.total,.ledger .lrow.venta,
     .bar>i,.dot,.sectitle .tag,.meta .folio{-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -226,7 +216,6 @@
   }
   @media(max-width:640px){
     .grid2{grid-template-columns:1fr}
-    .kpis{grid-template-columns:repeat(2,1fr)}
     header{flex-direction:column}.meta{text-align:left}
     .ledger{width:100%}
   }
@@ -255,9 +244,10 @@
   <header>
     <div class="brand">
       <div class="mark">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#1e4d8b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M1 4h13v9H1z"/><path d="M14 8h4l3 3v2h-7z"/><circle cx="5" cy="17" r="1.6"/><circle cx="17" cy="17" r="1.6"/>
+        <svg id="markFallback" viewBox="0 0 24 24" fill="none" stroke="#1e4d8b" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-8h6v8"/>
         </svg>
+        <img id="markLogoImg" style="display:none" alt="GAMA SUR">
       </div>
       <div>
         <h1 contenteditable>GAMA SUR</h1>
@@ -278,7 +268,7 @@
     <!-- CLIENTE / SERVICIO -->
     <div class="sectitle">Cliente y servicio</div>
     <div class="grid2">
-      <div class="fld"><label>Cliente</label><span class="val" contenteditable>[Razón social del cliente]</span></div>
+      <div class="fld"><label>Cliente</label><span class="val" id="clienteNombre" contenteditable>[Razón social del cliente]</span></div>
       <div class="fld"><label>RFC</label><span class="val" contenteditable>[RFC]</span></div>
       <div class="fld"><label>Obra / Proyecto</label><span class="val" contenteditable>[Nombre de la obra]</span></div>
       <div class="fld"><label>Contacto obra</label><span class="val" contenteditable>[Nombre / teléfono]</span></div>
@@ -379,14 +369,6 @@
       <div class="ret">Retención de IVA autotransporte (4%), informativa: <b id="ledRet">—</b></div>
     </div>
 
-    <!-- KPIs -->
-    <div class="sectitle">C · Indicadores</div>
-    <div class="kpis">
-      <div class="kpi"><div class="k">Costo op. / viaje</div><div class="v" id="kCostoViaje">—</div></div>
-      <div class="kpi"><div class="k">Precio venta / viaje</div><div class="v" id="kPrecioViaje">—</div></div>
-      <div class="kpi"><div class="k">Precio / pieza</div><div class="v" id="kPrecioPieza">—</div></div>
-    </div>
-
     <!-- CONDICIONES -->
     <div class="sectitle">Condiciones comerciales</div>
     <ul class="cond">
@@ -399,16 +381,9 @@
       <li>No incluye descarga en obra (salvo se active), maniobras extraordinarias ni tiempos muertos.</li>
     </ul>
 
-    <div class="sectitle">Notas</div>
-    <div class="notas" id="notasBox">
-      <p id="notaReporte">Sin datos de Logística 3D todavía.</p>
-      <p class="warn">La utilidad ya va incluida en los precios de flete y maniobra de carga capturados arriba.</p>
-      <p class="warn" id="notaSeguro">El valor declarado es un placeholder: sustituir por el valor real del material para el cálculo correcto del seguro.</p>
-    </div>
-
     <div class="firmas">
       <div class="firma"><div class="line">&nbsp;</div><b>Autoriza — GAMA SUR</b>Nombre y firma</div>
-      <div class="firma"><div class="line">&nbsp;</div><b>Acepta — Cliente</b>Nombre y firma</div>
+      <div class="firma"><div class="line">&nbsp;</div><b>Acepta — Cliente</b><span id="firmaClienteNombre">Nombre y firma</span></div>
     </div>
 
     <footer id="footerDoc">Documento editable · GAMA SUR · Generado a partir del reporte de Logística 3D</footer>
@@ -443,6 +418,10 @@
     if(!v) return;
     const i=document.getElementById('globalLogoImg');
     if(i){ i.src=v; i.style.display=''; }
+    const m=document.getElementById('markLogoImg');
+    const f=document.getElementById('markFallback');
+    if(m){ m.src=v; m.style.display=''; }
+    if(f){ f.style.display='none'; }
   }
   function loadLogoLocal(){
     try{ const v=localStorage.getItem(LOGO_KEY); if(v) applyLogo(v); }catch(e){}
@@ -562,10 +541,6 @@
     const utilTxt = (payload.utilPromedio!=null) ? payload.utilPromedio+'%' : '—';
     document.getElementById('tUtil').textContent = 'Utilización promedio '+utilTxt+' · carga por volumen';
 
-    document.getElementById('notaReporte').innerHTML =
-      'Cotización basada en el reporte <b>'+(payload.folio||'—')+'</b>: '+VIAJES.length+' viaje'+(VIAJES.length===1?'':'s')+
-      ' ('+nCompletos+' completo'+(nCompletos===1?'':'s')+(nParciales?' + '+nParciales+' parcial'+(nParciales===1?'':'es'):'')+') para '+numf(PIEZAS)+' piezas.'+
-      (payload.totalCostoReal ? ' Costo de flete real del acomodo: <b>'+mxn0(payload.totalCostoReal)+'</b>.' : '');
     document.getElementById('footerDoc').textContent = 'Documento editable · GAMA SUR · Generado a partir del reporte de Logística 3D '+(payload.folio||'');
 
     updateDataBanner(payload);
@@ -606,12 +581,16 @@
     el.addEventListener('change',recalc);
   });
 
-  /* INIT */
+  // Autocompletar el nombre de firma del cliente con lo que se escriba en "Cliente" arriba
+  document.getElementById('clienteNombre').addEventListener('input', function(){
+    const v=this.textContent.trim();
+    document.getElementById('firmaClienteNombre').textContent = (v && v[0]!=='[') ? v : 'Nombre y firma';
+  });
+
+  /* INIT — aplicarPayload() ya renderiza/recalcula en ambos casos (con o sin datos) */
   loadLogoLocal();
   initFirebaseLog();
   cargarCotizacion();
-  renderManifest();
-  recalc();
 
   // Sync instantáneo entre pestañas del MISMO navegador (Logística 3D -> esta pestaña)
   window.addEventListener('storage', function(e){
