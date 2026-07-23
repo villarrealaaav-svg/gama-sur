@@ -480,10 +480,10 @@ function buildSB(){
     row.className='hr';
     row.style.borderColor=b.hex+'55';
     row.innerHTML=`
-      <div><div style="font-size:11px;font-weight:700;color:${b.hex}">${b.shape==='cylinder'?'🧻':b.deco==='L'?'🔲':'📦'} ${b.label}</div>
-        <span class="hd" style="color:${b.hex}">${b.dx.toFixed(2)}×${b.dz.toFixed(2)}×${b.dy.toFixed(2)}m${b.pzs?' · '+b.pzs+'pz':''}</span></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--ink)">${b.shape==='cylinder'?'🧻':b.deco==='L'?'🔲':'📦'} ${b.label}</div>
+        <span class="hd" style="color:var(--ink)">${b.dx.toFixed(2)}×${b.dz.toFixed(2)}×${b.dy.toFixed(2)}m${b.pzs?' · '+b.pzs+'pz':''}</span></div>
       <input type="number" id="${b.inp}" min="0" max="999" value="0"
-             style="border-color:${b.hex}66;color:${b.hex}">
+             style="border-color:${b.hex}66;color:var(--ink)">
       <span class="hd">${b.unidad}</span>`;
     bt.appendChild(row);
   });
